@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AI小说生成器 | v4.5</title>
+    <title>AI小说生成器 | v4.6</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📖%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
     <style>
@@ -187,7 +187,7 @@
     <div class="top-bar">
         <div class="logo">
             <h2><i class="fas fa-pen-fancy"></i> AI小说生成器</h2>
-            <span class="version-badge">v4.5</span>
+            <span class="version-badge">v4.6</span>
             <div class="current-book-badge"><i class="fas fa-book"></i> <span id="curBookName">未选择</span></div>
             <span id="storageIndicator" class="storage-indicator">💾 0MB / 5MB</span>
         </div>
@@ -276,21 +276,22 @@
 
 <!-- 模态框 -->
 <div id="apiModal" class="modal"><div class="modal-card"><h3>⚙️ API 调参</h3><div style="background:#3A2A2A;border-radius:12px;padding:8px 12px;margin-bottom:10px;font-size:0.65rem;color:#FFA070;"><i class="fas fa-shield-alt"></i> ⚠️ API Key 仅存储在浏览器本地，不会上传到任何服务器。请妥善保管，勿分享给他人。</div><input type="text" id="apiUrlInp" placeholder="API地址"><input type="password" id="apiKeyInp" placeholder="API Key"><input type="text" id="modelInp" placeholder="模型"><div class="range-row"><span>温度</span><input type="range" id="tempRange" min="0" max="2" step="0.05" value="0.95"><span id="tempVal">0.95</span></div><div class="range-row"><span>核采样 Top-p</span><input type="range" id="topPRange" min="0.1" max="1" step="0.01" value="0.95"><span id="topPVal">0.95</span></div><div class="range-row"><span>重复惩罚</span><input type="range" id="repPenaltyRange" min="1" max="2" step="0.05" value="1.0"><span id="repPenaltyVal">1.0</span></div><div class="range-row"><span>最大长度</span><input type="number" id="maxTokensInp" value="2200"></div><div class="range-row"><span>频率惩罚</span><input type="range" id="freqRange" min="0" max="1" step="0.05" value="0.25"><span id="freqVal">0.25</span></div><div class="range-row"><span>存在惩罚</span><input type="range" id="presRange" min="0" max="1" step="0.05" value="0.2"><span id="presVal">0.2</span></div><div class="range-row"><span>上下文章节</span><input type="range" id="ctxRange" min="1" max="50" step="1" value="3"><span id="ctxVal">2</span></div><div class="range-row"><span>停止词 (逗号分隔)</span><input type="text" id="stopWordsInp" style="width:100%"></div><div class="range-row" style="align-items:center;"><span>💭 思考模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="thinkingCheck" checked style="width:auto;margin:0;"> 开启思考模式后创意参数失效，请谨慎开启</label></div><div class="range-row"><span>推理强度</span><input type="range" id="reasoningRange" min="0" max="2" step="1" value="1"><span id="reasoningVal">high</span></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="testApiBtn" class="glass-btn">测试连接</button><button id="saveApiBtn" style="background:#2A6EA4;">保存</button><button id="closeApiBtn">取消</button></div></div></div>
-<div id="roleModal" class="modal"><div class="modal-card"><h3><i class="fas fa-users"></i> 本书角色库 · <span id="roleBookName"></span></h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="importGlobalCharsBtn" class="glass-btn"><i class="fas fa-download"></i> 从素材库导入</button><button id="exportToGlobalCharBtn" class="glass-btn"><i class="fas fa-upload"></i> 导出到素材库</button><button id="newCharBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增角色</button></div><div class="lib-container"><div class="lib-list"><h4>角色列表</h4><div id="charList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑角色</h4><input type="text" id="charName" placeholder="姓名"><textarea id="charAppearance" rows="3" placeholder="外貌体征"></textarea><textarea id="charPersonality" rows="2" placeholder="性格"></textarea><textarea id="charSpecial" rows="3" placeholder="服装及其他设定"></textarea><textarea id="charRelation" rows="3" placeholder="身份关联"></textarea><div><button id="saveCharBtn" class="glass-btn">保存角色</button><button id="cancelEditCharBtn" class="glass-btn">取消编辑</button></div></div></div><div><button id="closeRoleModal" class="glass-btn">关闭</button></div></div></div>
+<div id="roleModal" class="modal"><div class="modal-card"><h3><i class="fas fa-users"></i> 本书角色库 · <span id="roleBookName"></span></h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="importGlobalCharsBtn" class="glass-btn"><i class="fas fa-download"></i> 从素材库导入</button><button id="exportToGlobalCharBtn" class="glass-btn"><i class="fas fa-upload"></i> 导出到素材库</button><button id="exportBookCharsBtn" class="glass-btn"><i class="fas fa-file-export"></i> 导出 JSON</button><button id="newCharBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增角色</button></div><div class="lib-container"><div class="lib-list"><h4>角色列表</h4><div id="charList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑角色</h4><input type="text" id="charName" placeholder="姓名"><textarea id="charAppearance" rows="3" placeholder="外貌体征"></textarea><textarea id="charPersonality" rows="2" placeholder="性格"></textarea><textarea id="charSpecial" rows="3" placeholder="服装及其他设定"></textarea><textarea id="charRelation" rows="3" placeholder="身份关联"></textarea><div><button id="saveCharBtn" class="glass-btn">保存角色</button><button id="cancelEditCharBtn" class="glass-btn">取消编辑</button></div></div></div><div><button id="closeRoleModal" class="glass-btn">关闭</button></div></div></div>
 <div id="globalRoleModal" class="modal"><div class="modal-card"><h3><i class="fas fa-box"></i> 素材角色库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalCharBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增素材角色</button><button id="exportGlobalCharsJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalCharsJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>角色列表</h4><div id="globalCharList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑角色</h4><input type="text" id="globalCharName" placeholder="姓名"><textarea id="globalCharAppearance" rows="3" placeholder="外貌体征"></textarea><textarea id="globalCharPersonality" rows="2" placeholder="性格"></textarea><textarea id="globalCharSpecial" rows="3" placeholder="服装及其他设定"></textarea><textarea id="globalCharRelation" rows="3" placeholder="身份关联"></textarea><div><button id="saveGlobalCharBtn" class="glass-btn">保存</button><button id="cancelGlobalCharBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeGlobalRoleModal" class="glass-btn">关闭</button></div></div></div>
 <div id="actionModal" class="modal"><div class="modal-card"><h3><i class="fas fa-fist-raised"></i> 全局动作库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalActionBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增动作</button><button id="exportGlobalActionsJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalActionsJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>动作列表</h4><div id="actionList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑动作</h4><input type="text" id="globalActionName" placeholder="动作名称"><textarea id="globalActionKeyPoints" rows="3" placeholder="动作要领"></textarea><textarea id="globalActionLines" rows="3" placeholder="台词运用"></textarea><textarea id="globalActionDescriptionTips" rows="3" placeholder="描写建议"></textarea><div><button id="saveGlobalActionBtn" class="glass-btn">保存</button><button id="cancelGlobalActionBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeActionModal" class="glass-btn">关闭</button></div></div></div>
 <div id="costumeModal" class="modal"><div class="modal-card"><h3><i class="fas fa-tshirt"></i> 全局服装库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalCostumeBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增服装</button><button id="exportGlobalCostumesJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalCostumesJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>服装列表</h4><div id="costumeList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑服装</h4><input type="text" id="globalCostumeName" placeholder="服装名称"><textarea id="globalCostumeStyle" rows="3" placeholder="详细款式"></textarea><textarea id="globalCostumeDescTips" rows="3" placeholder="描写建议"></textarea><div><button id="saveGlobalCostumeBtn" class="glass-btn">保存</button><button id="cancelGlobalCostumeBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeCostumeModal" class="glass-btn">关闭</button></div></div></div>
 <div id="forbiddenWordsModal" class="modal"><div class="modal-card"><h3><i class="fas fa-ban"></i> 本书禁用词 · <span id="forbiddenBookName"></span></h3><div><button id="newForbiddenWordBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增禁用词</button></div><div class="lib-container"><div class="lib-list"><h4>禁用词列表</h4><div id="forbiddenList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>添加/编辑</h4><input type="text" id="forbiddenWordInput" placeholder="要禁用的词或短语"><div><button id="saveForbiddenWordBtn" class="glass-btn">保存</button><button id="cancelForbiddenWordBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeForbiddenModal" class="glass-btn">关闭</button></div></div></div>
 
 <!-- 本书关系图模态框 -->
-<div id="relationGraphModal" class="modal"><div class="modal-card" style="width:900px;max-width:96%;">
+<div id="relationGraphModal" class="modal"><div class="modal-card" style="width:96vw;max-width:96vw;height:94vh;max-height:94vh;overflow:hidden;display:flex;flex-direction:column;">
 <h3><i class="fas fa-project-diagram"></i> 本书关系图 · <span id="relationBookName"></span></h3>
 <div style="font-size:0.6rem;color:#7A728F;margin:4px 0;">拖拽节点调整布局 · 点击角色添加关系 · 关系名称自由填写</div>
-<div id="graphContainer" style="width:100%;height:600px;background:#0E0D14;border-radius:16px;border:1px solid #22202C;overflow:hidden;position:relative;">
+<div id="graphContainer" style="width:100%;flex:1;background:#0E0D14;border-radius:16px;border:1px solid #22202C;overflow:hidden;position:relative;min-height:300px;">
 <svg id="graphSvg" width="100%" height="100%" style="display:block;"></svg>
 </div>
-<div style="display:flex;gap:10px;margin-top:10px;">
+<div style="display:flex;gap:10px;margin-top:10px;flex-shrink:0;">
 <button id="addRelationBtn" class="glass-btn"><i class="fas fa-plus"></i> 添加关系</button>
+<button id="squareLayoutBtn" class="glass-btn"><i class="fas fa-th"></i> 方形布局</button>
 <button id="resetGraphLayoutBtn" class="glass-btn"><i class="fas fa-sync-alt"></i> 重置布局</button>
 <button id="closeRelationModal" class="glass-btn">关闭</button>
 </div></div></div>
@@ -314,7 +315,7 @@
             <h4>🔀 并发双版</h4>
             <p>点击聊天框旁的 <b>⧉ 并发双版</b> 按钮开启（高亮），<b>首次生成</b>会同时产出 <b>A/B 两个版本</b>供对比，点击任一版本保留，另一版本自动丢弃。仅适用于全新生成（续写/重写不生效），单次生效——生成结束自动关闭。费用×2。</p>
             <hr>
-            <h4>📝 单章摘要（v4.5）</h4>
+            <h4>📝 单章摘要（v4.6）</h4>
             <p>每章生成时<b>同请求</b>附带 <b>150 字摘要</b>（时间/地点/事件/关键细节，正文末尾【摘要】标记），显示在编辑器正文下方，<b>可手动编辑</b>。若同请求摘要缺失/截断，可点「🔄 重新生成」用<b>独立请求</b>补（已加虚构文学声明，敏感内容也会如实总结）。生成新章时，前文<b>只注入各章摘要</b>（成本大幅降低），无摘要的章节回退注入全文。</p>
             <hr>
             <h4>🎯 创作逻辑链</h4>
@@ -328,7 +329,7 @@
 
 <div id="fullGuideModal" class="modal">
     <div class="modal-card" style="max-width:800px;">
-        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v4.5 完整说明</h3>
+        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v4.6 完整说明</h3>
         <div class="full-guide">
             <h4>一、快速上手（3步）</h4>
             <p>1. 左侧面板点击「+ 新建小说」，输入书名创建</p>
@@ -436,7 +437,7 @@
             <ul><li><b>API 地址 / API Key / 模型</b>：必填项，默认指向 DeepSeek（deepseek-v4-flash）</li><li><b>温度 (0~2)</b>：越高输出越随机创意，越低越稳定保守</li><li><b>Top-p 核采样</b>：控制词汇选择范围</li><li><b>重复惩罚 / 频率惩罚 / 存在惩罚</b>：控制 AI 重复自身的倾向</li><li><b>上下文章节数</b>：AI 生成时参考前多少章的内容（1~50章，有摘要的章节注入150字摘要，无摘要注入全文）</li><li><b>停止词</b>：AI 遇到这些词会停止生成（逗号分隔）</li></ul>
             <p><b>💭 思考模式（v3.2 新增）</b>：默认开启。AI 在写正文前先内部"打草稿"——回顾前文、对照角色库/动作库/服装库/禁用词检查一致性，再落笔。对长篇小说保持连贯性很有帮助。</p>
             <ul><li><b>推理强度</b>：三档 <b>low / high / max</b>（默认 high）。越高思考越深入，token 消耗越大、速度越慢；简单场景用 low 即可。</li><li><b>⚠️ 重要</b>：思考模式开启后，温度 / Top-p / 频率惩罚 / 存在惩罚等<b>创意参数全部失效</b>（思考过程不走随机采样）。想放飞创意时请关闭思考模式，温度参数才会生效。</li></ul>
-            <p><b>🔀 并发双版（v4.5 起为聊天区按钮）</b>：点击聊天框旁的 ⧉ 按钮开启（高亮，单次生效），<b>首次生成</b>（发送新章节指令）会同时向 AI 发起两个独立请求，产出 A/B 两个版本，生成结束自动关闭。</p>
+            <p><b>🔀 并发双版（v4.6 起为聊天区按钮）</b>：点击聊天框旁的 ⧉ 按钮开启（高亮，单次生效），<b>首次生成</b>（发送新章节指令）会同时向 AI 发起两个独立请求，产出 A/B 两个版本，生成结束自动关闭。</p>
             <ul><li>编辑器分屏并排展示两版，标题、正文、字数、预估费用各自独立</li><li>点击任一版本即可保留，另一版本自动丢弃；一版失败则自动保留成功的一版</li><li>仅适用于<b>首次生成</b>；续写、重写不受影响，仍是单版</li><li>两个请求独立计费，费用约为单版 ×2</li><li>双版生成完成、选择之前，页面会锁定相关操作；此时关闭页面会丢失两版内容</li></ul>
             <p>点击「测试连接」验证 API 可用性后再保存。</p>
             <hr>
@@ -506,7 +507,7 @@
 <input type="file" id="importGlobalCostumesFileInput" accept=".json" style="display:none" />
 
 <script>
-// ======================== AI小说生成器 v4.5 — 完整脚本 ========================
+// ======================== AI小说生成器 v4.6 — 完整脚本 ========================
 document.addEventListener('DOMContentLoaded', function() {
     // 全局数据
     let books = [], currentBookId = null;
@@ -536,7 +537,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function toast(msg) { let t=document.createElement('div'); t.className='toast'; t.innerText=msg; t.style.bottom = `${20 + toastCount * 42}px`; toastCount++; document.body.appendChild(t); setTimeout(()=>{ t.remove(); toastCount = Math.max(0, toastCount-1); },2500); }
 
     function sendSystemNotification(title, body) {
-        // ⚠️ 系统通知（Notification API）自 v4.5 起废弃，不再被调用。
+        // ⚠️ 系统通知（Notification API）自 v4.6 起废弃，不再被调用。
         // 需安全上下文(https/localhost)且要权限，双击 HTML(file://) 无法使用，
         // 已由「页签闪烁提醒」(startTabBlink) 替代。代码保留以备将来恢复。
         if(!api.notify) return;
@@ -555,10 +556,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ======================== 页签闪烁提醒（v4.5，替代系统通知） ========================
+    // ======================== 页签闪烁提醒（v4.6，替代系统通知） ========================
     // 原理：交替修改 document.title + 页签 favicon 图标（📖 ↔ ✅/❌）实现双闪，
     // 无需任何系统权限，双击 HTML(file://) 也能生效。由 api.notify 开关控制，
-    // 闪烁 15 秒自动停（后台晚点回来也看得到），切回页面立即恢复。
+    // 闪烁 30 秒自动停（后台晚点回来也看得到），切回页面立即恢复。
     // Chrome/Edge 对后台页 favicon/title 变化有原生橙色高亮响应——这就是"老版高亮闪烁"效果。
     let tabBlinkTimer = null, tabBlinkTimeout = null, tabBlinkOriginal = '', tabBlinkFavOriginal = null;
     const FAV_BOOK = 'data:image/svg+xml,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>");
@@ -584,7 +585,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.title = toggle ? text : tabBlinkOriginal;
             setFavicon(toggle ? blinkFav : tabBlinkFavOriginal);
         }, 800);
-        tabBlinkTimeout = setTimeout(stopTabBlink, 15000);
+        tabBlinkTimeout = setTimeout(stopTabBlink, 30000);
     }
     function stopTabBlink() {
         if(tabBlinkTimer) { clearInterval(tabBlinkTimer); tabBlinkTimer = null; }
@@ -862,6 +863,19 @@ document.addEventListener('DOMContentLoaded', function() {
             container.appendChild(div);
         });
     }
+    // 本书角色库导出 JSON（v4.6）：下载当前书的全部角色为 JSON 文件（可长期保存/迁移）
+    function exportBookCharsJson() {
+        const book = getCurrentBook();
+        if(!book) { toast("请先选择小说"); return; }
+        initCharactersIfNeeded(book);
+        if(!book.characters.length) { toast("当前小说无角色可导出"); return; }
+        const data = { bookName: book.name, exportedAt: new Date().toISOString(), characters: book.characters };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `${sanitizeFilename(book.name)}_角色库_${new Date().toISOString().slice(0,10)}.json`;
+        a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        toast(`已导出 ${book.characters.length} 个角色`);
+    }
     function editCharacter(id) {
         const book = getCurrentBook(); const char = book.characters.find(c=>c.id==id);
         if(char) {
@@ -1071,6 +1085,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let relationNodePositions = {};
     let graphDragging = null, graphDragOx=0, graphDragOy=0;
     let graphSuppressClick = false;
+    // 布局模式（v4.6）：'ring' 环形（默认）| 'square' 方形棋盘；方形时画布高=内容所需，SVG 自动缩放一屏显示
+    let graphLayoutMode = 'ring';
+    let graphCanvasH = 0;
     const NODE_W = 80, NODE_H = 50;
     const RELATION_PALETTE = ['#3B8ED4','#7F77DD','#1D9E75','#378ADD','#D85A30','#D4537E','#EF9F27','#639922','#BA7517','#993556','#185FA5','#0F6E56','#534AB7','#854F0B','#72243E','#3C3489'];
     let relationColorMap = {};
@@ -1093,14 +1110,21 @@ document.addEventListener('DOMContentLoaded', function() {
         initCharactersIfNeeded(book); initCharRelations(book);
         const relationBookName = $('relationBookName'); if(relationBookName) relationBookName.innerText = book.name;
         const modal = $('relationGraphModal'); if(modal) modal.style.display='flex';
-        relationColorMap = {}; loadRelationPositions(book); renderRelationGraph();
+        relationColorMap = {}; loadRelationPositions(book);
+        // 恢复持久化的布局模式与画布高（方形布局重开不裁切）
+        graphLayoutMode = book.relationLayoutMode === 'square' ? 'square' : 'ring';
+        graphCanvasH = (book.relationCanvasH && book.relationCanvasH > 0) ? book.relationCanvasH : 0;
+        renderRelationGraph();
     }
 
     function renderRelationGraph() {
         const book = getCurrentBook(); const svg = $('graphSvg'); const container = $('graphContainer');
         if(!book || !svg || !container) return;
         initCharactersIfNeeded(book); initCharRelations(book);
-        const chars = book.characters; const W = container.clientWidth || 880, H = 600;
+        const chars = book.characters;
+        const W = container.clientWidth || 880;
+        // 画布高：方形=内容所需高度（SVG 等比缩放实现一屏显示）；环形=容器实际高度
+        const H = (graphLayoutMode === 'square' && graphCanvasH > 0) ? graphCanvasH : (container.clientHeight || 600);
         svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.innerHTML = '';
         if(chars.length===0) { const txt = document.createElementNS('http://www.w3.org/2000/svg','text'); txt.setAttribute('x',W/2); txt.setAttribute('y',H/2); txt.setAttribute('text-anchor','middle'); txt.setAttribute('fill','#6A627A'); txt.setAttribute('font-size','14'); txt.textContent='暂无角色，请先在角色库中添加'; svg.appendChild(txt); return; }
         chars.forEach((c,i)=>{ if(!relationNodePositions[c.id]) { const angle = (2*Math.PI*i)/chars.length - Math.PI/2; const rx = W/2-120, ry = H/2-100; relationNodePositions[c.id] = { x: W/2 + rx*Math.cos(angle), y: H/2 + ry*Math.sin(angle) }; } });
@@ -1116,7 +1140,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const pairPerp = {};
         seenPairs.forEach(key=>{ const ids = key.split('|'); const refFrom = relationNodePositions[ids[0]], refTo = relationNodePositions[ids[1]]; if(!refFrom || !refTo) return; const rdx = refTo.x - refFrom.x, rdy = refTo.y - refFrom.y; const rlen = Math.sqrt(rdx*rdx+rdy*rdy) || 1; pairPerp[key] = { px: -rdy/rlen*14, py: rdx/rlen*14 }; });
         edgeMeta.forEach(e=>{ const from = relationNodePositions[e.from], to = relationNodePositions[e.to]; if(!from||!to) return; const color = getRelationColor(e.type); let fx = from.x, fy = from.y, tx = to.x, ty = to.y; if(e.offsetSide && e.isBidirectional) { const pairKey = [e.from, e.to].sort().join('|'); const pp = pairPerp[pairKey]; if(pp) { fx += pp.px * e.offsetSide; fy += pp.py * e.offsetSide; tx += pp.px * e.offsetSide; ty += pp.py * e.offsetSide; } } const ep1 = edgeIntersect(fx, fy, tx, ty); const ep2 = edgeIntersect(tx, ty, fx, fy); const g = document.createElementNS('http://www.w3.org/2000/svg','g'); const line = document.createElementNS('http://www.w3.org/2000/svg','line'); line.setAttribute('x1',ep1.x); line.setAttribute('y1',ep1.y); line.setAttribute('x2',ep2.x); line.setAttribute('y2',ep2.y); line.setAttribute('stroke',color); line.setAttribute('stroke-width','3'); line.setAttribute('stroke-linecap','round'); line.setAttribute('marker-end','url(#arr-'+color.replace('#','')+')'); g.appendChild(line); const label = document.createElementNS('http://www.w3.org/2000/svg','text'); const midX = (fx+tx)/2, midY = (fy+ty)/2; label.setAttribute('x',midX); label.setAttribute('y',midY-10); label.setAttribute('class','graph-line-label'); label.setAttribute('fill',color); label.textContent = e.type; g.appendChild(label); lineGroup.appendChild(g); });
-        chars.forEach(c=>{ const pos = relationNodePositions[c.id]; if(!pos) return; const x = pos.x - NODE_W/2, y = pos.y - NODE_H/2; const g = document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('data-id',c.id); g.style.cursor = 'pointer'; g.addEventListener('click',()=>{ graphNodeClick(c.id); }); g.addEventListener('mousedown',(ev)=>{ graphNodeDragStart(ev,c.id); }); const rect = document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',NODE_W); rect.setAttribute('height',NODE_H); rect.setAttribute('rx','10'); rect.setAttribute('ry','10'); rect.setAttribute('fill','#1C1A28'); rect.setAttribute('stroke','#3B8ED4'); rect.setAttribute('stroke-width','1.5'); g.appendChild(rect); const name = document.createElementNS('http://www.w3.org/2000/svg','text'); name.setAttribute('x',pos.x); name.setAttribute('y',pos.y-4); name.setAttribute('class','graph-node-text'); name.textContent = (c.name||'?').substring(0,6); g.appendChild(name); const relCount = (c.relationships||[]).length; const sub = document.createElementNS('http://www.w3.org/2000/svg','text'); sub.setAttribute('x',pos.x); sub.setAttribute('y',pos.y+16); sub.setAttribute('class','graph-node-sub'); sub.textContent = relCount ? relCount+'个关系' : '无关系'; g.appendChild(sub); nodeGroup.appendChild(g); });
+        chars.forEach(c=>{ const pos = relationNodePositions[c.id]; if(!pos) return; const x = pos.x - NODE_W/2, y = pos.y - NODE_H/2; const g = document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('data-id',c.id); g.style.cursor = 'pointer'; g.addEventListener('click',()=>{ graphNodeClick(c.id); }); g.addEventListener('mousedown',(ev)=>{ graphNodeDragStart(ev,c.id); }); const rect = document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',NODE_W); rect.setAttribute('height',NODE_H); rect.setAttribute('rx','10'); rect.setAttribute('ry','10'); rect.setAttribute('fill','#1C1A28'); rect.setAttribute('stroke','#3B8ED4'); rect.setAttribute('stroke-width','1.5'); g.appendChild(rect); const name = document.createElementNS('http://www.w3.org/2000/svg','text'); name.setAttribute('x',pos.x); name.setAttribute('y',pos.y-4); name.setAttribute('class','graph-node-text'); name.textContent = (c.name||'?').substring(0, 5); g.appendChild(name); const relCount = (c.relationships||[]).length; const sub = document.createElementNS('http://www.w3.org/2000/svg','text'); sub.setAttribute('x',pos.x); sub.setAttribute('y',pos.y+16); sub.setAttribute('class','graph-node-sub'); sub.textContent = relCount ? relCount+'个关系' : '无关系'; g.appendChild(sub); nodeGroup.appendChild(g); });
         svg.appendChild(lineGroup); svg.appendChild(nodeGroup);
     }
 
@@ -1128,7 +1152,53 @@ document.addEventListener('DOMContentLoaded', function() {
     function cleanupRelationColor(type) { const book = getCurrentBook(); if(!book) return; initCharRelations(book); const stillUsed = book.characters.some(c => (c.relationships||[]).some(r => r.type === type)); if(!stillUsed) delete relationColorMap[type]; }
     function addRelationFromModal() { const book = getCurrentBook(); if(!book) return; const char = book.characters.find(c=>c.id===relationEditCharId); if(!char) return; const select = $('relTargetSelect'); const inp = $('relTypeInput'); if(!select || !inp) return; const targetId = select.value; const relType = inp.value.trim(); if(!targetId) { toast('请选择目标角色'); return; } if(!relType) { toast('请输入关系名称'); return; } char.relationships = char.relationships || []; if(char.relationships.some(r=>r.targetId===targetId && r.type===relType)) { toast('此关系已存在'); return; } char.relationships.push({ targetId, type: relType }); saveAll(); renderRelationGraph(); renderRelationEditList(book, char); inp.value = ''; const target = book.characters.find(c=>c.id===targetId); toast('已添加：'+char.name+' → '+relType+' → '+(target?target.name:'?')); }
     function closeRelationEdit() { const modal = $('relationEditModal'); if(modal) modal.style.display = 'none'; relationEditCharId = null; }
-    function resetGraphLayout() { const book = getCurrentBook(); relationNodePositions = {}; relationColorMap = {}; if(book) { book.relationPositions = {}; saveAll(); } renderRelationGraph(); toast('布局已重置'); }
+    function resetGraphLayout() { const book = getCurrentBook(); relationNodePositions = {}; relationColorMap = {}; graphLayoutMode = 'ring'; graphCanvasH = 0; if(book) { book.relationPositions = {}; book.relationLayoutMode = 'ring'; book.relationCanvasH = 0; saveAll(); } renderRelationGraph(); toast('布局已重置'); }
+
+    // 方形棋盘布局（v4.6）：先还原环形基准（清空位置，顺序=角色数组顺序），
+    // 再按棋盘式网格逐个排列；格距自动压缩保证一屏显示（SVG 等比缩放），
+    // 节点间距 ≥12px，数学上永不重叠。
+    function applySquareLayout() {
+        const book = getCurrentBook(); if(!book) return;
+        initCharactersIfNeeded(book);
+        const container = $('graphContainer'); if(!container) return;
+        const chars = book.characters;
+        if(!chars.length) { toast('暂无角色'); return; }
+        const W = container.clientWidth || 880;
+        relationNodePositions = {}; // ① 还原环形基准
+        // ② 自适应格距：标准 92×62，超目标高度则等比压缩
+        // 最小格距绑定节点尺寸（NODE_W+8 / NODE_H+6）→ 数学上永不重叠；
+        // 再超出画布时由 viewBox 整体等比缩小（格距与节点同比例缩，仍不重叠，字略小）
+        const GAP = 12, minCellW = NODE_W + 8, minCellH = NODE_H + 6;
+        let cellW = NODE_W + GAP, cellH = NODE_H + GAP;
+        const targetH = (container.clientHeight || 600) - 30;
+        for(let iter = 0; iter < 20; iter++) {
+            const cols = Math.max(1, Math.floor((W - 40) / cellW));
+            const rows = Math.ceil(chars.length / cols);
+            const needH = rows * cellH + 60;
+            if(needH <= targetH || cellW <= minCellW || cellH <= minCellH) break;
+            const scale = Math.max(0.85, Math.min(0.95, (targetH - 60) / (rows * cellH)));
+            cellW = Math.max(minCellW, Math.floor(cellW * scale));
+            cellH = Math.max(minCellH, Math.floor(cellH * scale));
+        }
+        const cols = Math.max(1, Math.floor((W - 40) / cellW));
+        const rows = Math.ceil(chars.length / cols);
+        const startX = (W - cols * cellW) / 2 + cellW / 2; // 水平居中
+        const startY = 30 + cellH / 2;                      // 顶部留边
+        // ③ 按角色数组顺序填棋盘格
+        chars.forEach((c, i) => {
+            const col = i % cols, row = Math.floor(i / cols);
+            relationNodePositions[c.id] = { x: startX + col * cellW, y: startY + row * cellH };
+        });
+        // ④ 画布高=内容所需（SVG 自动缩放，一屏显示不滚动）
+        graphCanvasH = rows * cellH + 60;
+        graphLayoutMode = 'square';
+        // ⑤ 持久化 + 重绘（布局模式与画布高一并存书：刷新/重开恢复方形视图，防节点超出画布被裁）
+        book.relationPositions = JSON.parse(JSON.stringify(relationNodePositions));
+        book.relationLayoutMode = 'square';
+        book.relationCanvasH = graphCanvasH;
+        saveAll(); renderRelationGraph();
+        toast(`方形布局：${chars.length} 个角色已按网格排列`);
+    }
     function addRelationDirect() { const book = getCurrentBook(); if(!book) return; initCharactersIfNeeded(book); if(book.characters.length<2) { toast('至少需要两个角色'); return; } toast('请点击关系图中的角色节点来添加关系'); }
 
     function buildActionText(precisionIds) { if(globalActions.length===0) return ''; let filtered = precisionIds ? globalActions.filter(a => precisionIds.includes(a.id)) : globalActions; if(!filtered.length) return ''; let txt = precisionIds ? '【当前场景动作规范】\n' : '【必须严格遵守的动作描写规则】\n'; filtered.forEach(a => { txt += `- 动作"${a.name}"：`; if(a.keyPoints) txt += `动作要领：${a.keyPoints}；`; if(a.linesUsage) txt += `台词运用：${a.linesUsage}；`; if(a.descriptionTips) txt += `描写建议：${a.descriptionTips}；`; txt += '\n'; }); return txt; }
@@ -1202,7 +1272,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally { if(statusSpan) statusSpan.style.display = 'none'; }
     }
 
-    // ======================== 单章摘要（v4.5） ========================
+    // ======================== 单章摘要（v4.6） ========================
     // 正文生成时同请求附带【摘要】；本函数仅用于「重新生成」手动触发（独立轻量请求），
     // 并带虚构文学数据安全声明，避免 AI 因正文敏感内容而拒绝总结。
     const SUMMARY_PLACEHOLDER = '⏳ 摘要生成中...';
@@ -1300,7 +1370,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if(globalActions.length) user += `\n\n请严格按照【全局动作库】中的定义来描写动作。`;
         if(globalCostumes.length) user += `\n\n请严格按照【全局服装库】中的定义来描写服装。`;
-        // 同请求生成摘要（v4.5）：正文末尾【摘要】标记输出150字摘要，代码解析分离
+        // 同请求生成摘要（v4.6）：正文末尾【摘要】标记输出150字摘要，代码解析分离
         user += `\n\n正文输出完毕后，另起一行用【摘要】标记输出本章150字以内的摘要，必须包含：时间、地点、事件、关键细节，不分段。`;
         let stopWordsArray = [];
         if(api.stopWords && api.stopWords.trim()) stopWordsArray = api.stopWords.split(',').map(s=>s.trim()).filter(s=>s);
@@ -1336,7 +1406,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const outputCost = (data.usage.completion_tokens * PRICE_OUTPUT) / 1_000_000;
                 totalCost = inputCost + outputCost;
             }
-            // 同请求提取摘要（v4.5）：正文末尾【摘要】标记分离
+            // 同请求提取摘要（v4.6）：正文末尾【摘要】标记分离
             // 长度校验：摘要段若 >300 字（明显不是150字摘要），视为正文误含标记，不分离
             let summaryText = '';
             const sumIdx = content.indexOf('【摘要】');
@@ -1893,7 +1963,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(scratchpadEl && scratchpadModalEl && scratchpadModalEl.style.display === 'flex') {
             scratchpadContent = scratchpadEl.value;
         }
-        const backupData = { version:"4.5", timestamp:Date.now(), books, currentBookId, apiConfig:api, globalCharacters, globalActions, globalCostumes, scratchpadContent };
+        const backupData = { version:"4.6", timestamp:Date.now(), books, currentBookId, apiConfig:api, globalCharacters, globalActions, globalCostumes, scratchpadContent };
         const blob = new Blob([JSON.stringify(backupData,null,2)], {type:"application/json"});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `小说参数备份_${new Date().toISOString().slice(0,10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("备份已导出");
     }
@@ -1904,7 +1974,7 @@ document.addEventListener('DOMContentLoaded', function() {
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                if(!data.books || !Array.isArray(data.books)) throw new Error("备份文件格式无效：缺少 books 数组"); var compatVersions = ["2.6","2.7","2.8","2.9","3.0","3.1","3.2","3.3","3.4","3.6","3.7","3.8","3.9","4.0","4.1","4.2","4.3","4.4","4.5"]; if(data.version && !compatVersions.includes(data.version)) { if(!confirm("备份版本("+data.version+")与当前版本(4.5)不匹配，可能存在兼容性问题。\n\n是否继续导入？")) { throw new Error("用户取消导入"); } }
+                if(!data.books || !Array.isArray(data.books)) throw new Error("备份文件格式无效：缺少 books 数组"); var compatVersions = ["2.6","2.7","2.8","2.9","3.0","3.1","3.2","3.3","3.4","3.6","3.7","3.8","3.9","4.0","4.1","4.2","4.3","4.4","4.5","4.6"]; if(data.version && !compatVersions.includes(data.version)) { if(!confirm("备份版本("+data.version+")与当前版本(4.6)不匹配，可能存在兼容性问题。\n\n是否继续导入？")) { throw new Error("用户取消导入"); } }
                 books = data.books.filter(b => b && typeof b === 'object');
                 books.forEach(book => { if(!book.characters) book.characters=[]; if(!book.chatHistory) book.chatHistory=[]; if(!book.chapters) book.chapters=[]; if(!book.forbiddenWords) book.forbiddenWords=[]; if(book.chapters) book.chapters.forEach(ch => { if(!ch.checkResult) ch.checkResult=[]; }); migrateChapter(book); });
                 if(data.globalCharacters) globalCharacters = data.globalCharacters;
@@ -2051,6 +2121,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const relAddBtn = $('relAddBtn'); if(relAddBtn) relAddBtn.onclick = addRelationFromModal;
         const relCloseBtn = $('relCloseBtn'); if(relCloseBtn) relCloseBtn.onclick = closeRelationEdit;
         const resetGraphLayoutBtn = $('resetGraphLayoutBtn'); if(resetGraphLayoutBtn) resetGraphLayoutBtn.onclick = resetGraphLayout;
+        const squareLayoutBtn = $('squareLayoutBtn'); if(squareLayoutBtn) squareLayoutBtn.onclick = applySquareLayout;
+        const exportBookCharsBtn = $('exportBookCharsBtn'); if(exportBookCharsBtn) exportBookCharsBtn.onclick = exportBookCharsJson;
         const closeForbiddenModal = $('closeForbiddenModal'); if(closeForbiddenModal) closeForbiddenModal.onclick = () => { const forbiddenWordsModal = $('forbiddenWordsModal'); if(forbiddenWordsModal) forbiddenWordsModal.style.display='none'; };
         const saveCharBtn = $('saveCharBtn'); if(saveCharBtn) saveCharBtn.onclick = saveCurrentCharacter;
         const cancelEditCharBtn = $('cancelEditCharBtn'); if(cancelEditCharBtn) cancelEditCharBtn.onclick = clearCharForm;
@@ -2099,7 +2171,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.addEventListener('keydown', (e) => { if(e.key === 'Escape') { const findBar = $('findBar'); if(findBar && findBar.style.display !== 'none') { hideFindBar(); return; } ['precisionModal','scratchpadModal','apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal'].forEach(id => { let m = $(id); if(m && m.style.display === 'flex') { m.style.display = 'none'; if(id === 'apiModal') pendingGeneration = null; } }); const relationEditModal = $('relationEditModal'); if(relationEditModal && relationEditModal.style.display === 'flex') closeRelationEdit(); } });
         const notifyBtn = $('notifyBtn'); if(notifyBtn) notifyBtn.onclick = () => {
             api.notify = !api.notify;
-            if(api.notify) { notifyBtn.classList.add('guide-highlight'); toast('页签提醒已开启：生成完成时页签将闪烁 5 秒'); }
+            if(api.notify) { notifyBtn.classList.add('guide-highlight'); toast('页签提醒已开启：生成完成时页签将闪烁 30 秒'); }
             else { notifyBtn.classList.remove('guide-highlight'); toast('页签提醒已关闭'); }
             saveAll();
         };
@@ -2324,6 +2396,7 @@ document.addEventListener('DOMContentLoaded', function() {
         rollbackSnapshot = null;
         currentEditingCharId = null; currentEditingGlobalCharId = null; currentEditingGlobalActionId = null; currentEditingGlobalCostumeId = null; currentEditingForbiddenId = null;
         relationNodePositions = {}; relationColorMap = {};
+        graphLayoutMode = 'ring'; graphCanvasH = 0;
         
         // 刷新 UI
         const curBookName = $('curBookName'); if(curBookName) curBookName.innerText = '未选择';
