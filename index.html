@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AI小说生成器 | v4.6</title>
+    <title>AI小说生成器 | v6.0</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📖%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
     <style>
@@ -187,7 +187,7 @@
     <div class="top-bar">
         <div class="logo">
             <h2><i class="fas fa-pen-fancy"></i> AI小说生成器</h2>
-            <span class="version-badge">v4.6</span>
+            <span class="version-badge">v6.0</span>
             <div class="current-book-badge"><i class="fas fa-book"></i> <span id="curBookName">未选择</span></div>
             <span id="storageIndicator" class="storage-indicator">💾 0MB / 5MB</span>
         </div>
@@ -260,7 +260,7 @@
                 <button class="small-btn" id="replaceAllBtn">全部替换</button>
                 <button class="small-btn" id="closeFindBtn" style="background:#4A2A2A;">✕</button>
             </div>
-            <div class="editable-area"><div id="novelContent" contenteditable="true" style="white-space:pre-wrap;">✨ 新建或选择小说</div><div class="summary-area" id="summaryAreaWrap"><div class="summary-header"><span>📝 本章摘要</span><button id="genSummaryBtn" class="small-btn" style="font-size:0.6rem;">🔄 重新生成</button></div><textarea id="summaryArea" rows="3" placeholder="本章摘要（150字左右，含时间/地点/事件/关键细节）。AI 生成后自动填充，也可手动填写；用于上下文注入"></textarea></div></div>
+            <div class="editable-area"><div id="writingLockTip" style="display:none;background:#2A2A4A;color:#8A84FF;border:1px solid #4A4A8A;border-radius:8px;padding:6px 10px;margin-bottom:6px;font-size:0.65rem;"><i class="fas fa-lock"></i> ✍️ AI 正在生成中，当前章节已锁定，避免生成结果覆盖你输入的内容</div><div id="novelContent" contenteditable="true" style="white-space:pre-wrap;">✨ 新建或选择小说</div><div class="summary-area" id="summaryAreaWrap"><div class="summary-header"><span>📝 本章摘要</span><button id="genSummaryBtn" class="small-btn" style="font-size:0.6rem;">🔄 重新生成</button></div><textarea id="summaryArea" rows="3" maxlength="300" placeholder="本章摘要（150字左右，含时间/地点/事件/关键细节）。AI 生成后自动填充，也可手动填写；用于上下文注入"></textarea></div></div>
         </div>
         <div class="right-side" id="rightSide">
             <div class="resize-right" id="resizeRight"></div>
@@ -315,7 +315,7 @@
             <h4>🔀 并发双版</h4>
             <p>点击聊天框旁的 <b>⧉ 并发双版</b> 按钮开启（高亮），<b>首次生成</b>会同时产出 <b>A/B 两个版本</b>供对比，点击任一版本保留，另一版本自动丢弃。仅适用于全新生成（续写/重写不生效），单次生效——生成结束自动关闭。费用×2。</p>
             <hr>
-            <h4>📝 单章摘要（v4.6）</h4>
+            <h4>📝 单章摘要（v5.8）</h4>
             <p>每章生成时<b>同请求</b>附带 <b>150 字摘要</b>（时间/地点/事件/关键细节，正文末尾【摘要】标记），显示在编辑器正文下方，<b>可手动编辑</b>。若同请求摘要缺失/截断，可点「🔄 重新生成」用<b>独立请求</b>补（已加虚构文学声明，敏感内容也会如实总结）。生成新章时，前文<b>只注入各章摘要</b>（成本大幅降低），无摘要的章节回退注入全文。</p>
             <hr>
             <h4>🎯 创作逻辑链</h4>
@@ -329,7 +329,7 @@
 
 <div id="fullGuideModal" class="modal">
     <div class="modal-card" style="max-width:800px;">
-        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v4.6 完整说明</h3>
+        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v6.0 完整说明</h3>
         <div class="full-guide">
             <h4>一、快速上手（3步）</h4>
             <p>1. 左侧面板点击「+ 新建小说」，输入书名创建</p>
@@ -437,7 +437,7 @@
             <ul><li><b>API 地址 / API Key / 模型</b>：必填项，默认指向 DeepSeek（deepseek-v4-flash）</li><li><b>温度 (0~2)</b>：越高输出越随机创意，越低越稳定保守</li><li><b>Top-p 核采样</b>：控制词汇选择范围</li><li><b>重复惩罚 / 频率惩罚 / 存在惩罚</b>：控制 AI 重复自身的倾向</li><li><b>上下文章节数</b>：AI 生成时参考前多少章的内容（1~50章，有摘要的章节注入150字摘要，无摘要注入全文）</li><li><b>停止词</b>：AI 遇到这些词会停止生成（逗号分隔）</li></ul>
             <p><b>💭 思考模式（v3.2 新增）</b>：默认开启。AI 在写正文前先内部"打草稿"——回顾前文、对照角色库/动作库/服装库/禁用词检查一致性，再落笔。对长篇小说保持连贯性很有帮助。</p>
             <ul><li><b>推理强度</b>：三档 <b>low / high / max</b>（默认 high）。越高思考越深入，token 消耗越大、速度越慢；简单场景用 low 即可。</li><li><b>⚠️ 重要</b>：思考模式开启后，温度 / Top-p / 频率惩罚 / 存在惩罚等<b>创意参数全部失效</b>（思考过程不走随机采样）。想放飞创意时请关闭思考模式，温度参数才会生效。</li></ul>
-            <p><b>🔀 并发双版（v4.6 起为聊天区按钮）</b>：点击聊天框旁的 ⧉ 按钮开启（高亮，单次生效），<b>首次生成</b>（发送新章节指令）会同时向 AI 发起两个独立请求，产出 A/B 两个版本，生成结束自动关闭。</p>
+            <p><b>🔀 并发双版（v5.8 起为聊天区按钮）</b>：点击聊天框旁的 ⧉ 按钮开启（高亮，单次生效），<b>首次生成</b>（发送新章节指令）会同时向 AI 发起两个独立请求，产出 A/B 两个版本，生成结束自动关闭。</p>
             <ul><li>编辑器分屏并排展示两版，标题、正文、字数、预估费用各自独立</li><li>点击任一版本即可保留，另一版本自动丢弃；一版失败则自动保留成功的一版</li><li>仅适用于<b>首次生成</b>；续写、重写不受影响，仍是单版</li><li>两个请求独立计费，费用约为单版 ×2</li><li>双版生成完成、选择之前，页面会锁定相关操作；此时关闭页面会丢失两版内容</li></ul>
             <p>点击「测试连接」验证 API 可用性后再保存。</p>
             <hr>
@@ -507,7 +507,7 @@
 <input type="file" id="importGlobalCostumesFileInput" accept=".json" style="display:none" />
 
 <script>
-// ======================== AI小说生成器 v4.6 — 完整脚本 ========================
+// ======================== AI小说生成器 v6.0 — 完整脚本 ========================
 document.addEventListener('DOMContentLoaded', function() {
     // 全局数据
     let books = [], currentBookId = null;
@@ -521,11 +521,26 @@ document.addEventListener('DOMContentLoaded', function() {
     let dualStartTime = 0, dualWasPrecision = false, dualCosts = {A:0, B:0};
     let dualStopRequested = false;
     let currentAbortController = null;
+    // 任务会话号（v5.8）：每次启动任务递增，旧任务的 finally/停止清理前校验会话号——
+    // 若已被新任务取代（会话号过期）则放弃清理，防旧任务清空新任务状态（停止后立刻发新任务的场景）
+    let generationSessionId = 0;
+    // 双版活跃会话号（v5.8）：供 finalizeDualSelection/选版校验——停止后新任务启动会使
+    // 旧双版的选版/定稿失效（防旧双版结果写入新任务流程）
+    let dualActiveSessionId = 0;
     let rollbackSnapshot = null;
     let currentEditingCharId = null, currentEditingGlobalCharId = null, currentEditingGlobalActionId = null, currentEditingGlobalCostumeId = null, currentEditingForbiddenId = null;
     let uuidCounter = 0;
     let autoSaveInterval = null;
     let pendingGeneration = null;
+    // v5.8：取消待生成任务——清空 pendingGeneration 并更新对应聊天消息为取消态，
+    // 防止用户关闭 API 弹窗后聊天仍停留在"请配置 API Key，保存后将自动重试"的错误等待态
+    function cancelPendingGeneration(reason) {
+        if(!pendingGeneration) return;
+        const gen = pendingGeneration;
+        pendingGeneration = null;
+        const sourceBook = gen.sourceBookId ? books.find(b => b.id === gen.sourceBookId) : getCurrentBook();
+        if(sourceBook && gen.chatId) replaceChatMessage(gen.chatId, reason || '⏹ 已取消待生成任务', sourceBook);
+    }
     let currentFontSize = 16;
     let isImporting = false;
 
@@ -537,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function toast(msg) { let t=document.createElement('div'); t.className='toast'; t.innerText=msg; t.style.bottom = `${20 + toastCount * 42}px`; toastCount++; document.body.appendChild(t); setTimeout(()=>{ t.remove(); toastCount = Math.max(0, toastCount-1); },2500); }
 
     function sendSystemNotification(title, body) {
-        // ⚠️ 系统通知（Notification API）自 v4.6 起废弃，不再被调用。
+        // ⚠️ 系统通知（Notification API）自 v5.8 起废弃，不再被调用。
         // 需安全上下文(https/localhost)且要权限，双击 HTML(file://) 无法使用，
         // 已由「页签闪烁提醒」(startTabBlink) 替代。代码保留以备将来恢复。
         if(!api.notify) return;
@@ -556,7 +571,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ======================== 页签闪烁提醒（v4.6，替代系统通知） ========================
+    // ======================== 页签闪烁提醒（v5.8，替代系统通知） ========================
     // 原理：交替修改 document.title + 页签 favicon 图标（📖 ↔ ✅/❌）实现双闪，
     // 无需任何系统权限，双击 HTML(file://) 也能生效。由 api.notify 开关控制，
     // 闪烁 30 秒自动停（后台晚点回来也看得到），切回页面立即恢复。
@@ -638,11 +653,41 @@ document.addEventListener('DOMContentLoaded', function() {
         updateStorageIndicator();
         return true;
     }
+    // v5.8：非正文操作（设定/角色/动作/服装/禁用词/关系/重命名/间章切换等）的保存封装——
+    // saveAll 失败时明确提示（saveAll 内部已有一次"存储空间不足"提示，此处补一次可操作的指引），
+    // 调用方据此取消成功提示，避免"内存已改、UI 显示最新、实际没落盘"的虚假成功
+    function persistOrWarn() {
+        const ok = saveAll();
+        if(!ok) {
+            toast("保存失败，请检查存储空间或先导出备份");
+            lastSaveErrorShown = true;
+            // v5.8：状态栏持续提示（非一闪而过的 toast），用户随时可见
+            const sp = $('saveStatus'); if(sp) sp.innerText = '保存失败';
+        }
+        return ok;
+    }
 
+    // v5.8：生成期间锁定正文/摘要编辑与相关按钮——防止 AI 返回后 loadCurChapter()
+    // 用生成结果覆盖用户在等待期间输入、但尚未保存的内容（创作工具最高风险场景）
+    // v5.9：锁定前记录各按钮原禁用状态，解锁时恢复原状（rollbackBtn 由 enableRollbackButton 管理，
+    // 不能粗暴解锁为可用，否则无快照时回滚按钮会错误点亮）
+    let writingLockPrev = {};
+    function setWritingLock(locked) {
+        const content = $('novelContent'); if(content) content.contentEditable = locked ? 'false' : 'true';
+        const summary = $('summaryArea'); if(summary) summary.disabled = locked;
+        // v5.9：查找/替换/回滚纳入锁定——replaceOne/replaceAll 直接改 DOM、performRollback 直接改章节数据，
+        // contentEditable=false 拦不住它们；生成期间放行则 AI 返回后用户操作会被覆盖丢失
+        ['saveChapBtn','regenerateBtn','continueBtn','checkConflictBtn','findBtn','rollbackBtn','replaceOneBtn','replaceAllBtn'].forEach(id => {
+            const el = $(id); if(!el) return;
+            if(locked) { writingLockPrev[id] = el.disabled; el.disabled = true; }
+            else if(id in writingLockPrev) { el.disabled = writingLockPrev[id]; }
+        });
+        const tip = $('writingLockTip'); if(tip) tip.style.display = locked ? 'block' : 'none';
+    }
     function getCurrentBook() { return books.find(b=>b.id===currentBookId); }
-    function initCharactersIfNeeded(book) { if(!book.characters) book.characters=[]; }
-    function initForbiddenWordsIfNeeded(book) { if(!book.forbiddenWords) book.forbiddenWords=[]; }
-    function initCharRelations(book) { if(!book.characters) book.characters=[]; book.characters.forEach(c=>{if(!c.relationships)c.relationships=[];}); if(!book.relationPositions) book.relationPositions={}; }
+    function initCharactersIfNeeded(book) { if(!Array.isArray(book.characters)) book.characters=[]; }
+    function initForbiddenWordsIfNeeded(book) { if(!Array.isArray(book.forbiddenWords)) book.forbiddenWords=[]; }
+    function initCharRelations(book) { if(!Array.isArray(book.characters)) book.characters=[]; book.characters.forEach(c=>{if(!c.relationships)c.relationships=[];}); if(!book.relationPositions) book.relationPositions={}; }
     function escapeHtml(s) { if(!s) return ''; return s.replace(/[&<>"'`]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[m])); }
     function uuid() {
         if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -651,7 +696,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function formatTime(ms) { const s=Math.floor(ms/1000); if(ms < 500) return '不到1秒'; if(s<60) return s+'秒'; const m=Math.floor(s/60); if(m<60) { const sec=s%60; return m+'分'+sec+'秒'; } const h=Math.floor(m/60); const rm=m%60; const sec=s%60; return h+'小时'+rm+'分'+sec+'秒'; }
 
     function migrateChapter(book) {
-        if(!book.chapters) book.chapters = [];
+        if(!Array.isArray(book.chapters)) book.chapters = [];
         book.chapters.forEach(ch => {
             if(!ch.id) ch.id = uuid();
             if(!ch.title) ch.title = '未命名章节';
@@ -784,20 +829,46 @@ document.addEventListener('DOMContentLoaded', function() {
             freqVal: api.freqPenalty, presVal: api.presPenalty, ctxVal: api.ctxChapters };
         for (let [id, val] of Object.entries(elMap2)) { let el = $(id); if(el) el.innerText = val; }
         const ctxNum = $('ctxNum'); if(ctxNum) ctxNum.innerText = api.ctxChapters;
-        saveAll();
-        toast("API 配置已保存");
+        // v5.8：检查持久化结果——空间不足时 API 配置本次会话仍生效，但刷新会丢失，
+        // 必须明确告知（否则"已保存"提示 + 刷新丢失会误导用户）
+        const persistOk = saveAll();
         const apiModal = $('apiModal'); if(apiModal) apiModal.style.display='none';
+        if(!persistOk) {
+            toast("API 配置未能持久保存（存储空间不足），本次会话仍可使用，刷新后将丢失");
+            lastSaveErrorShown = true;
+            // v5.8：更新待生成任务的聊天为真实状态——Key 已配置（内存生效）但任务已暂存未执行，
+            // 两个出路明确：腾出空间后重新保存自动重试 / 重新发送指令覆盖（消除"请配置 Key"的过时提示）
+            if(pendingGeneration) {
+                const pg = pendingGeneration;
+                const pgBook = pg.sourceBookId ? books.find(b => b.id === pg.sourceBookId) : getCurrentBook();
+                if(pgBook && pg.chatId) replaceChatMessage(pg.chatId, '⚠️ API 配置本次会话可用但未持久保存；待生成任务已暂存，腾出空间后重新保存将自动重试，或重新发送指令覆盖', pgBook);
+            }
+            return; // 保留 pendingGeneration，空间腾出后重新保存会自动重试
+        }
+        toast("API 配置已保存");
         if (pendingGeneration) {
             const gen = pendingGeneration;
             pendingGeneration = null;
+            // 按来源书籍恢复：用户配置 API 期间可能已切换小说，重试必须生成回原书
+            const sourceBook = gen.sourceBookId ? books.find(b => b.id === gen.sourceBookId) : getCurrentBook();
+            if(!sourceBook) { toast("原小说已不存在，已取消待生成任务"); if(gen.chatId) replaceChatMessage(gen.chatId, '❌ 原小说已不存在，已取消生成', getCurrentBook()); return; }
+            // v5.8：自动切回原书再重试——数据写入原书的同时 UI（章节/正文/聊天）也回到原书，
+            // 否则生成结果在后台原书里，当前界面看不到反馈（用户误以为结果丢失）
+            if(currentBookId !== sourceBook.id) {
+                const switched = switchBook(sourceBook.id);
+                // v5.8：切换失败（保存当前书失败等）必须取消任务，杜绝"数据写原书、界面留新书"错位
+                if(!switched || currentBookId !== sourceBook.id) {
+                    toast("无法切换回原小说，已取消待生成任务");
+                    if(gen.chatId) replaceChatMessage(gen.chatId, '❌ 原小说切换失败，已取消生成', sourceBook);
+                    return;
+                }
+            }
             if(gen.isDual) {
                 toast("检测到待生成的双版任务，自动重试...");
-                const book = getCurrentBook();
-                if(book) void runDualGeneration(gen.instr, book, gen.chatId);
-                else toast("请先创建或选择小说");
+                void runDualGeneration(gen.instr, sourceBook, gen.chatId);
             } else {
                 toast("检测到待生成任务，自动重试...");
-                executeGeneration(gen.instr, gen.isRegen, gen.targetId, gen.isCont, gen.chatId, gen.onSuccess);
+                executeGeneration(gen.instr, gen.isRegen, gen.targetId, gen.isCont, gen.chatId, gen.onSuccess, false, null, sourceBook.id);
             }
         }
     }
@@ -826,13 +897,27 @@ document.addEventListener('DOMContentLoaded', function() {
             const chap = book.chapters.find(c=>c.id===book.currentChapterId);
             if(chap) {
                 if(!force && rollbackSnapshot && rollbackSnapshot.chapterId === chap.id && rollbackSnapshot.content === chap.content) return;
-                rollbackSnapshot = { chapterId: chap.id, content: chap.content, title: chap.title };
+                // 完整快照：正文/标题/摘要/提示词/章节类型/冲突状态 全部记录，
+                // 回滚后正文与摘要、冲突结果保持一致（防上下文错配）
+                rollbackSnapshot = {
+                    chapterId: chap.id,
+                    content: chap.content,
+                    title: chap.title,
+                    summary: chap.summary || '',
+                    prompt: chap.prompt || '',
+                    isContinuation: !!chap.isContinuation,
+                    isInterlude: !!chap.isInterlude,
+                    checkResult: JSON.parse(JSON.stringify(chap.checkResult || [])),
+                    checkState: chap.checkState || 'never'
+                };
                 enableRollbackButton(true);
             }
         }
     }
     function clearRollbackSnapshot() { rollbackSnapshot = null; enableRollbackButton(false); }
     function performRollback() {
+        // v5.9：生成期间禁止回滚（回滚直接改写章节数据，AI 返回后重写结果会覆盖用户刚回滚的内容）
+        if(isGenerating) { toast('AI 生成中，回滚已锁定'); return; }
         if(!rollbackSnapshot) { toast("没有可回滚的快照"); return; }
         const book = getCurrentBook();
         if(book && book.currentChapterId === rollbackSnapshot.chapterId) {
@@ -841,6 +926,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 if(chap.content === rollbackSnapshot.content) { toast("当前内容与快照相同，无需回滚"); clearRollbackSnapshot(); return; }
                 chap.content = rollbackSnapshot.content;
                 if(rollbackSnapshot.title !== undefined) chap.title = rollbackSnapshot.title;
+                if(rollbackSnapshot.summary !== undefined) chap.summary = rollbackSnapshot.summary;
+                if(rollbackSnapshot.prompt !== undefined) chap.prompt = rollbackSnapshot.prompt;
+                if(rollbackSnapshot.isContinuation !== undefined) chap.isContinuation = rollbackSnapshot.isContinuation;
+                if(rollbackSnapshot.isInterlude !== undefined) chap.isInterlude = rollbackSnapshot.isInterlude;
+                if(rollbackSnapshot.checkResult !== undefined) chap.checkResult = JSON.parse(JSON.stringify(rollbackSnapshot.checkResult));
+                if(rollbackSnapshot.checkState !== undefined) chap.checkState = rollbackSnapshot.checkState;
                 saveAll(); loadCurChapter(); clearRollbackSnapshot();
                 toast("已回滚");
             }
@@ -863,7 +954,7 @@ document.addEventListener('DOMContentLoaded', function() {
             container.appendChild(div);
         });
     }
-    // 本书角色库导出 JSON（v4.6）：下载当前书的全部角色为 JSON 文件（可长期保存/迁移）
+    // 本书角色库导出 JSON（v5.8）：下载当前书的全部角色为 JSON 文件（可长期保存/迁移）
     function exportBookCharsJson() {
         const book = getCurrentBook();
         if(!book) { toast("请先选择小说"); return; }
@@ -899,7 +990,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if(idx!==-1) book.characters[idx] = newChar;
             else { book.characters.push(newChar); toast("原角色已被删除，已保存为新角色"); }
         } else { book.characters.push(newChar); }
-        currentEditingCharId = null; clearCharForm(); saveAll(); renderCharacterList();
+        currentEditingCharId = null; clearCharForm(); if(!persistOrWarn()) return; renderCharacterList();
         toast("角色已保存");
     }
     function deleteCharacter(id) {
@@ -918,7 +1009,7 @@ document.addEventListener('DOMContentLoaded', function() {
         Object.keys(relationColorMap).forEach(t => { if(!remainingTypes.has(t)) delete relationColorMap[t]; });
         book.characters = book.characters.filter(c=>c.id!=id);
         if(currentEditingCharId==id) clearCharForm();
-        saveAll(); renderCharacterList(); toast("角色已删除");
+        if(!persistOrWarn()) return; renderCharacterList(); toast("角色已删除");
     }
     function clearCharForm() {
         ['charName','charAppearance','charPersonality','charSpecial','charRelation'].forEach(id => { let el=$(id); if(el) el.value=''; });
@@ -958,10 +1049,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if(idx!==-1) globalCharacters[idx] = newChar;
             else { globalCharacters.push(newChar); toast("原素材角色已被删除，已保存为新角色"); }
         } else { globalCharacters.push(newChar); }
-        currentEditingGlobalCharId = null; clearGlobalCharForm(); saveAll(); renderGlobalCharList();
+        currentEditingGlobalCharId = null; clearGlobalCharForm(); if(!persistOrWarn()) return; renderGlobalCharList();
         toast("素材角色已保存");
     }
-    function deleteGlobalCharacter(id) { globalCharacters = globalCharacters.filter(c=>c.id!=id); if(currentEditingGlobalCharId==id) clearGlobalCharForm(); saveAll(); renderGlobalCharList(); toast("素材角色已删除"); }
+    function deleteGlobalCharacter(id) { globalCharacters = globalCharacters.filter(c=>c.id!=id); if(currentEditingGlobalCharId==id) clearGlobalCharForm(); if(!persistOrWarn()) return; renderGlobalCharList(); toast("素材角色已删除"); }
     function clearGlobalCharForm() {
         ['globalCharName','globalCharAppearance','globalCharPersonality','globalCharSpecial','globalCharRelation'].forEach(id => { let el=$(id); if(el) el.value=''; });
         currentEditingGlobalCharId = null; renderGlobalCharList();
@@ -1003,10 +1094,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if(idx!==-1) globalActions[idx] = newAction;
             else { globalActions.push(newAction); toast("原动作已被删除，已保存为新动作"); }
         } else { globalActions.push(newAction); }
-        currentEditingGlobalActionId = null; clearGlobalActionForm(); saveAll(); renderActionList();
+        currentEditingGlobalActionId = null; clearGlobalActionForm(); if(!persistOrWarn()) return; renderActionList();
         toast("动作已保存");
     }
-    function deleteGlobalAction(id) { globalActions = globalActions.filter(a=>a.id!=id); if(currentEditingGlobalActionId==id) clearGlobalActionForm(); saveAll(); renderActionList(); toast("动作已删除"); }
+    function deleteGlobalAction(id) { globalActions = globalActions.filter(a=>a.id!=id); if(currentEditingGlobalActionId==id) clearGlobalActionForm(); if(!persistOrWarn()) return; renderActionList(); toast("动作已删除"); }
     function clearGlobalActionForm() {
         ['globalActionName','globalActionKeyPoints','globalActionLines','globalActionDescriptionTips'].forEach(id => { let el=$(id); if(el) el.value=''; });
         currentEditingGlobalActionId = null; renderActionList();
@@ -1047,10 +1138,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if(idx!==-1) globalCostumes[idx] = newCostume;
             else { globalCostumes.push(newCostume); toast("原服装已被删除，已保存为新服装"); }
         } else { globalCostumes.push(newCostume); }
-        currentEditingGlobalCostumeId = null; clearGlobalCostumeForm(); saveAll(); renderCostumeList();
+        currentEditingGlobalCostumeId = null; clearGlobalCostumeForm(); if(!persistOrWarn()) return; renderCostumeList();
         toast("服装已保存");
     }
-    function deleteGlobalCostume(id) { globalCostumes = globalCostumes.filter(a=>a.id!=id); if(currentEditingGlobalCostumeId==id) clearGlobalCostumeForm(); saveAll(); renderCostumeList(); toast("服装已删除"); }
+    function deleteGlobalCostume(id) { globalCostumes = globalCostumes.filter(a=>a.id!=id); if(currentEditingGlobalCostumeId==id) clearGlobalCostumeForm(); if(!persistOrWarn()) return; renderCostumeList(); toast("服装已删除"); }
     function clearGlobalCostumeForm() {
         ['globalCostumeName','globalCostumeStyle','globalCostumeDescTips'].forEach(id => { let el=$(id); if(el) el.value=''; });
         currentEditingGlobalCostumeId = null; renderCostumeList();
@@ -1074,10 +1165,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const existing = book.forbiddenWords.find(f=>f.id===currentEditingForbiddenId);
         if(existing) { existing.word = word; }
         else { book.forbiddenWords.push({ id: uuid(), word }); if(currentEditingForbiddenId) toast("原禁用词已被删除，已保存为新词条"); }
-        currentEditingForbiddenId = null; clearForbiddenForm(); saveAll(); renderForbiddenList();
+        currentEditingForbiddenId = null; clearForbiddenForm(); if(!persistOrWarn()) return; renderForbiddenList();
         toast("禁用词已保存");
     }
-    function deleteForbiddenWord(fid) { const book = getCurrentBook(); if(book) { book.forbiddenWords = book.forbiddenWords.filter(f=>f.id!==fid); if(currentEditingForbiddenId === fid) clearForbiddenForm(); saveAll(); renderForbiddenList(); toast("禁用词已删除"); } }
+    function deleteForbiddenWord(fid) { const book = getCurrentBook(); if(book) { book.forbiddenWords = book.forbiddenWords.filter(f=>f.id!==fid); if(currentEditingForbiddenId === fid) clearForbiddenForm(); if(!persistOrWarn()) return; renderForbiddenList(); toast("禁用词已删除"); } }
     function clearForbiddenForm() { const forbiddenWordInput = $('forbiddenWordInput'); if(forbiddenWordInput) forbiddenWordInput.value = ''; currentEditingForbiddenId = null; renderForbiddenList(); }
     function openForbiddenWordsModal() { const book = getCurrentBook(); if(!book) { toast("请先选择小说"); return; } const forbiddenBookName = $('forbiddenBookName'); if(forbiddenBookName) forbiddenBookName.innerText = book.name; renderForbiddenList(); clearForbiddenForm(); const forbiddenWordsModal = $('forbiddenWordsModal'); if(forbiddenWordsModal) forbiddenWordsModal.style.display='flex'; }
 
@@ -1085,7 +1176,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let relationNodePositions = {};
     let graphDragging = null, graphDragOx=0, graphDragOy=0;
     let graphSuppressClick = false;
-    // 布局模式（v4.6）：'ring' 环形（默认）| 'square' 方形棋盘；方形时画布高=内容所需，SVG 自动缩放一屏显示
+    // 布局模式（v5.8）：'ring' 环形（默认）| 'square' 方形棋盘；方形时画布高=内容所需，SVG 自动缩放一屏显示
     let graphLayoutMode = 'ring';
     let graphCanvasH = 0;
     const NODE_W = 80, NODE_H = 50;
@@ -1122,6 +1213,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if(!book || !svg || !container) return;
         initCharactersIfNeeded(book); initCharRelations(book);
         const chars = book.characters;
+        // 方形模式缺坐标（新增角色无位置）：整局重排，防新角色落在环形位置破坏方形视觉
+        if(graphLayoutMode === 'square' && chars.length && chars.some(c => !relationNodePositions[c.id])) {
+            applySquareLayout();
+            return;
+        }
         const W = container.clientWidth || 880;
         // 画布高：方形=内容所需高度（SVG 等比缩放实现一屏显示）；环形=容器实际高度
         const H = (graphLayoutMode === 'square' && graphCanvasH > 0) ? graphCanvasH : (container.clientHeight || 600);
@@ -1144,17 +1240,53 @@ document.addEventListener('DOMContentLoaded', function() {
         svg.appendChild(lineGroup); svg.appendChild(nodeGroup);
     }
 
-    function graphNodeDragStart(e, charId) { const startX = e.clientX, startY = e.clientY; const svg = $('graphSvg'); const rect = svg.getBoundingClientRect(); graphDragOx = e.clientX - rect.left - relationNodePositions[charId].x; graphDragOy = e.clientY - rect.top - relationNodePositions[charId].y; let hasMoved = false; const onMove = (ev)=>{ const dx = ev.clientX - startX, dy = ev.clientY - startY; if(!hasMoved && Math.abs(dx) < 4 && Math.abs(dy) < 4) return; hasMoved = true; graphDragging = charId; const rect2 = svg.getBoundingClientRect(); relationNodePositions[charId] = {x:ev.clientX-rect2.left-graphDragOx, y:ev.clientY-rect2.top-graphDragOy}; renderRelationGraph(); }; const onUp = ()=>{ if(hasMoved) { graphDragging = null; graphSuppressClick = true; const book = getCurrentBook(); if(book) { saveRelationPositions(book); saveAll(); } } document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); }; document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp); }
+    // SVG 坐标转换：方形布局 viewBox 高度 > 容器时 SVG 等比缩放，CSS 像素 ≠ viewBox 坐标，
+    // 拖拽必须用 createSVGPoint 逆变换，否则节点跳位
+    function getSvgPoint(svg, clientX, clientY) {
+        try {
+            const pt = svg.createSVGPoint();
+            pt.x = clientX; pt.y = clientY;
+            const matrix = svg.getScreenCTM();
+            if(!matrix) return null;
+            const sp = pt.matrixTransform(matrix.inverse());
+            return { x: sp.x, y: sp.y };
+        } catch(e) { return null; }
+    }
+    function graphNodeDragStart(e, charId) {
+        const svg = $('graphSvg'); if(!svg) return;
+        const startPt = getSvgPoint(svg, e.clientX, e.clientY);
+        if(!startPt) return;
+        graphDragOx = startPt.x - relationNodePositions[charId].x;
+        graphDragOy = startPt.y - relationNodePositions[charId].y;
+        let hasMoved = false;
+        const onMove = (ev)=>{
+            const dx = ev.clientX - e.clientX, dy = ev.clientY - e.clientY;
+            if(!hasMoved && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+            hasMoved = true; graphDragging = charId;
+            const pt = getSvgPoint(svg, ev.clientX, ev.clientY);
+            if(!pt) return;
+            // 边界限制：节点中心不超出画布
+            const vb = svg.viewBox.baseVal;
+            const W = vb && vb.width ? vb.width : (svg.clientWidth || 880);
+            const H = vb && vb.height ? vb.height : (svg.clientHeight || 600);
+            const x = Math.max(NODE_W/2, Math.min(W - NODE_W/2, pt.x - graphDragOx));
+            const y = Math.max(NODE_H/2, Math.min(H - NODE_H/2, pt.y - graphDragOy));
+            relationNodePositions[charId] = { x, y };
+            renderRelationGraph();
+        };
+        const onUp = ()=>{ if(hasMoved) { graphDragging = null; graphSuppressClick = true; const book = getCurrentBook(); if(book) { saveRelationPositions(book); saveAll(); } } document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); };
+        document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp);
+    }
 
     let relationEditCharId = null;
     function graphNodeClick(charId) { if(graphSuppressClick) { graphSuppressClick = false; return; } const book = getCurrentBook(); if(!book) return; const char = book.characters.find(c=>c.id===charId); if(!char) return; initCharRelations(book); char.relationships = char.relationships || []; relationEditCharId = charId; const nameSpan = $('relEditCharName'); if(nameSpan) nameSpan.textContent = char.name; const select = $('relTargetSelect'); if(select) { select.innerHTML = '<option value="">选择目标角色...</option>'; book.characters.forEach(c=>{ if(c.id!==charId) { const opt=document.createElement('option'); opt.value=c.id; opt.textContent=c.name; select.appendChild(opt); } }); } renderRelationEditList(book, char); const inp = $('relTypeInput'); if(inp) inp.value = ''; const modal = $('relationEditModal'); if(modal) modal.style.display = 'flex'; }
-    function renderRelationEditList(book, char) { const list = $('relExistingList'); if(!list) return; if(!char.relationships.length) { list.innerHTML = '<span style="color:#6A627A;">暂无关系</span>'; return; } let html = ''; char.relationships.forEach((r,i)=>{ const target = book.characters.find(c=>c.id===r.targetId); html += `<span style="display:inline-block;background:#1A1825;border-radius:12px;padding:2px 10px;margin:2px 4px;font-size:0.7rem;">${escapeHtml(r.type)} → ${escapeHtml(target?target.name:'?')} <i class="fas fa-times" style="cursor:pointer;opacity:0.6;margin-left:4px;" data-del="${i}" title="删除此关系"></i></span>`; }); list.innerHTML = html; list.querySelectorAll('[data-del]').forEach(icon=>{ icon.addEventListener('click',(e)=>{ e.stopPropagation(); const idx = parseInt(icon.getAttribute('data-del')); if(!isNaN(idx) && idx>=0 && idx<char.relationships.length) { const removed = char.relationships[idx]; char.relationships.splice(idx,1); cleanupRelationColor(removed.type); saveAll(); renderRelationGraph(); renderRelationEditList(book, char); toast('已删除：'+char.name+' → '+removed.type); } }); }); }
+    function renderRelationEditList(book, char) { const list = $('relExistingList'); if(!list) return; if(!char.relationships.length) { list.innerHTML = '<span style="color:#6A627A;">暂无关系</span>'; return; } let html = ''; char.relationships.forEach((r,i)=>{ const target = book.characters.find(c=>c.id===r.targetId); html += `<span style="display:inline-block;background:#1A1825;border-radius:12px;padding:2px 10px;margin:2px 4px;font-size:0.7rem;">${escapeHtml(r.type)} → ${escapeHtml(target?target.name:'?')} <i class="fas fa-times" style="cursor:pointer;opacity:0.6;margin-left:4px;" data-del="${i}" title="删除此关系"></i></span>`; }); list.innerHTML = html; list.querySelectorAll('[data-del]').forEach(icon=>{ icon.addEventListener('click',(e)=>{ e.stopPropagation(); const idx = parseInt(icon.getAttribute('data-del')); if(!isNaN(idx) && idx>=0 && idx<char.relationships.length) { const removed = char.relationships[idx]; char.relationships.splice(idx,1); cleanupRelationColor(removed.type); if(!persistOrWarn()) return; renderRelationGraph(); renderRelationEditList(book, char); toast('已删除：'+char.name+' → '+removed.type); } }); }); }
     function cleanupRelationColor(type) { const book = getCurrentBook(); if(!book) return; initCharRelations(book); const stillUsed = book.characters.some(c => (c.relationships||[]).some(r => r.type === type)); if(!stillUsed) delete relationColorMap[type]; }
-    function addRelationFromModal() { const book = getCurrentBook(); if(!book) return; const char = book.characters.find(c=>c.id===relationEditCharId); if(!char) return; const select = $('relTargetSelect'); const inp = $('relTypeInput'); if(!select || !inp) return; const targetId = select.value; const relType = inp.value.trim(); if(!targetId) { toast('请选择目标角色'); return; } if(!relType) { toast('请输入关系名称'); return; } char.relationships = char.relationships || []; if(char.relationships.some(r=>r.targetId===targetId && r.type===relType)) { toast('此关系已存在'); return; } char.relationships.push({ targetId, type: relType }); saveAll(); renderRelationGraph(); renderRelationEditList(book, char); inp.value = ''; const target = book.characters.find(c=>c.id===targetId); toast('已添加：'+char.name+' → '+relType+' → '+(target?target.name:'?')); }
+    function addRelationFromModal() { const book = getCurrentBook(); if(!book) return; const char = book.characters.find(c=>c.id===relationEditCharId); if(!char) return; const select = $('relTargetSelect'); const inp = $('relTypeInput'); if(!select || !inp) return; const targetId = select.value; const relType = inp.value.trim(); if(!targetId) { toast('请选择目标角色'); return; } if(!relType) { toast('请输入关系名称'); return; } char.relationships = char.relationships || []; if(char.relationships.some(r=>r.targetId===targetId && r.type===relType)) { toast('此关系已存在'); return; } char.relationships.push({ targetId, type: relType }); if(!persistOrWarn()) return; renderRelationGraph(); renderRelationEditList(book, char); inp.value = ''; const target = book.characters.find(c=>c.id===targetId); toast('已添加：'+char.name+' → '+relType+' → '+(target?target.name:'?')); }
     function closeRelationEdit() { const modal = $('relationEditModal'); if(modal) modal.style.display = 'none'; relationEditCharId = null; }
     function resetGraphLayout() { const book = getCurrentBook(); relationNodePositions = {}; relationColorMap = {}; graphLayoutMode = 'ring'; graphCanvasH = 0; if(book) { book.relationPositions = {}; book.relationLayoutMode = 'ring'; book.relationCanvasH = 0; saveAll(); } renderRelationGraph(); toast('布局已重置'); }
 
-    // 方形棋盘布局（v4.6）：先还原环形基准（清空位置，顺序=角色数组顺序），
+    // 方形棋盘布局（v5.8）：先还原环形基准（清空位置，顺序=角色数组顺序），
     // 再按棋盘式网格逐个排列；格距自动压缩保证一屏显示（SVG 等比缩放），
     // 节点间距 ≥12px，数学上永不重叠。
     function applySquareLayout() {
@@ -1207,7 +1339,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function buildCharacterText(book, precisionIds) { if(!book.characters || book.characters.length===0) return ''; let filtered = precisionIds ? book.characters.filter(c => precisionIds.includes(c.id)) : book.characters; if(!filtered.length) return ''; let txt = precisionIds ? '【当前出场角色】\n' : '【重要·本书角色库】\n'; filtered.forEach(c => { txt += `- ${c.name}：`; if(c.appearance) txt += `外貌体征：${c.appearance}；`; if(c.personality) txt += `性格：${c.personality}；`; if(c.special) txt += `服装及其他设定：${c.special}；`; if(c.relationship) txt += `身份关联：${c.relationship}；`; txt += '\n'; }); return txt; }
     function buildForbiddenWarning(book) { if(!book.forbiddenWords || book.forbiddenWords.length===0) return ''; let warning = '【严格禁止以下词语】\n'; book.forbiddenWords.forEach(({word}) => { warning += `- 绝对禁止出现"${word}"。\n`; }); return warning; }
     function buildSys(book, usePrecision = false) { let precisionChars = null, precisionActions = null, precisionCostumes = null; if(usePrecision && book.precisionMode && book.precisionChars && book.precisionActions && (book.precisionChars.length || book.precisionActions.length || (book.precisionCostumes||[]).length)) { precisionChars = book.precisionChars; precisionActions = book.precisionActions; precisionCostumes = book.precisionCostumes; } let relationLib = buildRelationText(book); let actionLib = buildActionText(precisionActions); let costumeLib = buildCostumeText(precisionCostumes); let charLib = buildCharacterText(book, precisionChars); let forbiddenWarning = buildForbiddenWarning(book); const parts = []; if(book.globalPrompt && book.globalPrompt.trim()) parts.push(book.globalPrompt.trim()); if(book.writingStyle && book.writingStyle.trim()) parts.push('【行文】'+book.writingStyle.trim()); if(relationLib) parts.push(relationLib.replace(/\n$/,'')); if(charLib) parts.push(charLib.replace(/\n$/,'')); if(actionLib) parts.push(actionLib.replace(/\n$/,'')); if(costumeLib) parts.push(costumeLib.replace(/\n$/,'')); if(forbiddenWarning) parts.push(forbiddenWarning.replace(/\n$/,'')); if(book.worldview && book.worldview.trim()) parts.push('【世界观】'+book.worldview.trim()); if(book.plotSet && book.plotSet.trim()) parts.push('【情节】'+book.plotSet.trim()); if(book.termSet && book.termSet.trim()) parts.push('【专有词】'+book.termSet.trim()); return parts.join('\n') + '\n输出Markdown正文。'; }
-    function getPrev(book, idx) { let start = Math.max(0, idx - api.ctxChapters); let prev = book.chapters.slice(start, idx); if(!prev.length) return "开篇。"; let txt = "【前文完整内容】\n"; let totalChars = 0; const MAX_TOTAL = 30000, MAX_SINGLE = 5000; for(let i=0;i<prev.length;i++) { const ch = prev[i]; if(ch.summary && ch.summary.trim()) { txt += `${ch.isInterlude ? '间章' : '第'+(start+i+1)+'章'} ${ch.title}（摘要）：${ch.summary.trim()}\n`; } else { let body = ch.content || ''; if(body.length > MAX_SINGLE) body = body.slice(0, MAX_SINGLE) + '\n…（前文单章过长已截断）'; txt += `${ch.isInterlude ? '间章' : '第'+(start+i+1)+'章'} ${ch.title}\n${body}\n\n`; totalChars += body.length; if(totalChars > MAX_TOTAL) { txt += '\n…（前文总长超限已截断，建议补充各章摘要）'; break; } } } return txt; }
+    function getPrev(book, idx) { let start = Math.max(0, idx - api.ctxChapters); let prev = book.chapters.slice(start, idx); if(!prev.length) return "开篇。"; let txt = "【前文完整内容】\n"; let totalChars = 0; const MAX_TOTAL = 30000, MAX_SINGLE = 5000, MAX_SUMMARY = 300; let regularNo = book.chapters.slice(0, start).filter(ch => !ch.isInterlude).length; for(let i=0;i<prev.length;i++) { const ch = prev[i]; regularNo += ch.isInterlude ? 0 : 1; if(ch.summary && ch.summary.trim()) { const summary = ch.summary.trim().slice(0, MAX_SUMMARY); totalChars += summary.length; if(totalChars > MAX_TOTAL) { txt += '\n…（前文摘要总长已截断）'; break; } txt += `${ch.isInterlude ? '间章' : '第'+regularNo+'章'} ${ch.title}（摘要）：${summary}\n`; } else { let body = ch.content || ''; if(body.length > MAX_SINGLE) body = body.slice(0, MAX_SINGLE) + '\n…（前文单章过长已截断）'; txt += `${ch.isInterlude ? '间章' : '第'+regularNo+'章'} ${ch.title}\n${body}\n\n`; totalChars += body.length; if(totalChars > MAX_TOTAL) { txt += '\n…（前文总长超限已截断，建议补充各章摘要）'; break; } } } return txt; }
     function extractTitle(content, fallbackTitle) { let lines = content.split('\n'); for(let line of lines) { let t=line.trim(); if(t.startsWith('#') && t.length>1) return t.replace(/^#+\s*/,'').trim(); } return fallbackTitle; }
 
     async function runChapterCheck(book, chapter, prevContent, showToastOnError=false) {
@@ -1256,28 +1388,52 @@ document.addEventListener('DOMContentLoaded', function() {
             return { ok:false, error:"冲突检测解析失败" };
         }
     }
+    // 冲突检测状态栏计数器：自动/手动检测并行时，先结束的不得提前隐藏"检查中"提示
+    let conflictCheckingCount = 0;
+    function setConflictChecking(active) {
+        conflictCheckingCount += active ? 1 : -1;
+        conflictCheckingCount = Math.max(0, conflictCheckingCount);
+        const el = $('conflictCheckStatus');
+        if(el) el.style.display = conflictCheckingCount > 0 ? 'inline' : 'none';
+    }
     async function afterChapterGenerated(book, chapter, idx) {
-        const statusSpan = $('conflictCheckStatus'); if(statusSpan) statusSpan.style.display = 'inline';
+        // 竞态保护：记录正文快照 + 检查版本号，检测返回时若章节已替换/正文已编辑则作废旧结果
+        // （v5.8 补版本校验：markContentDirty 编辑正文会递增 checkRequestVersion，
+        //   用户编辑后即使 current.content 未变（未保存），旧检测结果也会被丢弃）
+        const contentSnapshot = chapter.content;
+        const chapterId = chapter.id;
+        const checkVer = chapter.checkRequestVersion || 0;
+        setConflictChecking(true);
         try {
             const prevContent = book.chapters.slice(Math.max(0, idx - api.ctxChapters), idx).map(c=>c.content).join('\n\n');
             const result = await runChapterCheck(book, chapter, prevContent);
-            if(result.ok) { chapter.checkResult = result.conflicts; chapter.checkState = 'done'; }
-            else { chapter.checkResult = []; chapter.checkState = 'error'; console.warn(result.error); }
+            const current = book.chapters.find(c => c.id === chapterId);
+            if(!current || current.checkRequestVersion !== checkVer || current.content !== contentSnapshot) return; // 正文已变/已编辑，旧检测作废
+            if(result.ok) { current.checkResult = result.conflicts; current.checkState = 'done'; }
+            else { current.checkResult = []; current.checkState = 'error'; console.warn(result.error); }
             saveAll();
+            // UI 更新前校验来源书籍仍为当前书（防切书后旧结果误染新书按钮）
             const checkBtn = $('checkConflictBtn');
-            if(book.currentChapterId === chapter.id && checkBtn) {
-                checkBtn.style.background = chapter.checkResult.length ? "#C97A3A" : "#3A3A6A";
-                if(chapter.checkResult.length) toast(`检查发现 ${chapter.checkResult.length} 处潜在冲突`);
+            if(currentBookId === book.id && book.currentChapterId === current.id && checkBtn) {
+                checkBtn.style.background = current.checkResult.length ? "#C97A3A" : "#3A3A6A";
+                if(current.checkResult.length) toast(`检查发现 ${current.checkResult.length} 处潜在冲突`);
             }
-        } finally { if(statusSpan) statusSpan.style.display = 'none'; }
+        } finally { setConflictChecking(false); }
     }
 
-    // ======================== 单章摘要（v4.6） ========================
+    // ======================== 单章摘要（v5.8） ========================
     // 正文生成时同请求附带【摘要】；本函数仅用于「重新生成」手动触发（独立轻量请求），
     // 并带虚构文学数据安全声明，避免 AI 因正文敏感内容而拒绝总结。
     const SUMMARY_PLACEHOLDER = '⏳ 摘要生成中...';
+    // v6.0：摘要生成进行中标志——防重复点击发起多个摘要请求浪费 API 费用
+    let summaryGenerating = false;
     async function generateChapterSummary(book, chapter) {
         if(!api.key || !chapter || !chapter.content || !chapter.content.trim()) return;
+        // 竞态保护：递增请求版本号 + 记录正文快照——旧请求晚返回时不得覆盖
+        // 新摘要或用户手动编辑（blur 保存时同样递增版本号使旧请求失效）
+        chapter.summaryRequestVersion = (chapter.summaryRequestVersion || 0) + 1;
+        const requestVersion = chapter.summaryRequestVersion;
+        const contentSnapshot = chapter.content;
         const sumEl = $('summaryArea');
         try {
             if(sumEl && book.currentChapterId === chapter.id) { sumEl.value = SUMMARY_PLACEHOLDER; sumEl.style.color = '#8A84A8'; }
@@ -1298,63 +1454,99 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             let sum = data.choices[0]?.message?.content;
             if(!sum || !sum.trim()) throw new Error('空摘要');
-            chapter.summary = sum.trim().slice(0, 200);
+            // 请求已过期（有新请求/用户手动编辑/正文已变）→ 丢弃本次结果
+            const current = book.chapters.find(c => c.id === chapter.id);
+            if(!current || current.summaryRequestVersion !== requestVersion || current.content !== contentSnapshot) {
+                // v6.0：丢弃时恢复摘要框原值——防"生成中占位符"残留误导（catch 分支已有同样恢复）
+                if(sumEl && currentBookId === book.id && book.currentChapterId === current?.id) { sumEl.value = current.summary || ''; sumEl.style.color = ''; }
+                return;
+            }
+            current.summary = sum.trim().slice(0, 200);
             saveAll();
+            // v5.8：成功分支统一校验当前界面书籍 = 摘要所属书籍（防切书后写入、防同 id 章节误更新）
             const cur = getCurrentBook();
-            if(cur && cur.currentChapterId === chapter.id) {
-                const sa = $('summaryArea'); if(sa) { sa.value = chapter.summary; sa.style.color = ''; }
+            if(cur && cur.id === book.id && cur.currentChapterId === chapter.id) {
+                const sa = $('summaryArea'); if(sa) { sa.value = current.summary; sa.style.color = ''; }
             }
             toast('本章摘要已生成');
         } catch(e) {
             console.warn('摘要生成失败:', e);
+            // 章节已切换/请求已过期 → 不触碰 UI
+            const current = book.chapters.find(c => c.id === chapter.id);
+            if(!current || current.summaryRequestVersion !== requestVersion) return;
             // 清理可能被自动保存写入的占位符，防止污染上下文
-            if(chapter.summary === SUMMARY_PLACEHOLDER) { chapter.summary = ''; saveAll(); }
-            if(sumEl && book.currentChapterId === chapter.id) { sumEl.value = chapter.summary || ''; sumEl.style.color = ''; }
+            if(current.summary === SUMMARY_PLACEHOLDER) { current.summary = ''; saveAll(); }
+            // v5.8：失败分支必须校验当前界面书籍 = 摘要所属书籍——
+            // 否则切到新书后，旧书的失败回调会把旧摘要写进新书的摘要框（跨书 UI 污染）
+            if(sumEl && currentBookId === book.id && book.currentChapterId === current.id) { sumEl.value = current.summary || ''; sumEl.style.color = ''; }
             toast('摘要生成失败，可点击「重新生成」重试');
         }
     }
 
     async function recheckCurrentChapter() {
+        // v6.0：检测进行中禁止重复发起（自动/手动检测共用 conflictCheckingCount，
+        // 防网络慢/思考模式时重复点击产生多个 API 请求浪费费用；计数在 finally 中可靠释放）
+        if(conflictCheckingCount > 0) { toast('冲突检测进行中，请稍候'); return; }
         const book = getCurrentBook(); if(!book || !book.currentChapterId) { toast("请先选择章节"); return; }
         const chap = book.chapters.find(c=>c.id===book.currentChapterId); if(!chap) return;
         const idx = book.chapters.findIndex(c=>c.id===chap.id);
-        const statusSpan = $('conflictCheckStatus'); if(statusSpan) statusSpan.style.display = 'inline';
+        // v5.9：先同步编辑器中的未保存正文到章节数据——检测必须基于用户当前看到的最新正文，
+        // 否则 AI 会基于旧 chap.content 检测（saveCurChapter 即使 localStorage 保存失败也已写入内存）
+        if(book.currentChapterId === chap.id) saveCurChapter();
+        // 正文快照：检测期间正文被编辑/章节被替换 → 结果作废（防旧结果覆盖新正文）
+        const contentSnapshot = chap.content;
+        const chapterId = chap.id;
+        // 请求版本号：连续点击"重新检测"并发时，只保留最新一次结果（防旧结果覆盖新结果）
+        chap.checkRequestVersion = (chap.checkRequestVersion || 0) + 1;
+        const requestVersion = chap.checkRequestVersion;
+        setConflictChecking(true);
         try {
             const prevContent = book.chapters.slice(Math.max(0, idx - api.ctxChapters), idx).map(c=>c.content).join('\n\n');
             const result = await runChapterCheck(book, chap, prevContent, true);
-            // 检测期间用户可能已切换章节，结果作废
-            if(book.currentChapterId !== chap.id) return;
+            // 检测期间用户可能已切换章节/书籍/正文已编辑，结果作废
+            if(book.currentChapterId !== chapterId || currentBookId !== book.id) return;
+            const current = book.chapters.find(c => c.id === chapterId);
+            if(!current || current.content !== contentSnapshot) return;
+            if(current.checkRequestVersion !== requestVersion) return; // 已有更新的检测请求
             const checkBtn = $('checkConflictBtn');
             if(result.ok) {
-                chap.checkResult = result.conflicts; chap.checkState = 'done';
-                if(checkBtn) checkBtn.style.background = chap.checkResult.length ? "#C97A3A" : "#3A3A6A";
-                if(chap.checkResult.length) toast(`检查发现 ${chap.checkResult.length} 处潜在冲突`);
+                current.checkResult = result.conflicts; current.checkState = 'done';
+                if(checkBtn) checkBtn.style.background = current.checkResult.length ? "#C97A3A" : "#3A3A6A";
+                if(current.checkResult.length) toast(`检查发现 ${current.checkResult.length} 处潜在冲突`);
                 else toast("未检测到明显冲突");
             } else {
-                chap.checkResult = []; chap.checkState = 'error';
+                current.checkResult = []; current.checkState = 'error';
                 if(checkBtn) checkBtn.style.background = "#3A3A6A";
                 toast(result.error || "冲突检测失败");
             }
             saveAll();
-        } finally { if(statusSpan) statusSpan.style.display = 'none'; }
+        } finally { setConflictChecking(false); }
     }
 
-    async function executeGeneration(instr, isRegen=false, targetId=null, isCont=false, chatId=null, onSuccess=null, isDual=false, controller=null) {
+    async function executeGeneration(instr, isRegen=false, targetId=null, isCont=false, chatId=null, onSuccess=null, isDual=false, controller=null, sourceBookId=null) {
         // Prerequisites — no state changes
-        let book = getCurrentBook();
+        // 来源书优先（API 配置后自动重试场景：原书可能已不是当前书，必须生成回原书）
+        let book = (sourceBookId ? books.find(b=>b.id===sourceBookId) : null) || getCurrentBook();
         if(!book) { toast("请先创建或选择小说"); return null; }
         if(!api.key) {
             toast("请先配置 API Key"); openApiModal();
-            pendingGeneration = { instr, isRegen, targetId, isCont, chatId, onSuccess, isDual };
-            if(onSuccess) onSuccess(null, 0);
-            return null;
+            pendingGeneration = { sourceBookId: book.id, instr, isRegen, targetId, isCont, chatId, onSuccess, isDual };
+            // v5.8：等待配置 Key 不是失败——不触发失败回调（否则显示"❌ 生成失败"误导），
+            // 直接更新聊天为等待态；saveApi 保存后自动重试成功会覆盖为"✅"
+            if(chatId && !isDual) replaceChatMessage(chatId, '⚙️ 请配置 API Key，保存后将自动重试', book);
+            return { status: 'need-api' };
         }
         // State lock — after all prerequisites pass
         if(!isDual && isGenerating) { toast("已有生成任务进行中，请等待或点击停止"); return null; }
         if(!isDual) isGenerating = true;
+        // 会话号：单版任务启动即成为最新会话（旧任务随之过期，finally 不再清理）；
+        // 双版不在此递增（由 runDualGeneration 统一管理）
+        const sessionId = isDual ? 0 : ++generationSessionId;
         const stopBtn = $('stopGenBtn'); if(stopBtn) stopBtn.disabled = false;
         const localCtrl = controller || new AbortController();
         currentAbortController = localCtrl;
+        // v5.8：单版生成期间锁定编辑器（双版已隐藏编辑器，不锁）
+        if(!isDual) setWritingLock(true);
         let idx = isRegen ? book.chapters.findIndex(c=>c.id===targetId) : book.chapters.length;
         if(idx===-1) idx=book.chapters.length;
         let prev = getPrev(book, idx);
@@ -1370,7 +1562,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if(globalActions.length) user += `\n\n请严格按照【全局动作库】中的定义来描写动作。`;
         if(globalCostumes.length) user += `\n\n请严格按照【全局服装库】中的定义来描写服装。`;
-        // 同请求生成摘要（v4.6）：正文末尾【摘要】标记输出150字摘要，代码解析分离
+        // 同请求生成摘要（v5.8）：正文末尾【摘要】标记输出150字摘要，代码解析分离
         user += `\n\n正文输出完毕后，另起一行用【摘要】标记输出本章150字以内的摘要，必须包含：时间、地点、事件、关键细节，不分段。`;
         let stopWordsArray = [];
         if(api.stopWords && api.stopWords.trim()) stopWordsArray = api.stopWords.split(',').map(s=>s.trim()).filter(s=>s);
@@ -1398,6 +1590,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(`HTTP ${res.status}`);
             }
             let data = await res.json();
+            // 会话校验：响应解析完成后的首个异步节点——停止后旧任务响应已到达时在此拦截，
+            // 不继续写入章节（abort 对已到达的响应无效，必须有逻辑层面的过期校验）
+            if(!isDual && sessionId !== generationSessionId) {
+                if(chatId) replaceChatMessage(chatId, '⏹ 已停止（旧任务结果已丢弃）', book);
+                return null;
+            }
             let content = data.choices[0]?.message?.content;
             if(!content) throw new Error("API 返回内容为空");
             let totalCost = 0;
@@ -1406,7 +1604,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const outputCost = (data.usage.completion_tokens * PRICE_OUTPUT) / 1_000_000;
                 totalCost = inputCost + outputCost;
             }
-            // 同请求提取摘要（v4.6）：正文末尾【摘要】标记分离
+            // 同请求提取摘要（v5.8）：正文末尾【摘要】标记分离
             // 长度校验：摘要段若 >300 字（明显不是150字摘要），视为正文误含标记，不分离
             let summaryText = '';
             const sumIdx = content.indexOf('【摘要】');
@@ -1420,23 +1618,33 @@ document.addEventListener('DOMContentLoaded', function() {
             let defaultTitle = isCont ? `续写` : ((instr && instr.trim().length <= 20) ? instr.trim() : "新章节");
             let title = extractTitle(content, defaultTitle);
             let newChap = { id: uuid(), title, content, prompt: isCont ? (instr||'续写指令') : instr, checkResult: [], isContinuation: isCont ? true : false, isInterlude: false, summary: summaryText };
+            // v5.8 修复（严重回归）：saved 必须在 if(!isDual) 块外声明——
+            // 之前在块内 let 声明、块外访问会抛 ReferenceError: saved is not defined，
+            // 导致单版（章节已写入但反馈失败）与双版（A/B 全失败）同时崩溃
+            let saved = isDual ? null : false;
             if(!isDual) {
+            // 写入前二次校验：res.json 后到写入前若任务已过期（停止+新任务），丢弃结果
+            if(sessionId !== generationSessionId) {
+                if(chatId) replaceChatMessage(chatId, '⏹ 已停止（旧任务结果已丢弃）', book);
+                return null;
+            }
             if(isRegen && targetId) {
                 let i = book.chapters.findIndex(c=>c.id===targetId);
-                if(i!==-1) { let oldChap = book.chapters[i]; newChap.id = oldChap.id; if(title === defaultTitle && oldChap.title) newChap.title = oldChap.title; book.chapters[i] = newChap; newChap.prompt = oldChap.prompt; newChap.isContinuation = oldChap.isContinuation; book.currentChapterId = newChap.id; }
+                if(i!==-1) { let oldChap = book.chapters[i]; newChap.id = oldChap.id; if(title === defaultTitle && oldChap.title) newChap.title = oldChap.title; book.chapters[i] = newChap; newChap.prompt = oldChap.prompt; newChap.isContinuation = oldChap.isContinuation; newChap.isInterlude = oldChap.isInterlude; if(!summaryText && oldChap.summary) newChap.summary = oldChap.summary; book.currentChapterId = newChap.id; }
                 else { toast("⚠️ 目标章节已不存在，作为新章节添加"); book.chapters.push(newChap); book.currentChapterId = newChap.id; }
             } else {
                 book.chapters.push(newChap);
                 book.currentChapterId = newChap.id;
             }
-                let saved = saveAll();
+                saved = saveAll();
                 if(!saved) toast('⚠️ 内容已生成但存储空间不足，关闭页面前请导出备份！');
                 if(!isRegen) { renderChapters(); loadCurChapter(); }
                 // 冲突检测后台执行，不阻塞生成完成反馈
                 void afterChapterGenerated(book, newChap, isRegen ? idx : book.chapters.length-1).catch(err => console.warn(err));
             }
-            if (onSuccess) onSuccess(newChap, totalCost);
-            return { chap: newChap, cost: totalCost };
+            // v5.8：第4参 saveFailed 传给回调——保存失败时聊天必须显示警告而非普通成功
+            if (onSuccess) onSuccess(newChap, totalCost, false, !saved);
+            return { chap: newChap, cost: totalCost, saved: !!saved };
         } catch(e) {
             if(e.name === 'AbortError') { if(timedOut) toast("生成超时（10分钟）已取消，建议调低 maxTokens 或关闭思考模式"); else if(!isDual) toast("生成已取消"); if (onSuccess) onSuccess(null, 0, true); return null; }
             toast("生成失败: "+e.message);
@@ -1444,38 +1652,67 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             clearTimeout(timeoutId);
             if(!isDual) {
+                // 会话号校验：若此任务已不是最新会话（停止后新任务已启动），
+                // 不得清理全局状态——否则会清空新任务的状态
+                if(sessionId !== generationSessionId) return;
                 isGenerating = false;
                 const stopBtn = $('stopGenBtn'); if(stopBtn) stopBtn.disabled = true;
                 currentAbortController = null;
+                setWritingLock(false); // v5.8：仅当前任务可解锁（防旧任务解锁新任务的锁）
             }
         }
     }
 
     function stopGeneration() {
+        // 立即使所有在途任务过期：旧任务的响应即使已到达，后续写入/回调也会被 sessionId 校验拦截
+        generationSessionId++;
         if(dualAbortControllers.length) {
             // 双版生成中点停止：置停止标志，runDualGeneration both-failed 分支据此显示"⏹ 已停止"而非"生成失败"
             dualStopRequested = true;
+            // 立即更新聊天（不等 allSettled），防 abort 回调延迟时用户看到"生成中"残留
+            const sb = dualOriginBookId ? books.find(b => b.id === dualOriginBookId) : getCurrentBook();
+            if(sb && dualChatId) replaceChatMessage(dualChatId, '⏹ 正在停止 A/B 双版生成...', sb);
             dualAbortControllers.forEach(c => { try { c.abort(); } catch(e) {} });
             dualAbortControllers = [];
             dualPendingChapA = null; dualPendingChapB = null;
             dualOriginBookId = null;
             dualChatId = null; dualStartTime = 0; dualWasPrecision = false; dualCosts = {A:0, B:0};
+            // v5.8 补收尾：旧 runDualGeneration 会在 allSettled 后因会话检查直接 return（不负责清理），
+            // 此处必须完整释放生成锁与双版活跃会话，否则 isGenerating 永久卡死、候选状态残留
+            isGenerating = false;
+            currentAbortController = null;
+            dualActiveSessionId = 0;
+            const stopBtnA = $('stopGenBtn'); if(stopBtnA) stopBtnA.disabled = true;
             const splitEl = $('editorSplit'); if(splitEl) splitEl.remove();
             const nc = $('novelContent'); if(nc) nc.style.display = ''; const sw = $( 'summaryAreaWrap'); if(sw) sw.style.display = '';
             loadCurChapter();
         } else if(dualPendingChapA || dualPendingChapB) {
-            // 双版已生成完毕、等待选择时点击停止：放弃选择，清理双版 UI
+            // 双版已生成完毕、等待选择时点击停止：放弃选择，更新聊天记录为"已放弃"，
+            // 清理双版 UI（防聊天显示"请选择保留"与实际状态矛盾）
+            const originBook = dualOriginBookId ? books.find(b => b.id === dualOriginBookId) : getCurrentBook();
+            if(originBook && dualChatId) {
+                replaceChatMessage(dualChatId, '⏹ 已放弃 A/B 双版结果，未保存任何版本', originBook);
+            }
             dualStopRequested = true;
             dualPendingChapA = null; dualPendingChapB = null;
             dualOriginBookId = null;
             dualChatId = null; dualStartTime = 0; dualWasPrecision = false; dualCosts = {A:0, B:0};
             const splitEl = $('editorSplit'); if(splitEl) splitEl.remove();
             const nc = $('novelContent'); if(nc) nc.style.display = ''; const sw = $( 'summaryAreaWrap'); if(sw) sw.style.display = '';
+            // 关键：释放生成锁（等待选择时 isGenerating 保持 true，此处必须复位，
+            // 否则"已有生成任务进行中"永久拦截所有操作，只能刷新页面）
+            isGenerating = false;
+            currentAbortController = null;
+            dualActiveSessionId = 0; // 与分支1 一致：停止即作废双版活跃会话
+            const stopBtn2 = $('stopGenBtn'); if(stopBtn2) stopBtn2.disabled = true;
             loadCurChapter();
+            toast("已放弃 A/B 两版结果，未保存章节");
+            return;
         }
         if(currentAbortController) { currentAbortController.abort(); currentAbortController = null; }
         isGenerating = false;
         const stopBtn = $('stopGenBtn'); if(stopBtn) stopBtn.disabled = true;
+        setWritingLock(false); // v5.8：停止即解锁编辑器（旧任务 finally 会因会话过期跳过解锁）
         toast("已请求停止生成");
     }
 
@@ -1507,6 +1744,8 @@ document.addEventListener('DOMContentLoaded', function() {
         chatMsgs.scrollTop = chatMsgs.scrollHeight;
     }
     function clearChatHistory() {
+        // 生成/双版选择期间清空聊天会丢失"生成中"占位消息 → 结果反馈无法显示
+        if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成或双版选择进行中，暂不能清空聊天记录"); return; }
         const book = getCurrentBook();
         if(!book || !book.chatHistory || !book.chatHistory.length) { toast("聊天记录已为空"); return; }
         if(!confirm(`确认清空全部 ${book.chatHistory.length} 条聊天记录？此操作不可撤销。`)) return;
@@ -1520,23 +1759,36 @@ document.addEventListener('DOMContentLoaded', function() {
         if(!instr) { toast("请输入创作指令"); return; }
         let book = getCurrentBook();
         if(isGenerating) { toast("已有生成任务进行中"); return; }
-        saveCurChapter();
+        if(!ensureCurrentChapterSaved()) return;
+        // v5.8：用户手动发起新任务即放弃旧挂起任务——防 API 配置保存失败后
+        // 保留的 pendingGeneration 在之后重新保存 API 时意外自动重试（幽灵章节）
+        if(pendingGeneration) cancelPendingGeneration('⚠️ 已被新的生成任务覆盖');
+        // v5.8：双版模式在任务启动时立即单次消费（与精准模式一致）——
+        // 若在 await 之后才关闭，旧任务异步收尾会把用户停止后重新打开的双版开关误关
+        const useDualMode = api.dualMode;
+        if(useDualMode) { api.dualMode = false; saveAll(); updateDualModeButton(); }
         
         // Non-dual or continue/regen: original flow
-        if(!api.dualMode) {
+        if(!useDualMode) {
             addChat('user', instr);
             if($('chatInp')) $('chatInp').value = '';
             let lid = addChat('assistant', '✍️ 生成中...', true);
             const startTime = Date.now();
             const wasPrecision = book?.precisionMode || false;
-            await executeGeneration(instr, false, null, false, lid, (chap, cost, aborted) => {
+            await executeGeneration(instr, false, null, false, lid, (chap, cost, aborted, saveFailed) => {
                 if(chap) {
                     const elapsed = formatTime(Date.now() - startTime);
                     let tail = cost > 0 ? ` (预估 ¥${cost.toFixed(2)}元) (耗时：${elapsed})` : ` (耗时：${elapsed})`;
                     if(wasPrecision) tail += ' (精准模式)';
-                    replaceChatMessage(lid, `✅ 已生成第${book.chapters.length}章《${chap.title}》${tail}`, book);
+                    // v5.8：保存失败时聊天显示警告而非普通成功（toast 一闪而过，聊天是持久状态）
+                    if(saveFailed) {
+                        replaceChatMessage(lid, `⚠️ 已生成第${book.chapters.length}章《${chap.title}》但本地保存失败！请立即导出或复制正文，刷新可能丢失`, book);
+                        toast('⚠️ 章节已生成但保存失败，请立即导出备份或复制正文');
+                    } else {
+                        replaceChatMessage(lid, `✅ 已生成第${book.chapters.length}章《${chap.title}》${tail}`, book);
+                        startTabBlink(`✅ 已生成第${book.chapters.length}章《${chap.title}》`);
+                    }
                     if(book && book.precisionMode) { book.precisionMode = false; saveAll(); updatePrecisionButton(); }
-                    startTabBlink(`✅ 已生成第${book.chapters.length}章《${chap.title}》`);
                 } else { replaceChatMessage(lid, aborted ? '⏹ 已停止' : '❌ 生成失败', book); if(!aborted) startTabBlink('❌ 生成失败'); }
             });
             return;
@@ -1548,15 +1800,26 @@ document.addEventListener('DOMContentLoaded', function() {
         if($('chatInp')) $('chatInp').value = '';
         const dualLid = addChat('assistant', '🔀 并发生成 A/B 版本中...', true);
         await runDualGeneration(instr, book, dualLid);
-        // 并发双版单次生效：生成结束即自动关闭（与精准模式一致）
-        if(api.dualMode) { api.dualMode = false; saveAll(); updateDualModeButton(); }
+        // 双版开关已在任务启动时消费（v5.8），此处不再关闭——防旧任务收尾误关用户新开关
     }
 
     async function runDualGeneration(instr, book, dualLid) {
+        // v5.8：双版启动前先检查 API Key——无 Key 时提前挂起单条待生成任务并提示，
+        // 避免两个并行 executeGeneration 各自创建 pendingGeneration（重复覆盖）+ 先显示"并发生成中"
+        if(!api.key) {
+            pendingGeneration = { sourceBookId: book ? book.id : null, instr, isRegen: false, targetId: null, isCont: false, chatId: dualLid, onSuccess: null, isDual: true };
+            if(dualLid && book) replaceChatMessage(dualLid, '⚙️ 请配置 API Key，保存后将自动重试双版生成', book);
+            openApiModal();
+            toast("请先配置 API Key");
+            return;
+        }
         dualStopRequested = false;
+        // 双版会话号：本任务的最新会话；停止后若用户已发新任务（会话号被新任务推进）则放弃清理
+        const dualSessionId = ++generationSessionId;
+        dualActiveSessionId = dualSessionId; // 供 finalize/选版校验
         isGenerating = true;
         dualChatId = dualLid;
-        dualOriginBookId = currentBookId;
+        dualOriginBookId = book ? book.id : currentBookId; // 重试场景 book 为原书（可能非当前书）
         const startTime = Date.now();
         const wasPrecision = book?.precisionMode || false;
         dualStartTime = startTime; dualWasPrecision = wasPrecision; dualCosts = {A:0, B:0};
@@ -1575,10 +1838,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Launch both in parallel
         const controllerA = new AbortController(), controllerB = new AbortController();
         dualAbortControllers = [controllerA, controllerB];
-        const execA = executeGeneration(instr, false, null, false, dualLid, null, true, controllerA).then(r => ({r, ver:'A'}));
-        const execB = executeGeneration(instr, false, null, false, dualLid, null, true, controllerB).then(r => ({r, ver:'B'}));
+        // 来源书穿透（v5.8）：API 配置后自动重试场景 book 可能是原书（非当前书），
+        // executeGeneration 必须按来源书生成，否则双版结果写错书
+        const execA = executeGeneration(instr, false, null, false, dualLid, null, true, controllerA, book.id).then(r => ({r, ver:'A'}));
+        const execB = executeGeneration(instr, false, null, false, dualLid, null, true, controllerB, book.id).then(r => ({r, ver:'B'}));
         const results = await Promise.allSettled([execA, execB]);
-        
+
+        // 会话/停止检查（v5.8）：必须在写入候选之前判断任务是否已过期或已停止——
+        // 否则停止后旧任务返回会重新写回 dualPendingChapA/B，再因会话不一致 return
+        // 时跳过清理，造成候选状态残留 + isGenerating 永久卡死（只能再点一次停止恢复）
+        if(dualSessionId !== generationSessionId || dualStopRequested) return;
+
         const aOk = results[0].status==='fulfilled' && results[0].value.r?.chap;
         const bOk = results[1].status==='fulfilled' && results[1].value.r?.chap;
         const aChap = aOk ? results[0].value.r.chap : null;
@@ -1589,6 +1859,26 @@ document.addEventListener('DOMContentLoaded', function() {
         dualPendingChapA = aChap; dualPendingChapB = bChap;
         dualCosts.A = aCost; dualCosts.B = bCost;
         const elapsed = formatTime(Date.now() - startTime);
+
+        // 用户主动停止：丢弃全部结果（与"某一版自然失败自动保留"区分）
+        // stopGeneration 已清理 UI/状态，此处只须防成功版本被写入
+        if(dualStopRequested) {
+            // 会话号校验：停止后用户已发新任务（会话号被新任务推进）→ 放弃本任务的清理，
+            // 防止把新任务的状态清空（旧任务与新任务交叠的关键防护）
+            if(dualSessionId !== generationSessionId) return;
+            const splitEl = $('editorSplit'); if(splitEl) splitEl.remove();
+            const nc = $('novelContent'); if(nc) nc.style.display = ''; const sw = $( 'summaryAreaWrap'); if(sw) sw.style.display = '';
+            replaceChatMessage(dualLid, '⏹ 已停止，A/B 结果已丢弃', book);
+            dualPendingChapA = null; dualPendingChapB = null;
+            dualOriginBookId = null;
+            dualChatId = null; dualStartTime = 0; dualWasPrecision = false; dualCosts = {A:0, B:0};
+            dualAbortControllers = []; dualStopRequested = false;
+            currentAbortController = null;
+            isGenerating = false;
+            const stopBtn = $('stopGenBtn'); if(stopBtn) stopBtn.disabled = true;
+            loadCurChapter();
+            return;
+        }
         
         if(aOk && bOk) {
             // Both ok - show both for selection
@@ -1636,6 +1926,8 @@ document.addEventListener('DOMContentLoaded', function() {
         currentAbortController = null;
         // both-ok 时保持锁定直到用户选择（finalizeDualSelection 释放）；其他分支已由 finalize 或此处释放
         if(!dualPendingChapA && !dualPendingChapB) {
+            // v5.8：两版均失败（或自然收尾）也清空活跃会话——与 stop/finalize/resetAll 清理标准一致
+            dualActiveSessionId = 0;
             isGenerating = false;
             const stopBtn = $('stopGenBtn'); if(stopBtn) stopBtn.disabled = true;
         }
@@ -1654,10 +1946,13 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     function finalizeDualSelection(ver, chap, book, lid, startTime, cost, wasPrecision, autoKeep=false) {
+        // 会话校验：停止后新任务已启动（会话推进）→ 旧双版的选版/定稿失效，防结果写入新任务流程
+        if(dualActiveSessionId !== generationSessionId) { toast("双版结果已失效"); return; }
         try {
             book.chapters.push(chap);
             book.currentChapterId = chap.id;
-            saveAll();
+            // v5.8：检查保存结果——保存失败时聊天必须显示警告而非普通成功
+            const savedOk = saveAll();
             // 双版选中章节后台执行自动冲突检测（与单版行为一致）
             const chIdx = book.chapters.length - 1;
             void afterChapterGenerated(book, chap, chIdx).catch(err => console.warn(err));
@@ -1672,7 +1967,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     let tail = cost>0?' (预估 ¥'+cost.toFixed(2)+'元) (耗时：'+elapsed+')':' (耗时：'+elapsed+')';
                     if(wasPrecision) tail += ' (精准模式)';
                     const wc = '('+(chap.content ? chap.content.length : 0)+')';
-                    if(autoKeep) {
+                    if(!savedOk) {
+                        const failTxt = '⚠️ 版本'+ver+'已选择但本地保存失败！请立即导出或复制正文，刷新可能丢失';
+                        replaceChatMessage(lid, failTxt, book);
+                        toast('⚠️ 版本已选择但本地保存失败，请立即导出或复制正文');
+                        startTabBlink('⚠️ 双版保存失败');
+                    } else if(autoKeep) {
                         const msgTxt = '⚠️ 版本'+(ver==='A'?'B':'A')+'生成失败，已自动保留版本'+ver+'：第'+book.chapters.length+'章《'+chap.title+'》 (字数'+wc+') '+tail;
                         replaceChatMessage(lid, msgTxt, book);
                         toast('✅ 已自动保留版本'+ver+'：第'+book.chapters.length+'章《'+chap.title+'》 (字数'+wc+') '+tail); // 兜底反馈
@@ -1692,6 +1992,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dualOriginBookId = null;
             dualChatId = null; dualStartTime = 0; dualWasPrecision = false; dualCosts = {A:0, B:0};
             dualAbortControllers = [];
+            dualActiveSessionId = 0;
             currentAbortController = null;
             isGenerating = false;
             const stopBtn = $('stopGenBtn'); if(stopBtn) stopBtn.disabled = true;
@@ -1703,17 +2004,24 @@ document.addEventListener('DOMContentLoaded', function() {
         if(!book || !book.chapters.length) { toast("请先生成第一章后再续写"); return; }
         if(isGenerating) { toast("已有生成任务进行中，请等待或点击停止"); return; }
         if(book.precisionMode) toast("提示：精准模式不适用于续写，本次使用全量设定");
-        saveCurChapter();
+        if(!ensureCurrentChapterSaved()) return;
+        if(pendingGeneration) cancelPendingGeneration('⚠️ 已被新的生成任务覆盖');
         let instr = $('chatInp')?.value.trim();
         if(instr) { addChat('user', instr); if($('chatInp')) $('chatInp').value = ''; }
         let lid = addChat('assistant', instr ? `⏳ 根据指令续写：${instr}` : '⏳ 续写中...', true);
         const startTime = Date.now();
-        await executeGeneration(instr, false, null, true, lid, (chap, cost, aborted) => {
+        await executeGeneration(instr, false, null, true, lid, (chap, cost, aborted, saveFailed) => {
             if(chap) {
                 const elapsed = formatTime(Date.now() - startTime);
                 let tail = cost > 0 ? ` (预估 ¥${cost.toFixed(2)}元) (耗时：${elapsed})` : ` (耗时：${elapsed})`;
-                replaceChatMessage(lid, `✅ 续写第${book.chapters.length}章《${chap.title}》完成${tail}`, book);
-                startTabBlink(`✅ 续写完成：第${book.chapters.length}章《${chap.title}》`);
+                // v5.8：保存失败时聊天显示警告
+                if(saveFailed) {
+                    replaceChatMessage(lid, `⚠️ 续写第${book.chapters.length}章《${chap.title}》完成但本地保存失败！请立即导出或复制正文，刷新可能丢失`, book);
+                    toast('⚠️ 续写完成但保存失败，请立即导出备份或复制正文');
+                } else {
+                    replaceChatMessage(lid, `✅ 续写第${book.chapters.length}章《${chap.title}》完成${tail}`, book);
+                    startTabBlink(`✅ 续写完成：第${book.chapters.length}章《${chap.title}》`);
+                }
             } else { if(!aborted) startTabBlink('❌ 续写失败'); replaceChatMessage(lid, aborted ? '⏹ 已停止' : '❌ 续写失败', book); }
         });
     }
@@ -1723,7 +2031,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if(isGenerating) { toast("已有生成任务进行中，请等待或点击停止"); return; }
         let chap = book.chapters.find(c=>c.id===book.currentChapterId); if(!chap) return;
         if(book.precisionMode) toast("提示：精准模式不适用于重写，本次使用全量设定");
-        saveCurChapter(); // 先保存编辑器实时内容
+        if(!ensureCurrentChapterSaved()) return; // 先保存编辑器实时内容（失败则取消重写）
+        if(pendingGeneration) cancelPendingGeneration('⚠️ 已被新的生成任务覆盖');
         saveRollbackSnapshot();
         let instruction;
         const hasValidPrompt = chap.prompt && chap.prompt.trim().length > 3 && chap.prompt !== '续写指令';
@@ -1732,12 +2041,18 @@ document.addEventListener('DOMContentLoaded', function() {
         else { instruction = "请根据前文重新创作本章，保持连贯。"; toast("使用通用重写（无原始指令）"); }
         let lid = addChat('assistant', '🔄 重写中...', true);
         const startTime = Date.now();
-        await executeGeneration(instruction, true, book.currentChapterId, false, lid, (chap, cost, aborted) => {
+        await executeGeneration(instruction, true, book.currentChapterId, false, lid, (chap, cost, aborted, saveFailed) => {
             if(chap) {
                 const elapsed = formatTime(Date.now() - startTime);
                 let tail = cost > 0 ? ` (预估 ¥${cost.toFixed(2)}元) (耗时：${elapsed})` : ` (耗时：${elapsed})`;
-                replaceChatMessage(lid, `✨ 重写完成 新标题：《${chap.title}》${tail}`, book);
-                startTabBlink(`✅ 重写完成：《${chap.title}》`);
+                // v5.8：保存失败时聊天显示警告
+                if(saveFailed) {
+                    replaceChatMessage(lid, `⚠️ 重写完成 新标题：《${chap.title}》但本地保存失败！请立即导出或复制正文，刷新可能丢失`, book);
+                    toast('⚠️ 重写完成但保存失败，请立即导出备份或复制正文');
+                } else {
+                    replaceChatMessage(lid, `✨ 重写完成 新标题：《${chap.title}》${tail}`, book);
+                    startTabBlink(`✅ 重写完成：《${chap.title}》`);
+                }
                 renderChapters(); loadCurChapter();
             } else { if(!aborted) startTabBlink('❌ 重写失败'); replaceChatMessage(lid, aborted ? '⏹ 已停止' : '重写失败', book); }
         });
@@ -1763,13 +2078,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let initialized = false;
     function switchBook(id, skipSave) {
-        if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再切换"); return; }
+        // 返回布尔值（v5.8）：saveApi 自动重试切回原书时需检查切换是否成功，
+        // 失败则取消任务，杜绝"数据写入原书、界面停留新书"的错位
+        if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再切换"); return false; }
         // skipSave=true 用于删除当前书后的切换：该书已删除，其未保存修改随删除丢弃，
         // 必须先切 currentBookId 再加载，否则 saveCurChapter 会把旧编辑器内容写入新书（数据污染）
-        if(initialized && !isImporting && !skipSave) saveCurChapter();
+        if(initialized && !isImporting && !skipSave) { if(!ensureCurrentChapterSaved()) return false; }
         currentBookId = id;
         let b = books.find(x=>x.id===id);
-        if(b) {
+        if(!b) return false;
+        {
             const curBookName = $('curBookName'); if(curBookName) curBookName.innerText = b.name;
             ['worldview','plotSet','termSet'].forEach(elId => { let el = $(elId); if(el) el.value = b[elId]||''; });
             const globalPrompt = $('globalPrompt'); if(globalPrompt) globalPrompt.value = b.globalPrompt === undefined ? '你是一位擅长细腻情感的言情小说家。' : b.globalPrompt;
@@ -1782,18 +2100,29 @@ document.addEventListener('DOMContentLoaded', function() {
             conflictVisible = false;
             updatePrecisionButton();
         }
+        return true;
     }
     function deleteBook(id) {
         if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再删除"); return; }
         let idx = books.findIndex(b=>b.id===id);
         if(idx!==-1) {
+            const removed = books[idx]; // v5.8：保存失败时回滚用
+            const wasCurrent = currentBookId===id;
             books.splice(idx,1);
-            if(currentBookId===id) {
+            if(wasCurrent) {
                 currentBookId = books[0]?.id||null;
                 if(currentBookId) switchBook(currentBookId, true);
                 else { const curBookName = $('curBookName'); if(curBookName) curBookName.innerText='未选择'; const curChapName = $('curChapName'); if(curChapName) curChapName.innerText='无章节'; const novelContent = $('novelContent'); if(novelContent) novelContent.innerText='✨ 新建小说开始创作'; const wordCount = $('wordCount'); if(wordCount) wordCount.innerText='0'; const chaptersList = $('chaptersList'); if(chaptersList) chaptersList.innerHTML=''; const chatMsgs = $('chatMsgs'); if(chatMsgs) chatMsgs.innerHTML=''; ['worldview','plotSet','termSet','globalPrompt','writingStyle'].forEach(elId => { let el = $(elId); if(el) el.value=''; }); }
             }
-            saveAll(); renderBookshelf(); toast('已删除');
+            if(!persistOrWarn()) {
+                // v5.8：保存失败回滚删除——恢复书籍数组 + 若删的是当前书则切回
+                books.splice(idx, 0, removed);
+                if(wasCurrent && currentBookId!==id) { currentBookId = id; switchBook(id, true); }
+                renderBookshelf();
+                toast('保存失败，已恢复《'+removed.name+'》');
+                return;
+            }
+            renderBookshelf(); toast('已删除');
         }
     }
     function newBook() {
@@ -1801,24 +2130,40 @@ document.addEventListener('DOMContentLoaded', function() {
         let name = prompt('小说名称', `新作${books.length+1}`);
         if(!name || !name.trim()) { toast("书名不能为空"); return; }
         let b = { id:uuid(), name:name.trim(), chapters:[], currentChapterId:null, chatHistory:[], worldview:'', plotSet:'', termSet:'', globalPrompt:'你是一位擅长细腻情感的言情小说家。', writingStyle:'文风细腻，多用心理描写。', characters:[], forbiddenWords:[], precisionMode:false, precisionChars:[], precisionActions:[], precisionCostumes:[] };
-        books.push(b); saveAll(); switchBook(b.id);
+        books.push(b);
+        if(!persistOrWarn()) { books.pop(); toast('保存失败，已取消新建'); return; } // v5.8：失败回滚
+        switchBook(b.id);
         toast(`已创建《${name}》`);
     }
 
     let contentDirty = false;
-    function markContentDirty() { contentDirty = true; const saveSpan = $('saveStatus'); if(saveSpan) saveSpan.innerText = '未保存'; const book = getCurrentBook(); const chap = book && book.currentChapterId ? book.chapters.find(c=>c.id===book.currentChapterId) : null; if(chap && chap.checkState !== 'never') { chap.checkState = 'never'; chap.checkResult = []; const checkBtn = $('checkConflictBtn'); if(checkBtn) checkBtn.style.background = "#3A3A6A"; } }
+    function markContentDirty() { contentDirty = true; const saveSpan = $('saveStatus'); if(saveSpan) saveSpan.innerText = '未保存'; const book = getCurrentBook(); const chap = book && book.currentChapterId ? book.chapters.find(c=>c.id===book.currentChapterId) : null; if(chap) { chap.checkState = 'never'; chap.checkResult = []; chap.checkRequestVersion = (chap.checkRequestVersion || 0) + 1; chap.summaryRequestVersion = (chap.summaryRequestVersion || 0) + 1;
+        // v5.9：任何正文编辑都递增版本号——即使章节从未检测过（checkState=never）且手动检测在途，
+        // 编辑也使旧检测结果失效（v5.8 的 checkState!=='never' 条件在"首次检测进行中编辑"时漏拦截）
+        // v6.0：正文编辑同时递增 summaryRequestVersion——摘要在途时编辑正文，旧摘要返回也会被丢弃，
+        // 否则旧正文摘要会被写入并被后续章节作为前文上下文注入，造成剧情错位
+        const checkBtn = $('checkConflictBtn'); if(checkBtn) checkBtn.style.background = "#3A3A6A"; } }
     function saveCurChapter() {
         let b = getCurrentBook(); if(!b || !b.currentChapterId) return false;
         let c = b.chapters.find(ch=>ch.id===b.currentChapterId);
         const el = $('novelContent'); if(!c || !el) return false;
         c.content = getEditorText(); contentDirty = false;
         // 摘要一并保存（与正文同属当前章节）；跳过"生成中"占位符防止污染
-        const sumEl = $('summaryArea'); if(sumEl && sumEl.value.trim() !== SUMMARY_PLACEHOLDER) c.summary = sumEl.value.trim();
+        const sumEl = $('summaryArea'); if(sumEl && sumEl.value.trim() !== SUMMARY_PLACEHOLDER) { const newSummary = sumEl.value.trim().slice(0, 300); if(c.summary !== newSummary) { c.summary = newSummary; c.summaryRequestVersion = (c.summaryRequestVersion || 0) + 1; } }
         const ok = saveAll();
         if(ok) { const saveSpan = $('saveStatus'); if(saveSpan) saveSpan.innerText = '已存'; updateWord(); renderChapters(); }
         else { contentDirty = true; }
         const checkBtn = $('checkConflictBtn'); if(checkBtn && b.currentChapterId === c.id) checkBtn.style.background = (c.checkResult && c.checkResult.length>0) ? "#C97A3A" : "#3A3A6A";
         return ok;
+    }
+    // 保存当前章节并校验成功：切换章节/书籍/发送/续写/重写/新增/导出等操作前置调用，
+    // localStorage 满导致保存失败时取消操作，防未保存编辑在切换时被覆盖丢失
+    function ensureCurrentChapterSaved() {
+        const book = getCurrentBook();
+        if(!book || !book.currentChapterId) return true;
+        const ok = saveCurChapter();
+        if(!ok) { toast("当前章节保存失败，已取消本次操作"); return false; }
+        return true;
     }
     function getEditorText() {
         const el = $('novelContent'); if(!el) return '';
@@ -1853,7 +2198,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const targetIndex = Array.from(chaptersList.children).indexOf(targetItem);
             if(dragSrcIndex === targetIndex) return;
             const book = getCurrentBook();
-            if(book && book.chapters) { saveCurChapter(); const [moved] = book.chapters.splice(dragSrcIndex, 1); book.chapters.splice(targetIndex, 0, moved); saveAll(); renderChapters(); toast("章节顺序已更新"); }
+            if(book && book.chapters) { if(!ensureCurrentChapterSaved()) return; const oldOrder = book.chapters.slice(); const [moved] = book.chapters.splice(dragSrcIndex, 1); book.chapters.splice(targetIndex, 0, moved); if(!persistOrWarn()) { book.chapters = oldOrder; renderChapters(); toast("保存失败，章节顺序已恢复"); return; } renderChapters(); toast("章节顺序已更新"); }
         });
     }
 
@@ -1867,9 +2212,9 @@ document.addEventListener('DOMContentLoaded', function() {
             div.setAttribute('draggable', 'true');
             const chapTitle = (ch.isInterlude ? '<i class="fas fa-feather-alt" style="margin-right:5px;color:#8A84A8;font-size:0.75rem;" title="间章"></i>' : '') + escapeHtml(ch.title||'未命名');
             div.innerHTML = `<span style="cursor:pointer;flex:1;">${chapTitle}</span><div class="chap-actions"><i class="fas fa-pen" data-action="rename" data-id="${ch.id}"></i><i class="fas fa-trash" data-action="delete" data-id="${ch.id}"></i><i class="fas fa-exchange-alt" data-action="toggleInterlude" data-id="${ch.id}" title="正章⇄间章"></i></div>`;
-            div.addEventListener('click', (e) => { if(e.target.tagName==='I') return; if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再切换章节"); return; } saveCurChapter(); b.currentChapterId=ch.id; loadCurChapter(); renderChapters(); saveAll(); });
-            div.querySelector('[data-action="rename"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再重命名"); return; } let nt=prompt('新章节标题',ch.title); if(nt&&nt.trim()){ ch.title=nt.trim(); renderChapters(); saveAll(); if(b.currentChapterId===ch.id) { const curChapName = $('curChapName'); if(curChapName) curChapName.innerText = ch.title.substring(0,25); } } });
-            div.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再删除"); return; } if(!confirm(`确认删除章节「${ch.title}」？`)) return; const idx=b.chapters.findIndex(c=>c.id===ch.id); if(idx!==-1) b.chapters.splice(idx,1); if(b.chapters.length===0) { b.chapters.push({ id:uuid(), title:"新章节", content:"# 新章节\n\n在这里开始写作...", prompt:"", checkResult:[], isContinuation:false, isInterlude:false }); b.currentChapterId=b.chapters[0].id; toast("已清空所有章节，自动创建空白章节"); } else { if(b.currentChapterId===ch.id) b.currentChapterId=b.chapters[0]?.id||null; toast(`已删除「${ch.title}」`); } saveAll(); renderChapters(); loadCurChapter(); });
+            div.addEventListener('click', (e) => { if(e.target.tagName==='I') return; if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再切换章节"); return; } if(!ensureCurrentChapterSaved()) return; b.currentChapterId=ch.id; loadCurChapter(); renderChapters(); saveAll(); });
+            div.querySelector('[data-action="rename"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再重命名"); return; } let nt=prompt('新章节标题',ch.title); if(nt&&nt.trim()){ ch.title=nt.trim(); renderChapters(); if(!persistOrWarn()) return; if(b.currentChapterId===ch.id) { const curChapName = $('curChapName'); if(curChapName) curChapName.innerText = ch.title.substring(0,25); } } });
+            div.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再删除"); return; } const deletingCurrent = b.currentChapterId===ch.id; if(!deletingCurrent && !ensureCurrentChapterSaved()) { toast("当前章节保存失败，已取消删除操作"); return; } if(!confirm(`确认删除章节「${ch.title}」？`)) return; const idx=b.chapters.findIndex(c=>c.id===ch.id); if(idx!==-1) { const removed=b.chapters[idx]; const oldCurrentId=b.currentChapterId; const oldLen=b.chapters.length; b.chapters.splice(idx,1); if(b.chapters.length===0) { b.chapters.push({ id:uuid(), title:"新章节", content:"# 新章节\n\n在这里开始写作...", prompt:"", checkResult:[], isContinuation:false, isInterlude:false }); b.currentChapterId=b.chapters[0].id; toast("已清空所有章节，自动创建空白章节"); } else { if(b.currentChapterId===ch.id) b.currentChapterId=b.chapters[0]?.id||null; toast(`已删除「${ch.title}」`); } if(!persistOrWarn()) { if(oldLen===1) b.chapters.pop(); b.chapters.splice(idx,0,removed); b.currentChapterId=oldCurrentId; renderChapters(); loadCurChapter(); toast('保存失败，已恢复章节'); return; } renderChapters(); loadCurChapter(); } });
             div.querySelector('[data-action="toggleInterlude"]')?.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再切换间章"); return; }
@@ -1877,7 +2222,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const chap = book.chapters.find(c=>c.id===ch.id);
                 if(chap) {
                     chap.isInterlude = !chap.isInterlude;
-                    saveAll(); renderChapters();
+                    if(!persistOrWarn()) return; renderChapters();
                     toast(chap.isInterlude ? '已转为间章' : '已转回正章');
                 }
             });
@@ -1909,18 +2254,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function addNewChapter() {
         let b = getCurrentBook(); if(!b) return;
         if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再新增章节"); return; }
-        saveCurChapter();
-        b.chapters.push({ id:uuid(), title:'间章', content:"# 间章\n\n在这里书写...", prompt:"", checkResult:[], isContinuation:false, isInterlude:true });
+        if(!ensureCurrentChapterSaved()) return;
+        // 默认创建普通正章（与"新增章节"文案语义一致）；需要间章可点击 ⬌ 切换
+        b.chapters.push({ id:uuid(), title:'新章节', content:"# 新章节\n\n在这里书写...", prompt:"", checkResult:[], isContinuation:false, isInterlude:false });
         b.currentChapterId = b.chapters[b.chapters.length-1].id;
         const saved = saveAll(); renderChapters(); loadCurChapter();
-        toast(saved ? "间章已添加" : "⚠️ 章节已创建但保存失败，请检查存储空间");
+        toast(saved ? "新章节已添加（如需间章可点 ⬌ 切换）" : "⚠️ 章节已创建但保存失败，请检查存储空间");
     }
     function changeChap(delta) {
         let b = getCurrentBook(); if(!b || !b.chapters.length) return;
         if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再切换章节"); return; }
         let idx = b.chapters.findIndex(c=>c.id===b.currentChapterId);
         let nidx = idx+delta;
-        if(nidx>=0 && nidx<b.chapters.length) { saveCurChapter(); b.currentChapterId = b.chapters[nidx].id; loadCurChapter(); renderChapters(); saveAll(); }
+        if(nidx>=0 && nidx<b.chapters.length) { if(!ensureCurrentChapterSaved()) return; b.currentChapterId = b.chapters[nidx].id; loadCurChapter(); renderChapters(); saveAll(); }
     }
 
     // ===== 字体大小调整 =====
@@ -1935,15 +2281,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function sanitizeFilename(name) { let f = (name||'未命名').replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_').replace(/^\.+/, '').replace(/^_+$/, 'untitled').substring(0, 50); return f || 'untitled'; }
     function exportFull() {
         let b = getCurrentBook(); if(!b || !b.chapters.length) { toast("无内容"); return; }
-        saveCurChapter(); // 导出前先保存当前编辑，避免导出缺最新内容
-        let txt = b.chapters.map((ch,i) => `${ch.isInterlude ? '间章' : '第'+(i+1)+'章'} ${ch.title}\n\n${ch.content}\n\n`).join('');
+        if(isGenerating || dualPendingChapA || dualPendingChapB) toast("⚠️ 生成或双版选择进行中，导出内容不包含未完成结果");
+        if(!ensureCurrentChapterSaved()) return; // 导出前先保存当前编辑（保存失败则取消，防导出缺最新内容）
+        // 正文章号独立计数（间章不占号）：第一章→间章→第二章，而非 1→间章→3
+        let regularNo = 0;
+        let txt = b.chapters.map(ch => { const label = ch.isInterlude ? '间章' : '第'+(++regularNo)+'章'; return `${label} ${ch.title}\n\n${ch.content}\n\n`; }).join('');
         let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt],{type:"text/plain"})); a.download = `${sanitizeFilename(b.name)}_全书_${new Date().toISOString().slice(0,10)}.txt`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("全书导出成功");
     }
     function exportCurrentChapter() {
         let b = getCurrentBook(); if(!b || !b.currentChapterId) { toast("请先选择章节"); return; }
         let c = b.chapters.find(ch=>ch.id===b.currentChapterId);
         if(!c) { toast("未找到当前章节"); return; }
-        saveCurChapter();
+        if(isGenerating || dualPendingChapA || dualPendingChapB) toast("⚠️ 生成或双版选择进行中，导出内容不包含未完成结果");
+        if(!ensureCurrentChapterSaved()) return;
         let txt = `${c.title}\n\n${c.content}`;
         let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt],{type:"text/plain"}));
         a.download = `${sanitizeFilename(b.name)}_${sanitizeFilename(c.title)}_${new Date().toISOString().slice(0,10)}.txt`; a.click();
@@ -1954,19 +2304,22 @@ document.addEventListener('DOMContentLoaded', function() {
         let b = getCurrentBook();
         if(b) {
             ['worldview','plotSet','termSet','globalPrompt','writingStyle'].forEach(elId => { let el = $(elId); if(el) b[elId]=el.value; });
-            saveAll(); toast("设定已保存");
+            if(!persistOrWarn()) return; toast("设定已保存");
         }
     }
     function exportBackup() {
-        saveCurChapter();
+        if(isGenerating || dualPendingChapA || dualPendingChapB) toast("⚠️ 生成或双版选择进行中，备份不包含未完成结果");
+        if(!ensureCurrentChapterSaved()) return;
         const scratchpadModalEl = $('scratchpadModal'); const scratchpadEl = $('scratchpadContent');
         if(scratchpadEl && scratchpadModalEl && scratchpadModalEl.style.display === 'flex') {
             scratchpadContent = scratchpadEl.value;
         }
-        const backupData = { version:"4.6", timestamp:Date.now(), books, currentBookId, apiConfig:api, globalCharacters, globalActions, globalCostumes, scratchpadContent };
+        const backupData = { version:"6.0", timestamp:Date.now(), books, currentBookId, apiConfig:api, globalCharacters, globalActions, globalCostumes, scratchpadContent };
         const blob = new Blob([JSON.stringify(backupData,null,2)], {type:"application/json"});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `小说参数备份_${new Date().toISOString().slice(0,10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("备份已导出");
     }
+    // 数组类型兜底：异常/手动修改的备份可能把数组字段写成对象，强制转回数组防初始化崩溃
+    function ensureArray(v) { return Array.isArray(v) ? v : []; }
     function importBackup(file) {
         if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再导入"); return; }
         if(!confirm("导入备份将覆盖当前全部数据（所有小说、设定、API 配置、素材库、草稿本等），且不可恢复！\n\n建议先点击「备份」导出当前数据。\n\n是否继续导入？")) return;
@@ -1974,16 +2327,16 @@ document.addEventListener('DOMContentLoaded', function() {
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                if(!data.books || !Array.isArray(data.books)) throw new Error("备份文件格式无效：缺少 books 数组"); var compatVersions = ["2.6","2.7","2.8","2.9","3.0","3.1","3.2","3.3","3.4","3.6","3.7","3.8","3.9","4.0","4.1","4.2","4.3","4.4","4.5","4.6"]; if(data.version && !compatVersions.includes(data.version)) { if(!confirm("备份版本("+data.version+")与当前版本(4.6)不匹配，可能存在兼容性问题。\n\n是否继续导入？")) { throw new Error("用户取消导入"); } }
+                if(!data.books || !Array.isArray(data.books)) throw new Error("备份文件格式无效：缺少 books 数组"); var compatVersions = ["2.6","2.7","2.8","2.9","3.0","3.1","3.2","3.3","3.4","3.6","3.7","3.8","3.9","4.0","4.1","4.2","4.3","4.4","4.5","4.6","4.7","4.8","4.9","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7","5.8","5.9","6.0"]; if(data.version && !compatVersions.includes(data.version)) { if(!confirm("备份版本("+data.version+")与当前版本(6.0)不匹配，可能存在兼容性问题。\n\n是否继续导入？")) { throw new Error("用户取消导入"); } }
                 books = data.books.filter(b => b && typeof b === 'object');
-                books.forEach(book => { if(!book.characters) book.characters=[]; if(!book.chatHistory) book.chatHistory=[]; if(!book.chapters) book.chapters=[]; if(!book.forbiddenWords) book.forbiddenWords=[]; if(book.chapters) book.chapters.forEach(ch => { if(!ch.checkResult) ch.checkResult=[]; }); migrateChapter(book); });
-                if(data.globalCharacters) globalCharacters = data.globalCharacters;
-                if(data.globalActions) globalActions = data.globalActions;
-                if(data.globalCostumes) globalCostumes = data.globalCostumes;
+                books.forEach(book => { book.characters = ensureArray(book.characters); book.chatHistory = ensureArray(book.chatHistory); book.chapters = ensureArray(book.chapters); book.forbiddenWords = ensureArray(book.forbiddenWords); book.chapters.forEach(ch => { if(!Array.isArray(ch.checkResult)) ch.checkResult=[]; }); migrateChapter(book); });
+                if(data.globalCharacters) globalCharacters = ensureArray(data.globalCharacters);
+                if(data.globalActions) globalActions = ensureArray(data.globalActions);
+                if(data.globalCostumes) globalCostumes = ensureArray(data.globalCostumes);
                 if(data.scratchpadContent !== undefined) { scratchpadContent = data.scratchpadContent; try { localStorage.setItem('scratchpad_v1', scratchpadContent); } catch(e) {} }
                 if(data.apiConfig) Object.assign(api, data.apiConfig);
                 currentBookId = data.currentBookId || (books[0]?.id||null);
-                saveAll(); renderBookshelf();
+                const savedOk = saveAll(); renderBookshelf();
                 isImporting = true;
                 if(currentBookId && books.find(b=>b.id===currentBookId)) switchBook(currentBookId);
                 else if(books.length) switchBook(books[0].id);
@@ -1992,7 +2345,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 导入的 API 配置需走 loadApi 统一兜底与刷新（数值校验/dualMode/notify 按钮高亮），
                 // 否则异常备份的数值直接生效、按钮状态与功能脱节
                 loadApi();
-                toast("恢复成功");
+                if(savedOk) toast("恢复成功");
+                else toast("备份已载入当前会话但未能保存到本地");
             } catch(err) { isImporting = false; toast("恢复失败: "+err.message); }
         };
         reader.readAsText(file);
@@ -2018,7 +2372,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ======================== 查找替换 ========================
     let findQuery = '', findIndex = 0, findTotal = 0;
-    function showFindBar(replaceMode) { const bar = $('findBar'); if(!bar) return; bar.style.display = 'flex'; const repInp = $('replaceInput'); if(repInp) repInp.style.display = replaceMode ? '' : 'none'; const repBtns = document.querySelectorAll('#replaceOneBtn,#replaceAllBtn'); repBtns.forEach(b=>b.style.display=replaceMode?'':'none'); const fi = $('findInput'); if(fi) { fi.focus(); fi.select(); } resetFindState(); }
+    function showFindBar(replaceMode) {
+        // v5.9：生成期间禁止打开查找替换（正文锁定的一部分——Ctrl+F/H 快捷键不走 findBtn 按钮，
+        // 必须在此拦截，防替换绕过 contentEditable=false 修改正文）
+        if(isGenerating) { toast('AI 生成中，查找替换已锁定'); return; }
+        const bar = $('findBar'); if(!bar) return; bar.style.display = 'flex'; const repInp = $('replaceInput'); if(repInp) repInp.style.display = replaceMode ? '' : 'none'; const repBtns = document.querySelectorAll('#replaceOneBtn,#replaceAllBtn'); repBtns.forEach(b=>b.style.display=replaceMode?'':'none'); const fi = $('findInput'); if(fi) { fi.focus(); fi.select(); } resetFindState(); }
     function hideFindBar() { const bar = $('findBar'); if(bar) bar.style.display = 'none'; resetFindState(); }
     function unwrapHighlights() { const el = $('novelContent'); if(!el) return; el.querySelectorAll('.find-highlight').forEach(s=>{ s.parentNode.replaceChild(document.createTextNode(s.textContent), s); }); el.normalize(); }
     function resetFindState() { unwrapHighlights(); findQuery = ''; findIndex = 0; findTotal = 0; const countEl = $('findCount'); if(countEl) countEl.textContent = ''; }
@@ -2032,18 +2390,20 @@ document.addEventListener('DOMContentLoaded', function() {
         findTotal = parts.length;
         if(findTotal===0) { const c=$('findCount'); if(c)c.textContent='无结果'; return; }
         if(findIndex>=findTotal) findIndex=0;
-        let actualHighlighted = 0;
-        // 从尾部循环包裹（避免前置节点位置失效），但 data-idx 必须用文档正序索引 i
-        for(let i=parts.length-1;i>=0;i--) { const p=parts[i], r=document.createRange(); r.setStart(p.node,p.start); r.setEnd(p.node,p.end); const s=document.createElement('span'); s.className='find-highlight'; s.dataset.idx=i; try { r.surroundContents(s); actualHighlighted++; } catch(_) {} }
-        findTotal = actualHighlighted;
+        // 从尾部循环包裹（避免前置节点位置失效）；surroundContents 可能失败（跨节点/结构），
+        // 成功后重新编号（弃用原始 i），保证 data-idx 连续、findTotal 与实际高亮一致
+        const highlights = [];
+        for(let i=parts.length-1;i>=0;i--) { const p=parts[i], r=document.createRange(); r.setStart(p.node,p.start); r.setEnd(p.node,p.end); const s=document.createElement('span'); s.className='find-highlight'; try { r.surroundContents(s); highlights.push(s); } catch(_) {} }
+        highlights.reverse().forEach((node, idx) => { node.dataset.idx = idx; });
+        findTotal = highlights.length;
         if(findIndex>=findTotal && findTotal>0) findIndex=findTotal-1;
         const c=$('findCount'); if(c)c.textContent=`${findIndex+1}/${findTotal}`; scrollToMatch();
     }
     function scrollToMatch() { const el=$('novelContent'); if(!el)return; const all=el.querySelectorAll('.find-highlight'); all.forEach(s=>s.classList.remove('active')); const cur=el.querySelector(`.find-highlight[data-idx="${findIndex}"]`); if(cur){ cur.classList.add('active'); cur.scrollIntoView({block:'center',behavior:'smooth'}); } }
     function findNext() { if(!findTotal) { doFind(); return; } findIndex=(findIndex+1)%findTotal; scrollToMatch(); const c=$('findCount'); if(c)c.textContent=`${findIndex+1}/${findTotal}`; }
     function findPrev() { if(!findTotal) { doFind(); return; } findIndex=(findIndex-1+findTotal)%findTotal; scrollToMatch(); const c=$('findCount'); if(c)c.textContent=`${findIndex+1}/${findTotal}`; }
-    function replaceOne() { const repInp=$('replaceInput'); if(!repInp||!findTotal||!findQuery) return; const replacement=repInp.value; unwrapHighlights(); const el=$('novelContent'); if(!el)return; let count=0; const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null,false); while(walker.nextNode()) { const node=walker.currentNode, text=node.textContent; let pos=0, idx=text.indexOf(findQuery,pos); while(idx!==-1) { if(count===findIndex) { node.textContent=text.slice(0,idx)+replacement+text.slice(idx+findQuery.length); markContentDirty(); findIndex = count; if(findQuery === replacement) { findIndex++; } doFind(); return; } count++; pos=idx+1; idx=text.indexOf(findQuery,pos); } } }
-    function replaceAll() { const repInp=$('replaceInput'); if(!repInp||!findTotal||!findQuery) return; const replacement=repInp.value; unwrapHighlights(); const el=$('novelContent'); if(!el)return; let total=0; const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null,false); while(walker.nextNode()) { const node=walker.currentNode, text=node.textContent; let count=0, pos=0, idx=text.indexOf(findQuery,pos); while(idx!==-1) { count++; pos=idx+1; idx=text.indexOf(findQuery,pos); } if(count>0) { node.textContent=text.split(findQuery).join(replacement); total+=count; } } markContentDirty(); findIndex=0; doFind(); toast(`已替换 ${total} 处`); }
+    function replaceOne() { if(isGenerating) return; const repInp=$('replaceInput'); if(!repInp||!findTotal||!findQuery) return; const replacement=repInp.value; unwrapHighlights(); const el=$('novelContent'); if(!el)return; let count=0; const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null,false); while(walker.nextNode()) { const node=walker.currentNode, text=node.textContent; let pos=0, idx=text.indexOf(findQuery,pos); while(idx!==-1) { if(count===findIndex) { node.textContent=text.slice(0,idx)+replacement+text.slice(idx+findQuery.length); markContentDirty(); findIndex = count; if(findQuery === replacement) { findIndex++; } doFind(); return; } count++; pos=idx+1; idx=text.indexOf(findQuery,pos); } } }
+    function replaceAll() { if(isGenerating) return; const repInp=$('replaceInput'); if(!repInp||!findTotal||!findQuery) return; const replacement=repInp.value; unwrapHighlights(); const el=$('novelContent'); if(!el)return; let total=0; const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null,false); while(walker.nextNode()) { const node=walker.currentNode, text=node.textContent; let count=0, pos=0, idx=text.indexOf(findQuery,pos); while(idx!==-1) { count++; pos=idx+1; idx=text.indexOf(findQuery,pos); } if(count>0) { node.textContent=text.split(findQuery).join(replacement); total+=count; } } markContentDirty(); findIndex=0; doFind(); toast(`已替换 ${total} 处`); }
     function initFindKeys() {
         document.addEventListener('keydown', (e) => {
             const ae = document.activeElement;
@@ -2095,9 +2455,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const apiBtnSidebar = $('apiBtnSidebar'); if(apiBtnSidebar) apiBtnSidebar.onclick = openApiModal;
         const testApiBtn = $('testApiBtn'); if(testApiBtn) testApiBtn.onclick = testApiConnection;
         const saveApiBtn = $('saveApiBtn'); if(saveApiBtn) saveApiBtn.onclick = () => saveApi();
-        const closeApiBtn = $('closeApiBtn'); if(closeApiBtn) closeApiBtn.onclick = () => { const apiModal = $('apiModal'); if(apiModal) apiModal.style.display='none'; pendingGeneration = null; };
+        const closeApiBtn = $('closeApiBtn'); if(closeApiBtn) closeApiBtn.onclick = () => { const apiModal = $('apiModal'); if(apiModal) apiModal.style.display='none'; cancelPendingGeneration('⏹ 已取消：未配置 API Key'); };
         ['worldview','plotSet','termSet','globalPrompt','writingStyle'].forEach(id => { let el = $(id); if(el) el.addEventListener('blur', saveBookSettings); });
-        window.addEventListener('beforeunload', (e) => { saveCurChapter(); saveBookSettings(); if(dualPendingChapA || dualPendingChapB) { e.preventDefault(); e.returnValue = ''; } });
+        window.addEventListener('beforeunload', (e) => { saveCurChapter(); saveBookSettings(); const dualActive = dualAbortControllers.length > 0 || !!dualPendingChapA || !!dualPendingChapB; if(dualActive) { e.preventDefault(); e.returnValue = ''; } });
         window.addEventListener('visibilitychange', () => { if(document.visibilityState==='hidden') { saveCurChapter(); saveBookSettings(); } });
         const backupExportBtn = $('backupExportBtn'); if(backupExportBtn) backupExportBtn.onclick = exportBackup;
         const backupImportBtn = $('backupImportBtn'); if(backupImportBtn) backupImportBtn.onclick = () => { const fileInput = $('backupFileInput'); if(fileInput) fileInput.click(); };
@@ -2157,10 +2517,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if(conflictVisible) { toggleConflictPanel(); return; }
             if(chap.checkState === 'done' || chap.checkState === 'error') { toggleConflictPanel(); return; }
             if(!api.key) { toast("请先配置 API Key"); return; }
+            // v6.0：检测进行中/生成进行中禁止发起新检测——重复点击不再发请求浪费费用；
+            // 且拦截时直接 return 不执行 toggleConflictPanel（否则面板会打开并显示检测前的旧状态误导用户）
+            if(conflictCheckingCount > 0) { toast('冲突检测进行中，请稍候'); return; }
+            if(isGenerating) { toast('生成进行中，请稍候'); return; }
             await recheckCurrentChapter();
             toggleConflictPanel();
         };
-        const recheckConflictBtn = $('recheckConflictBtn'); if(recheckConflictBtn) recheckConflictBtn.onclick = () => { recheckCurrentChapter(); };
+        const recheckConflictBtn = $('recheckConflictBtn'); if(recheckConflictBtn) recheckConflictBtn.onclick = async () => { await recheckCurrentChapter(); if(conflictVisible) { toggleConflictPanel(); toggleConflictPanel(); } };
         const closeConflictPanel = $('closeConflictPanel'); if(closeConflictPanel) closeConflictPanel.onclick = () => { const conflictPanel = $('conflictPanel'); if(conflictPanel) conflictPanel.style.display='none'; conflictVisible=false; };
         const stopGenBtn = $('stopGenBtn'); if(stopGenBtn) stopGenBtn.onclick = stopGeneration;
         const clearChatBtn = $('clearChatBtn'); if(clearChatBtn) clearChatBtn.onclick = clearChatHistory;
@@ -2168,7 +2532,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Ctrl+G 全局续写快捷键（即使焦点不在聊天框也生效）
         document.addEventListener('keydown', (e) => { const aeG = document.activeElement; const inInputG = aeG && (aeG.tagName==='INPUT' || aeG.tagName==='TEXTAREA' || aeG.isContentEditable); if((e.ctrlKey || e.metaKey) && e.key === 'g' && !inInputG) { const anyModalOpen = ['apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','precisionModal','scratchpadModal'].some(id => { const m = $(id); return m && m.style.display === 'flex'; }); if(anyModalOpen) return; e.preventDefault(); onContinue(); } });
         document.addEventListener('keydown', (e) => { if((e.ctrlKey || e.metaKey) && e.key === 's' && document.activeElement?.id !== 'chatInp' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') { e.preventDefault(); const ok = saveCurChapter(); toast(ok ? '已保存' : '❌ 保存失败'); } });
-        document.addEventListener('keydown', (e) => { if(e.key === 'Escape') { const findBar = $('findBar'); if(findBar && findBar.style.display !== 'none') { hideFindBar(); return; } ['precisionModal','scratchpadModal','apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal'].forEach(id => { let m = $(id); if(m && m.style.display === 'flex') { m.style.display = 'none'; if(id === 'apiModal') pendingGeneration = null; } }); const relationEditModal = $('relationEditModal'); if(relationEditModal && relationEditModal.style.display === 'flex') closeRelationEdit(); } });
+        document.addEventListener('keydown', (e) => { if(e.key === 'Escape') { const findBar = $('findBar'); if(findBar && findBar.style.display !== 'none') { hideFindBar(); return; } ['precisionModal','scratchpadModal','apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal'].forEach(id => { let m = $(id); if(m && m.style.display === 'flex') { m.style.display = 'none'; if(id === 'apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } }); const relationEditModal = $('relationEditModal'); if(relationEditModal && relationEditModal.style.display === 'flex') closeRelationEdit(); } });
         const notifyBtn = $('notifyBtn'); if(notifyBtn) notifyBtn.onclick = () => {
             api.notify = !api.notify;
             if(api.notify) { notifyBtn.classList.add('guide-highlight'); toast('页签提醒已开启：生成完成时页签将闪烁 30 秒'); }
@@ -2177,19 +2541,43 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         // 摘要手动生成按钮
         const genSummaryBtn = $('genSummaryBtn'); if(genSummaryBtn) genSummaryBtn.onclick = () => {
+            // v6.0：摘要生成进行中禁止重复发起（防重复点击浪费 API 费用）
+            if(summaryGenerating) { toast('摘要生成中，请稍候'); return; }
             const book = getCurrentBook(); if(!book || !book.currentChapterId) { toast('请先选择章节'); return; }
             const chap = book.chapters.find(c=>c.id===book.currentChapterId); if(!chap) { toast('未找到章节'); return; }
+            // v5.9：先同步编辑器中的未保存正文——摘要必须基于最新正文生成，
+            // 否则摘要对应旧剧情，后续章节生成会把它注入上下文导致剧情错位
+            saveCurChapter();
             if(!chap.content || !chap.content.trim()) { toast('章节正文为空，无法生成摘要'); return; }
             if(isGenerating) { toast('生成进行中，请稍后'); return; }
+            summaryGenerating = true;
             toast('摘要生成中...');
-            void generateChapterSummary(book, chap).catch(()=>{});
+            void generateChapterSummary(book, chap).catch(()=>{}).finally(() => { summaryGenerating = false; });
         };
-        // 摘要框失焦即保存（与正文一起持久化）；跳过"生成中"占位符
-        const summaryTa = $('summaryArea'); if(summaryTa) summaryTa.addEventListener('blur', () => {
-            const b2 = getCurrentBook(); if(!b2 || !b2.currentChapterId) return;
-            const c2 = b2.chapters.find(x=>x.id===b2.currentChapterId); if(!c2) return;
-            if(summaryTa.value.trim() !== SUMMARY_PLACEHOLDER) { c2.summary = summaryTa.value.trim(); saveAll(); }
-        });
+        // 摘要框失焦即保存（与正文一起持久化）；跳过"生成中"占位符；手动编辑使旧摘要请求失效
+        const summaryTa = $('summaryArea'); if(summaryTa) {
+            summaryTa.addEventListener('blur', () => {
+                const b2 = getCurrentBook(); if(!b2 || !b2.currentChapterId) return;
+                const c2 = b2.chapters.find(x=>x.id===b2.currentChapterId); if(!c2) return;
+                if(summaryTa.value.trim() !== SUMMARY_PLACEHOLDER) {
+                    const newSum = summaryTa.value.trim().slice(0, 300);
+                    if(c2.summary !== newSum) {
+                        c2.summary = newSum;
+                        c2.summaryRequestVersion = (c2.summaryRequestVersion || 0) + 1; // 摘要内容实际变化才递增
+                        saveAll();
+                    }
+                }
+            });
+            // 摘要编辑时：立即使在途旧摘要请求失效（未失焦也防旧请求覆盖输入）+ 同步"未保存"状态
+            // 注意：代码自动设置占位符不触发 input 事件，不影响摘要请求本身
+            summaryTa.addEventListener('input', () => {
+                const b3 = getCurrentBook(); if(b3 && b3.currentChapterId) {
+                    const c3 = b3.chapters.find(x=>x.id===b3.currentChapterId);
+                    if(c3) c3.summaryRequestVersion = (c3.summaryRequestVersion || 0) + 1;
+                }
+                const sp = $('saveStatus'); if(sp) sp.innerText = '未保存';
+            });
+        }
         const guideBtn = $('guideBtn'); const guideModal = $('guideModal'); const fullGuideModal = $('fullGuideModal');
         const closeGuideBtn = $('closeGuideBtn'); const openFullGuideBtn = $('openFullGuideBtn'); const closeFullGuideBtn = $('closeFullGuideBtn');
         if(guideBtn && guideModal) { guideBtn.onclick = () => { guideModal.style.display = 'flex'; }; if(closeGuideBtn) closeGuideBtn.onclick = () => { guideModal.style.display = 'none'; }; if(openFullGuideBtn) openFullGuideBtn.onclick = () => { guideModal.style.display = 'none'; if(fullGuideModal) fullGuideModal.style.display = 'flex'; }; if(closeFullGuideBtn) closeFullGuideBtn.onclick = () => { if(fullGuideModal) fullGuideModal.style.display = 'none'; }; }
@@ -2198,7 +2586,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('click', (e) => {
             if (modalMouseDownTarget !== e.target) { modalMouseDownTarget = null; return; }
             modalMouseDownTarget = null;
-            ['apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','precisionModal','scratchpadModal'].forEach(id => { let m = $(id); if(e.target === m && m) { m.style.display='none'; if(id==='apiModal') pendingGeneration = null; } });
+            ['apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','precisionModal','scratchpadModal'].forEach(id => { let m = $(id); if(e.target === m && m) { m.style.display='none'; if(id==='apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } });
             const relationEditModal = $('relationEditModal'); if(e.target === relationEditModal && relationEditModal) closeRelationEdit();
             // 动态创建的模态框（如批量导入/导出）：无id的.modal元素，点遮罩即关闭
             if (e.target.classList.contains('modal') && !e.target.id && e.target.parentNode === document.body) {
@@ -2444,7 +2832,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const saveStatusEl = $('saveStatus'); if(saveStatusEl) saveStatusEl.innerText = '已存';
         const chatInpReset = $('chatInp'); if(chatInpReset) chatInpReset.value = '';
         api.dualMode = false; updateDualModeButton();
-        dualPendingChapA = null; dualPendingChapB = null; dualAbortControllers = [];
+        dualPendingChapA = null; dualPendingChapB = null; dualAbortControllers = []; dualActiveSessionId = 0;
 
         enableRollbackButton(false);
         updateStorageIndicator();
