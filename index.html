@@ -2067,9 +2067,10 @@ document.addEventListener('DOMContentLoaded', function() {
         books.forEach(b => {
             let d = document.createElement('div');
             d.className = `book-card ${currentBookId===b.id?'active':''}`;
-            d.innerHTML = `<div class="book-title"><span>${escapeHtml(b.name)}</span><i class="fas fa-trash" data-id="${b.id}"></i></div><div class="book-meta">${b.chapters?.length||0}章 | 角色:${b.characters?.length||0} | ${getBookWordCount(b)}字</div>`;
+            d.innerHTML = `<div class="book-title"><span>${escapeHtml(b.name)}</span><span style="display:flex;gap:2px;"><i class="fas fa-pen" data-action="rename" data-id="${b.id}" title="重命名"></i><i class="fas fa-trash" data-action="delete" data-id="${b.id}"></i></span></div><div class="book-meta">${b.chapters?.length||0}章 | 角色:${b.characters?.length||0} | ${getBookWordCount(b)}字</div>`;
             d.addEventListener('click', (e) => { if(e.target.tagName!=='I') switchBook(b.id); });
-            d.querySelector('i')?.addEventListener('click', (e) => { e.stopPropagation(); if(confirm(`确认删除《${b.name}》？此操作不可撤销。`)) deleteBook(b.id); });
+            d.querySelector('[data-action="rename"]')?.addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB) { toast("生成进行中，请等待完成或点击停止后再重命名"); return; } const nb = prompt('重命名小说', b.name); if(nb && nb.trim() && nb.trim() !== b.name) { const oldName = b.name; b.name = nb.trim(); renderBookshelf(); if(!persistOrWarn()) { b.name = oldName; renderBookshelf(); toast('保存失败，已还原'); return; } if(currentBookId === b.id) { const curBookName = $('curBookName'); if(curBookName) curBookName.innerText = b.name; } toast(`已重命名《${b.name}》`); } });
+            d.querySelector('[data-action="delete"]')?.addEventListener('click', (e) => { e.stopPropagation(); if(confirm(`确认删除《${b.name}》？此操作不可撤销。`)) deleteBook(b.id); });
             bookList.appendChild(d);
         });
         if(!books.length) bookList.innerHTML = '<div style="padding:12px;color:#6A627A;">暂无小说</div>';
@@ -2795,6 +2796,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const chaptersList = $('chaptersList'); if(chaptersList) chaptersList.innerHTML = '';
         const bookList = $('bookList'); if(bookList) bookList.innerHTML = '';
         const scratchpadEl = $('scratchpadContent'); if(scratchpadEl) scratchpadEl.value = '';
+        // 修复（v6.0）：初始化后摘要框残留旧摘要（resetAll 此前漏清 summaryArea）
+        const sumElReset = $('summaryArea'); if(sumElReset) sumElReset.value = '';
         
         // 重置右侧面板：世界观三要素 + 全局提示词
         ['worldview','plotSet','termSet','globalPrompt','writingStyle'].forEach(id => { let el = $(id); if(el) el.value = ''; });
