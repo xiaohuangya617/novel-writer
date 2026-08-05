@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AI小说生成器 | v6.0</title>
+    <title>AI小说生成器 | v6.9</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📖%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
     <style>
@@ -159,11 +159,28 @@
         .precision-btn.active{background:#2A5A3A;border-color:#4AE06A;color:#4AE06A;box-shadow:0 0 8px rgba(74,224,106,0.3);}
         .dual-mode-btn{background:#1A1825;border:1px solid #3A3452;color:#DBD4E8;}
         .dual-mode-btn.active{background:#2A3A5A;border-color:#4A9AE0;color:#4A9AE0;box-shadow:0 0 8px rgba(74,154,224,0.3);}
+        .graph-snap-btn.active{background:#2A3A5A;border-color:#4A9AE0;color:#4A9AE0;box-shadow:0 0 8px rgba(74,154,224,0.3);}
         .precision-modal-card{width:1300px;max-width:98%;max-height:90vh;}
         .precision-split{display:flex;gap:20px;margin-top:16px;flex:1;min-height:0;}
         .precision-col{flex:1;display:flex;flex-direction:column;min-width:0;}
         .precision-col h4{margin-bottom:10px;font-size:0.8rem;display:flex;align-items:center;gap:8px;}
         .precision-col h4 span{font-size:0.6rem;color:#7A728F;font-weight:normal;}
+        #graphContainer{user-select:none;-webkit-user-select:none;} /* v6.3：关系图文字禁选，拖拽不再出现蓝色选中阴影 */
+        .region-tab{width:54px;height:26px;min-height:26px;border:1px solid #3A3452;border-radius:8px;background:#1C1A28;color:#EDEAF2;font-size:0.6rem;display:flex;flex-direction:row;align-items:center;justify-content:center;cursor:pointer;gap:2px;flex-shrink:0;padding:0 4px;box-sizing:border-box;}
+        .region-tab.active{background:#2A3A5A;border-color:#4A9AE0;box-shadow:0 0 6px rgba(74,154,224,0.3);}
+        .region-tab-icon{font-size:0.65rem;line-height:1;}
+        .region-tab-label{font-size:0.55rem;line-height:1;}
+        .region-tab-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;font-size:0.55rem;line-height:1;}
+        .region-tab-del{cursor:pointer;color:#FF6B6B;font-size:0.55rem;line-height:1;padding:1px 2px;border-radius:3px;margin-left:1px;flex-shrink:0;}
+        .region-tab-del:hover{background:#4A2A2A;}
+        .precision-search{position:relative;display:flex;align-items:center;margin-bottom:8px;}
+        .precision-search .fa-search{position:absolute;left:10px;font-size:0.7rem;color:#7A728F;pointer-events:none;}
+        .precision-search input{width:100%;background:#13121C;border:1px solid #3A3452;border-radius:10px;padding:7px 26px 7px 28px;color:#EDEAF2;font-size:0.72rem;outline:none;transition:border 0.15s;}
+        .precision-search input:focus{border-color:#6EC6F8;}
+        .precision-search input::placeholder{color:#5A5470;}
+        .precision-clear{position:absolute;right:9px;font-size:0.7rem;color:#7A728F;cursor:pointer;padding:4px;display:none;}
+        .precision-clear:hover{color:#FF8A8A;}
+        .precision-empty{text-align:center;color:#5A5470;font-size:0.7rem;padding:16px 0;}
         .precision-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-right:4px;max-height:65vh;}
         .precision-list::-webkit-scrollbar{width:6px;background:transparent;}
         .precision-list::-webkit-scrollbar-thumb{background:#3A3452;border-radius:10px;}
@@ -187,7 +204,7 @@
     <div class="top-bar">
         <div class="logo">
             <h2><i class="fas fa-pen-fancy"></i> AI小说生成器</h2>
-            <span class="version-badge">v6.0</span>
+            <span class="version-badge">v6.9</span>
             <div class="current-book-badge"><i class="fas fa-book"></i> <span id="curBookName">未选择</span></div>
             <span id="storageIndicator" class="storage-indicator">💾 0MB / 5MB</span>
         </div>
@@ -195,17 +212,16 @@
             <button id="actionLibraryBtn" class="glass-btn"><i class="fas fa-fist-raised"></i> 全局动作库</button>
             <button id="costumeLibraryBtn" class="glass-btn"><i class="fas fa-tshirt"></i> 全局服装库</button>
             <button id="globalRoleBtn" class="glass-btn"><i class="fas fa-box"></i> 素材角色库</button>
-            <button id="scratchpadBtn" class="glass-btn guide-highlight"><i class="fas fa-sticky-note"></i> 素材草稿本</button>
+            <button id="scratchpadBtn" class="glass-btn guide-highlight"><i class="fas fa-sticky-note"></i> 草稿本</button>
             <button id="roleLibraryBtn" class="glass-btn"><i class="fas fa-users"></i> 本书角色库</button>
             <button id="relationGraphBtn" class="glass-btn"><i class="fas fa-project-diagram"></i> 本书关系图</button>
             <button id="forbiddenWordsBtn" class="glass-btn"><i class="fas fa-ban"></i> 本书禁用词</button>
             <button id="backupExportBtn" class="glass-btn"><i class="fas fa-archive"></i> 备份</button>
             <button id="backupImportBtn" class="glass-btn"><i class="fas fa-upload"></i> 恢复</button>
-            <button id="resetAllBtn" class="glass-btn" style="background:#3A2A2A;"><i class="fas fa-redo-alt"></i> 初始化</button>
-            <button id="exportBtn" class="glass-btn"><i class="fas fa-download"></i> 导出全书</button>
-            <button id="exportChapterBtn" class="glass-btn"><i class="fas fa-file-export"></i> 导出本章</button>
+            <button id="exportBtn" class="glass-btn"><i class="fas fa-download"></i> 导出</button>
             <button id="notifyBtn" class="glass-btn"><i class="fas fa-bell"></i> 页签提醒</button>
             <button id="guideBtn" class="glass-btn guide-highlight"><i class="fas fa-question-circle"></i> 使用指南</button>
+            <button id="resetAllBtn" class="glass-btn" style="background:#3A2A2A;"><i class="fas fa-redo-alt"></i> 初始化</button>
         </div>
     </div>
     <div class="main-row">
@@ -276,25 +292,28 @@
 
 <!-- 模态框 -->
 <div id="apiModal" class="modal"><div class="modal-card"><h3>⚙️ API 调参</h3><div style="background:#3A2A2A;border-radius:12px;padding:8px 12px;margin-bottom:10px;font-size:0.65rem;color:#FFA070;"><i class="fas fa-shield-alt"></i> ⚠️ API Key 仅存储在浏览器本地，不会上传到任何服务器。请妥善保管，勿分享给他人。</div><input type="text" id="apiUrlInp" placeholder="API地址"><input type="password" id="apiKeyInp" placeholder="API Key"><input type="text" id="modelInp" placeholder="模型"><div class="range-row"><span>温度</span><input type="range" id="tempRange" min="0" max="2" step="0.05" value="0.95"><span id="tempVal">0.95</span></div><div class="range-row"><span>核采样 Top-p</span><input type="range" id="topPRange" min="0.1" max="1" step="0.01" value="0.95"><span id="topPVal">0.95</span></div><div class="range-row"><span>重复惩罚</span><input type="range" id="repPenaltyRange" min="1" max="2" step="0.05" value="1.0"><span id="repPenaltyVal">1.0</span></div><div class="range-row"><span>最大长度</span><input type="number" id="maxTokensInp" value="2200"></div><div class="range-row"><span>频率惩罚</span><input type="range" id="freqRange" min="0" max="1" step="0.05" value="0.25"><span id="freqVal">0.25</span></div><div class="range-row"><span>存在惩罚</span><input type="range" id="presRange" min="0" max="1" step="0.05" value="0.2"><span id="presVal">0.2</span></div><div class="range-row"><span>上下文章节</span><input type="range" id="ctxRange" min="1" max="50" step="1" value="3"><span id="ctxVal">2</span></div><div class="range-row"><span>停止词 (逗号分隔)</span><input type="text" id="stopWordsInp" style="width:100%"></div><div class="range-row" style="align-items:center;"><span>💭 思考模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="thinkingCheck" checked style="width:auto;margin:0;"> 开启思考模式后创意参数失效，请谨慎开启</label></div><div class="range-row"><span>推理强度</span><input type="range" id="reasoningRange" min="0" max="2" step="1" value="1"><span id="reasoningVal">high</span></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="testApiBtn" class="glass-btn">测试连接</button><button id="saveApiBtn" style="background:#2A6EA4;">保存</button><button id="closeApiBtn">取消</button></div></div></div>
-<div id="roleModal" class="modal"><div class="modal-card"><h3><i class="fas fa-users"></i> 本书角色库 · <span id="roleBookName"></span></h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="importGlobalCharsBtn" class="glass-btn"><i class="fas fa-download"></i> 从素材库导入</button><button id="exportToGlobalCharBtn" class="glass-btn"><i class="fas fa-upload"></i> 导出到素材库</button><button id="exportBookCharsBtn" class="glass-btn"><i class="fas fa-file-export"></i> 导出 JSON</button><button id="newCharBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增角色</button></div><div class="lib-container"><div class="lib-list"><h4>角色列表</h4><div id="charList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑角色</h4><input type="text" id="charName" placeholder="姓名"><textarea id="charAppearance" rows="3" placeholder="外貌体征"></textarea><textarea id="charPersonality" rows="2" placeholder="性格"></textarea><textarea id="charSpecial" rows="3" placeholder="服装及其他设定"></textarea><textarea id="charRelation" rows="3" placeholder="身份关联"></textarea><div><button id="saveCharBtn" class="glass-btn">保存角色</button><button id="cancelEditCharBtn" class="glass-btn">取消编辑</button></div></div></div><div><button id="closeRoleModal" class="glass-btn">关闭</button></div></div></div>
-<div id="globalRoleModal" class="modal"><div class="modal-card"><h3><i class="fas fa-box"></i> 素材角色库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalCharBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增素材角色</button><button id="exportGlobalCharsJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalCharsJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>角色列表</h4><div id="globalCharList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑角色</h4><input type="text" id="globalCharName" placeholder="姓名"><textarea id="globalCharAppearance" rows="3" placeholder="外貌体征"></textarea><textarea id="globalCharPersonality" rows="2" placeholder="性格"></textarea><textarea id="globalCharSpecial" rows="3" placeholder="服装及其他设定"></textarea><textarea id="globalCharRelation" rows="3" placeholder="身份关联"></textarea><div><button id="saveGlobalCharBtn" class="glass-btn">保存</button><button id="cancelGlobalCharBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeGlobalRoleModal" class="glass-btn">关闭</button></div></div></div>
-<div id="actionModal" class="modal"><div class="modal-card"><h3><i class="fas fa-fist-raised"></i> 全局动作库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalActionBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增动作</button><button id="exportGlobalActionsJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalActionsJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>动作列表</h4><div id="actionList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑动作</h4><input type="text" id="globalActionName" placeholder="动作名称"><textarea id="globalActionKeyPoints" rows="3" placeholder="动作要领"></textarea><textarea id="globalActionLines" rows="3" placeholder="台词运用"></textarea><textarea id="globalActionDescriptionTips" rows="3" placeholder="描写建议"></textarea><div><button id="saveGlobalActionBtn" class="glass-btn">保存</button><button id="cancelGlobalActionBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeActionModal" class="glass-btn">关闭</button></div></div></div>
-<div id="costumeModal" class="modal"><div class="modal-card"><h3><i class="fas fa-tshirt"></i> 全局服装库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalCostumeBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增服装</button><button id="exportGlobalCostumesJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalCostumesJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>服装列表</h4><div id="costumeList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑服装</h4><input type="text" id="globalCostumeName" placeholder="服装名称"><textarea id="globalCostumeStyle" rows="3" placeholder="详细款式"></textarea><textarea id="globalCostumeDescTips" rows="3" placeholder="描写建议"></textarea><div><button id="saveGlobalCostumeBtn" class="glass-btn">保存</button><button id="cancelGlobalCostumeBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeCostumeModal" class="glass-btn">关闭</button></div></div></div>
+<div id="roleModal" class="modal"><div class="modal-card"><h3><i class="fas fa-users"></i> 本书角色库 · <span id="roleBookName"></span></h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="importGlobalCharsBtn" class="glass-btn"><i class="fas fa-download"></i> 从素材库导入</button><button id="exportToGlobalCharBtn" class="glass-btn"><i class="fas fa-upload"></i> 导出到素材库</button><button id="exportBookCharsBtn" class="glass-btn"><i class="fas fa-file-export"></i> 导出 JSON</button><button id="newCharBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增角色</button></div><div class="lib-container"><div class="lib-list"><h4>角色列表</h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="libCharSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="libCharSearchClear"></i></div><div id="charList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑角色</h4><input type="text" id="charName" placeholder="姓名"><textarea id="charAppearance" rows="3" placeholder="外貌体征"></textarea><textarea id="charPersonality" rows="2" placeholder="性格"></textarea><textarea id="charSpecial" rows="3" placeholder="服装及其他设定"></textarea><textarea id="charRelation" rows="3" placeholder="身份关联"></textarea><div><button id="saveCharBtn" class="glass-btn">保存角色</button><button id="cancelEditCharBtn" class="glass-btn">取消编辑</button></div></div></div><div><button id="closeRoleModal" class="glass-btn">关闭</button></div></div></div>
+<div id="globalRoleModal" class="modal"><div class="modal-card"><h3><i class="fas fa-box"></i> 素材角色库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalCharBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增素材角色</button><button id="exportGlobalCharsJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalCharsJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>角色列表</h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="libGlobalCharSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="libGlobalCharSearchClear"></i></div><div id="globalCharList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑角色</h4><input type="text" id="globalCharName" placeholder="姓名"><textarea id="globalCharAppearance" rows="3" placeholder="外貌体征"></textarea><textarea id="globalCharPersonality" rows="2" placeholder="性格"></textarea><textarea id="globalCharSpecial" rows="3" placeholder="服装及其他设定"></textarea><textarea id="globalCharRelation" rows="3" placeholder="身份关联"></textarea><div><button id="saveGlobalCharBtn" class="glass-btn">保存</button><button id="cancelGlobalCharBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeGlobalRoleModal" class="glass-btn">关闭</button></div></div></div>
+<div id="actionModal" class="modal"><div class="modal-card"><h3><i class="fas fa-fist-raised"></i> 全局动作库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalActionBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增动作</button><button id="exportGlobalActionsJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalActionsJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>动作列表</h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="libActionSearch" placeholder="搜索动作…"><i class="fas fa-times precision-clear" id="libActionSearchClear"></i></div><div id="actionList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑动作</h4><input type="text" id="globalActionName" placeholder="动作名称"><textarea id="globalActionKeyPoints" rows="3" placeholder="动作要领"></textarea><textarea id="globalActionLines" rows="3" placeholder="台词运用"></textarea><textarea id="globalActionDescriptionTips" rows="3" placeholder="描写建议"></textarea><div><button id="saveGlobalActionBtn" class="glass-btn">保存</button><button id="cancelGlobalActionBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeActionModal" class="glass-btn">关闭</button></div></div></div>
+<div id="costumeModal" class="modal"><div class="modal-card"><h3><i class="fas fa-tshirt"></i> 全局服装库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalCostumeBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增服装</button><button id="exportGlobalCostumesJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalCostumesJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>服装列表</h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="libCostumeSearch" placeholder="搜索服装…"><i class="fas fa-times precision-clear" id="libCostumeSearchClear"></i></div><div id="costumeList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑服装</h4><input type="text" id="globalCostumeName" placeholder="服装名称"><textarea id="globalCostumeStyle" rows="3" placeholder="详细款式"></textarea><textarea id="globalCostumeDescTips" rows="3" placeholder="描写建议"></textarea><div><button id="saveGlobalCostumeBtn" class="glass-btn">保存</button><button id="cancelGlobalCostumeBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeCostumeModal" class="glass-btn">关闭</button></div></div></div>
 <div id="forbiddenWordsModal" class="modal"><div class="modal-card"><h3><i class="fas fa-ban"></i> 本书禁用词 · <span id="forbiddenBookName"></span></h3><div><button id="newForbiddenWordBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增禁用词</button></div><div class="lib-container"><div class="lib-list"><h4>禁用词列表</h4><div id="forbiddenList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>添加/编辑</h4><input type="text" id="forbiddenWordInput" placeholder="要禁用的词或短语"><div><button id="saveForbiddenWordBtn" class="glass-btn">保存</button><button id="cancelForbiddenWordBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeForbiddenModal" class="glass-btn">关闭</button></div></div></div>
 
 <!-- 本书关系图模态框 -->
 <div id="relationGraphModal" class="modal"><div class="modal-card" style="width:96vw;max-width:96vw;height:94vh;max-height:94vh;overflow:hidden;display:flex;flex-direction:column;">
 <h3><i class="fas fa-project-diagram"></i> 本书关系图 · <span id="relationBookName"></span></h3>
-<div style="font-size:0.6rem;color:#7A728F;margin:4px 0;">拖拽节点调整布局 · 点击角色添加关系 · 关系名称自由填写</div>
+<div style="font-size:0.6rem;color:#7A728F;margin:4px 0;">拖拽节点调整布局 · 点击角色添加关系 · 关系名称自由填写 · 左侧页签切换可拖对象（0=人物 / N=区域N）</div>
 <div id="graphContainer" style="width:100%;flex:1;background:#0E0D14;border-radius:16px;border:1px solid #22202C;overflow:hidden;position:relative;min-height:300px;">
+<div id="graphRegionTabs" style="position:absolute;left:0;top:0;bottom:0;width:66px;z-index:5;display:flex;flex-direction:column;gap:4px;padding:6px;overflow-y:auto;background:rgba(14,13,20,0.55);"></div>
 <svg id="graphSvg" width="100%" height="100%" style="display:block;"></svg>
 </div>
 <div style="display:flex;gap:10px;margin-top:10px;flex-shrink:0;">
 <button id="addRelationBtn" class="glass-btn"><i class="fas fa-plus"></i> 添加关系</button>
-<button id="squareLayoutBtn" class="glass-btn"><i class="fas fa-th"></i> 方形布局</button>
+<button id="graphRegionBtn" class="glass-btn"><i class="fas fa-shapes"></i> 区域</button>
+<button id="graphSnapBtn" class="glass-btn graph-snap-btn"><i class="fas fa-border-all"></i> 网格吸附</button>
 <button id="resetGraphLayoutBtn" class="glass-btn"><i class="fas fa-sync-alt"></i> 重置布局</button>
 <button id="closeRelationModal" class="glass-btn">关闭</button>
 </div></div></div>
+<div id="regionModal" class="modal"><div class="modal-card" style="width:400px;"><h3><i class="fas fa-shapes"></i> 创建区域</h3><div style="margin:10px 0;font-size:0.65rem;color:#7A728F;">区域为视觉参考分组，不参与创作逻辑。大小=可容纳的角色数量（1~50，自动最优排布）。</div><div class="range-row"><span>形状</span><select id="regionShapeSel" style="flex:1;background:#13121C;border:1px solid #3A3452;border-radius:8px;padding:6px;color:#EDEAF2;"><option value="rect">矩形</option><option value="ellipse">椭圆</option><option value="hex">六边形</option></select></div><div class="range-row"><span>大小</span><input type="number" id="regionSizeInp" min="1" max="50" value="3" style="flex:1;background:#13121C;border:1px solid #3A3452;border-radius:8px;padding:6px;color:#EDEAF2;"></div><div class="range-row"><span>名称</span><input type="text" id="regionNameInp" maxlength="20" placeholder="区域名称（≤20字）" style="flex:1;background:#13121C;border:1px solid #3A3452;border-radius:8px;padding:6px;color:#EDEAF2;"></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="saveRegionBtn" style="background:#2A6EA4;">创建</button><button id="closeRegionBtn">取消</button></div></div></div>
 
 <!-- 使用指南模态框 -->
 <div id="guideModal" class="modal">
@@ -329,7 +348,7 @@
 
 <div id="fullGuideModal" class="modal">
     <div class="modal-card" style="max-width:800px;">
-        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v6.0 完整说明</h3>
+        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v6.9 完整说明</h3>
         <div class="full-guide">
             <h4>一、快速上手（3步）</h4>
             <p>1. 左侧面板点击「+ 新建小说」，输入书名创建</p>
@@ -413,15 +432,15 @@
             
             <h4>九、🔗 本书关系图</h4>
             <p>点击顶部「本书关系图」打开 SVG 人物关系网络图。关系图数据会在 AI 生文时<b>全量注入 system prompt</b>（不受精准模式影响），以「角色关系图」段落形式出现在角色设定之前。</p>
-            <ul><li><b>添加关系</b>：点击角色方块 → 在弹窗中选目标角色 + 输入关系名（如"母子""暗恋""宿敌"）→ 点添加</li><li><b>删除关系</b>：点击角色 → 在已有关系中点击 ✕ 删除</li><li><b>颜色规则</b>：同一种关系名自动分配同一种颜色，一目了然</li><li><b>拖拽布局</b>：可拖拽任意节点调整位置，点「重置布局」恢复环形排列</li></ul>
+            <ul><li><b>添加关系</b>：点击角色方块 → 在弹窗中选目标角色 + 输入关系名（如"母子""暗恋""宿敌"）→ 点添加</li><li><b>删除关系</b>：点击角色 → 在已有关系中点击 ✕ 删除</li><li><b>颜色规则</b>：同一种关系名自动分配同一种颜色，一目了然</li><li><b>拖拽布局</b>：可拖拽任意节点调整位置，点「重置布局」恢复方形棋盘排列；网格吸附开关可让节点对齐网格</li></ul>
             <hr>
             
             <h4>十、🎭 素材角色库</h4>
             <p>跨小说通用的角色模板库。可新增、编辑、删除素材角色，支持 <b>JSON 导入/导出</b>。在本书角色库中可一键批量导入素材角色。</p>
             <hr>
             
-            <h4>十一、📝 素材草稿本（v1.8 新增）</h4>
-            <p>顶部「素材草稿本」按钮打开独立文本编辑器，用于临时记录灵感、随笔、情节构思。内容存储在浏览器本地，点击「保存」生效。备份时会一并导出。</p>
+            <h4>十一、📝 草稿本（v1.8 新增）</h4>
+            <p>顶部「草稿本」按钮打开独立文本编辑器，用于临时记录灵感、随笔、情节构思。内容存储在浏览器本地，点击「保存」生效。备份时会一并导出。</p>
             <hr>
             
             <h4>十二、💪 全局动作库</h4>
@@ -445,8 +464,7 @@
             <h4>十五、💾 备份与导出</h4>
             <p><b>备份</b>：导出包含所有小说、角色、动作库、API 配置的完整 JSON 文件。建议定期备份。</p>
             <p><b>恢复</b>：导入之前导出的备份 JSON，<b>会覆盖当前全部数据</b>，请谨慎操作。</p>
-            <p><b>导出全书</b>：将当前小说的全部章节导出为 TXT 纯文本文件。</p>
-            <p><b>导出本章</b>：仅导出当前编辑的章节为 TXT 文件。</p>
+            <p><b>导出</b>（v6.4）：顶部「导出」按钮点击后弹出选择——<b>导出全书</b>（当前小说的全部章节为 TXT）/ <b>导出本章</b>（仅当前编辑的章节为 TXT）。</p>
             <hr>
             
             <h4>十六、🛡️ 数据与安全</h4>
@@ -484,18 +502,19 @@
 <h3><i class="fas fa-crosshairs"></i> 精准模式 · 本章设定选择</h3>
 <div class="precision-stats">已选角色 <b id="precCharCount">0</b> 个 · 已选动作 <b id="precActionCount">0</b> 个 · 已选服装 <b id="precCostumeCount">0</b> 个</div>
 <div class="precision-split">
-    <div class="precision-col"><h4>👥 本书角色 <span id="precCharTotal"></span></h4><div class="precision-list" id="precisionCharList"></div></div>
-    <div class="precision-col"><h4>💪 全局动作 <span id="precActionTotal"></span></h4><div class="precision-list" id="precisionActionList"></div></div>
-    <div class="precision-col"><h4>👗 全局服装 <span id="precCostumeTotal"></span></h4><div class="precision-list" id="precisionCostumeList"></div></div>
+    <div class="precision-col"><h4>👥 本书角色 <span id="precCharTotal"></span></h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="precCharSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="precCharSearchClear"></i></div><div class="precision-list" id="precisionCharList"></div></div>
+    <div class="precision-col"><h4>💪 全局动作 <span id="precActionTotal"></span></h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="precActionSearch" placeholder="搜索动作…"><i class="fas fa-times precision-clear" id="precActionSearchClear"></i></div><div class="precision-list" id="precisionActionList"></div></div>
+    <div class="precision-col"><h4>👗 全局服装 <span id="precCostumeTotal"></span></h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="precCostumeSearch" placeholder="搜索服装…"><i class="fas fa-times precision-clear" id="precCostumeSearchClear"></i></div><div class="precision-list" id="precisionCostumeList"></div></div>
 </div>
 <div style="display:flex;gap:10px;justify-content:space-between;margin-top:16px;">
     <div><button id="precSelectAllChars" class="glass-btn" style="font-size:0.6rem;">全选角色</button><button id="precSelectAllActions" class="glass-btn" style="font-size:0.6rem;margin-left:4px;">全选动作</button><button id="precSelectAllCostumes" class="glass-btn" style="font-size:0.6rem;margin-left:4px;">全选服装</button><button id="precDeselectAll" class="glass-btn" style="font-size:0.6rem;margin-left:4px;">全部取消</button></div>
     <div><button id="precDisableBtn" class="glass-btn" style="background:#4A2A2A;">关闭精准模式</button><button id="savePrecisionBtn" class="glass-btn" style="background:#2A5A3A;margin-left:6px;">保存</button><button id="closePrecisionBtn" class="glass-btn" style="margin-left:4px;">取消</button></div>
 </div></div></div>
 
-<!-- 素材草稿本模态框 -->
+<!-- 草稿本模态框 -->
+<div id="exportChoiceModal" class="modal"><div class="modal-card" style="width:380px;"><h3><i class="fas fa-download"></i> 导出</h3><div style="display:flex;gap:12px;margin-top:16px;"><button id="exportFullChoiceBtn" class="glass-btn" style="flex:1;padding:14px 10px;"><i class="fas fa-book"></i> 导出全书</button><button id="exportChapterChoiceBtn" class="glass-btn" style="flex:1;padding:14px 10px;"><i class="fas fa-file-alt"></i> 导出本章</button></div><div style="display:flex;justify-content:flex-end;margin-top:16px;"><button id="closeExportChoiceBtn" class="glass-btn">取消</button></div></div></div>
 <div id="scratchpadModal" class="modal"><div class="modal-card" style="width:700px;">
-<h3><i class="fas fa-sticky-note"></i> 素材草稿本</h3>
+<h3><i class="fas fa-sticky-note"></i> 草稿本</h3>
 <textarea id="scratchpadContent" style="width:100%;height:400px;background:#13121C;border:1px solid #3A3452;border-radius:16px;padding:14px;color:#EDEAF2;font-size:0.8rem;line-height:1.6;resize:vertical;font-family:'Georgia','Noto Serif SC',serif;" placeholder="在这里记录灵感、随笔、情节构思……"></textarea>
 <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">
 <button id="saveScratchpadBtn" class="glass-btn" style="background:#2A5A3A;"><i class="fas fa-save"></i> 保存</button>
@@ -507,7 +526,7 @@
 <input type="file" id="importGlobalCostumesFileInput" accept=".json" style="display:none" />
 
 <script>
-// ======================== AI小说生成器 v6.0 — 完整脚本 ========================
+// ======================== AI小说生成器 v6.9 — 完整脚本 ========================
 document.addEventListener('DOMContentLoaded', function() {
     // 全局数据
     let books = [], currentBookId = null;
@@ -722,13 +741,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ======================== API 配置 ========================
+    // v6.3：API URL 合法性校验（http/https 开头）——所有 fetch 前置拦截，防脏值触发 file:// 同源报错
+    function apiUrlValid(u) { return !!u && /^https?:\/\//i.test(String(u).trim()); }
+    // v6.5：从失败的 API 响应中提取后端错误信息（HTTP 状态 + 具体原因），替代只显示状态码（res.body 只能消费一次，用 clone 读取）
+    async function extractApiError(res) {
+        let detail = '';
+        try { const d = await res.clone().json(); detail = (d && (d.error?.message || d.message)) || JSON.stringify(d); }
+        catch(e) { try { detail = await res.clone().text(); } catch(e2) {} }
+        return 'HTTP ' + res.status + (detail ? '：' + String(detail).slice(0, 200) : '');
+    }
     function loadApi() {
         try {
             let saved = localStorage.getItem('api_config_v2');
             if(saved) Object.assign(api, JSON.parse(saved));
         } catch(e) { console.warn("API配置解析失败，已重置", e); }
-        // url/model 空值兜底（与 saveApi 校验口径一致，防异常数据 fetch('') 失败）
-        if(!api.url || !api.url.trim()) api.url = 'https://api.deepseek.com/chat/completions';
+        // url 兜底（v6.3：空值或非 http(s) 开头脏值都强制回默认，防 fetch('') 触发 file:// 同源报错）
+        if(!api.url || !/^https?:\/\//i.test(api.url.trim())) api.url = 'https://api.deepseek.com/chat/completions';
         if(!api.model || !api.model.trim()) api.model = 'deepseek-v4-flash';
         if(api.top_p===undefined) api.top_p=0.95;
         if(api.repetition_penalty===undefined) api.repetition_penalty=1.0;
@@ -773,6 +801,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function testApiConnection() {
         const draftUrl = $('apiUrlInp')?.value?.trim() || api.url;
         const draftKey = $('apiKeyInp')?.value?.trim() || '';
+        if(!apiUrlValid(draftUrl)) { toast("API 地址无效（需以 http:// 或 https:// 开头）"); return false; }
         const draftModel = $('modelInp')?.value?.trim() || api.model;
         if(!draftKey) { toast("请先填写 API Key"); return false; }
         toast("正在测试连接...");
@@ -793,7 +822,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 signal: controller.signal
             });
             clearTimeout(timeout);
-            if(res.ok) { toast("API 连接成功 ✓"); return true; }
+            if(res.ok) { toast("基础连接成功 ✓（正式生成仍取决于模型与参数兼容性）"); return true; }
             if(res.status === 401) { toast("API Key 无效，请检查"); }
             else if(res.status === 429) { toast("API 请求频率过高，请稍后重试"); }
             else if(res.status === 402) { toast("API 余额不足，请充值"); }
@@ -815,8 +844,8 @@ document.addEventListener('DOMContentLoaded', function() {
             let el = $(id);
             if (el) api[key] = id.includes('Range') ? parseFloat(el.value) : (key==='ctxChapters'||key==='maxTokens' ? parseInt(el.value) : el.value);
         }
-        // 数值合法性校验
-        if(!api.url || !api.url.trim()) { toast("API 地址不能为空，已恢复默认"); api.url = 'https://api.deepseek.com/chat/completions'; const u = $('apiUrlInp'); if(u) u.value = api.url; }
+        // 数值合法性校验（v6.3：url 非 http(s) 开头视为脏值，一并回默认——防 fetch 相对/空路径）
+        if(!api.url || !/^https?:\/\//i.test(api.url.trim())) { toast("API 地址无效（需以 http:// 或 https:// 开头），已恢复默认"); api.url = 'https://api.deepseek.com/chat/completions'; const u = $('apiUrlInp'); if(u) u.value = api.url; }
         if(!api.model || !api.model.trim()) { toast("模型名称不能为空，已恢复默认"); api.model = 'deepseek-v4-flash'; const m = $('modelInp'); if(m) m.value = api.model; }
         if(!Number.isInteger(api.maxTokens) || api.maxTokens < 1 || api.maxTokens > 60000) { toast("最大长度请输入 1~60000 的整数"); api.maxTokens = 2200; const mi = $('maxTokensInp'); if(mi) mi.value = 2200; }
         if(!Number.isInteger(api.ctxChapters) || api.ctxChapters < 1 || api.ctxChapters > 50) { toast("前文引用章节数请输入 1~50 的整数"); api.ctxChapters = 3; const ci = $('ctxRange'); if(ci) ci.value = 3; }
@@ -948,11 +977,13 @@ document.addEventListener('DOMContentLoaded', function() {
         book.characters.forEach(char => {
             const div = document.createElement('div');
             div.className = `item-card ${currentEditingCharId===char.id?'active':''}`;
+            div.dataset.name = char.name;
             div.innerHTML = `<div class="item-name">${escapeHtml(char.name)}</div><div class="item-preview">${escapeHtml(char.appearance||'').slice(0,20)}</div><div class="item-actions"><button class="small-btn edit-char" data-id="${char.id}">编辑</button><button class="small-btn del-char" data-id="${char.id}" style="background:#4A2A2A;">删除</button></div>`;
             div.querySelector('.edit-char').addEventListener('click',()=> editCharacter(char.id));
             div.querySelector('.del-char').addEventListener('click',()=> { if(confirm(`删除角色「${char.name}」？`)) deleteCharacter(char.id); });
             container.appendChild(div);
         });
+        applyLibFilter('char');
     }
     // 本书角色库导出 JSON（v5.8）：下载当前书的全部角色为 JSON 文件（可长期保存/迁移）
     function exportBookCharsJson() {
@@ -985,9 +1016,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const newChar = { id: currentEditingCharId || uuid(), name: nameVal,
             appearance: $('charAppearance')?.value || '', personality: $('charPersonality')?.value || '',
             special: $('charSpecial')?.value || '', relationship: $('charRelation')?.value || '' };
+        // v6.5：编辑已有角色时保留旧 relationships（关系图数据）——此前整体覆盖导致该角色全部关系丢失
         if(currentEditingCharId) {
             const idx = book.characters.findIndex(c=>c.id==currentEditingCharId);
-            if(idx!==-1) book.characters[idx] = newChar;
+            if(idx!==-1) { const oldChar = book.characters[idx]; newChar.relationships = Array.isArray(oldChar.relationships) ? oldChar.relationships : []; book.characters[idx] = newChar; }
             else { book.characters.push(newChar); toast("原角色已被删除，已保存为新角色"); }
         } else { book.characters.push(newChar); }
         currentEditingCharId = null; clearCharForm(); if(!persistOrWarn()) return; renderCharacterList();
@@ -998,7 +1030,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(!book) return;
         // 清理所有角色中指向该角色的关系
         book.characters.forEach(c => {
-            if(c.relationships) c.relationships = c.relationships.filter(r => r.targetId !== id);
+            if(c.relationships) c.relationships = c.relationships.filter(r => String(r.targetId) !== String(id)); // v6.9：String 包装兼容 ID 类型（历史数据字符串/数字混存时脏关系清不掉）
         });
         // 清理关系图缓存：删除该角色的位置数据
         if(relationNodePositions[id]) delete relationNodePositions[id];
@@ -1007,9 +1039,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const remainingTypes = new Set();
         book.characters.forEach(c => { (c.relationships||[]).forEach(r => remainingTypes.add(r.type)); });
         Object.keys(relationColorMap).forEach(t => { if(!remainingTypes.has(t)) delete relationColorMap[t]; });
+        // v6.5：删除角色时同步清理本书精准模式中的旧 ID（防界面计数与实际注入不一致）
+        if(book.precisionChars) book.precisionChars = book.precisionChars.filter(pid => String(pid) !== String(id));
         book.characters = book.characters.filter(c=>c.id!=id);
         if(currentEditingCharId==id) clearCharForm();
-        if(!persistOrWarn()) return; renderCharacterList(); toast("角色已删除");
+        if(!persistOrWarn()) return; renderCharacterList(); updatePrecisionButton(); // v6.7：删除后立即刷新精准按钮（唯一选项被删时按钮状态与实际模式一致）
+        toast("角色已删除");
     }
     function clearCharForm() {
         ['charName','charAppearance','charPersonality','charSpecial','charRelation'].forEach(id => { let el=$(id); if(el) el.value=''; });
@@ -1023,11 +1058,13 @@ document.addEventListener('DOMContentLoaded', function() {
         globalCharacters.forEach(char => {
             const div = document.createElement('div');
             div.className = `item-card ${currentEditingGlobalCharId===char.id?'active':''}`;
+            div.dataset.name = char.name;
             div.innerHTML = `<div class="item-name">${escapeHtml(char.name)}</div><div class="item-preview">${escapeHtml(char.appearance||'').slice(0,20)}</div><div class="item-actions"><button class="small-btn edit-global-char" data-id="${char.id}">编辑</button><button class="small-btn del-global-char" data-id="${char.id}" style="background:#4A2A2A;">删除</button></div>`;
             div.querySelector('.edit-global-char').addEventListener('click',()=> editGlobalCharacter(char.id));
             div.querySelector('.del-global-char').addEventListener('click',()=> { if(confirm(`删除素材角色「${char.name}」？`)) deleteGlobalCharacter(char.id); });
             container.appendChild(div);
         });
+        applyLibFilter('globalChar');
     }
     function editGlobalCharacter(id) {
         const char = globalCharacters.find(c=>c.id==id);
@@ -1046,7 +1083,7 @@ document.addEventListener('DOMContentLoaded', function() {
             special: $('globalCharSpecial')?.value || '', relationship: $('globalCharRelation')?.value || '' };
         if(currentEditingGlobalCharId) {
             const idx = globalCharacters.findIndex(c=>c.id==currentEditingGlobalCharId);
-            if(idx!==-1) globalCharacters[idx] = newChar;
+            if(idx!==-1) { const oldChar = globalCharacters[idx]; newChar.relationships = Array.isArray(oldChar.relationships) ? oldChar.relationships : []; globalCharacters[idx] = newChar; } // v6.6：编辑素材角色保留旧 relationships（与 saveCurrentCharacter 同款修复）
             else { globalCharacters.push(newChar); toast("原素材角色已被删除，已保存为新角色"); }
         } else { globalCharacters.push(newChar); }
         currentEditingGlobalCharId = null; clearGlobalCharForm(); if(!persistOrWarn()) return; renderGlobalCharList();
@@ -1059,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     function addGlobalCharacter() { clearGlobalCharForm(); currentEditingGlobalCharId=null; $('globalCharName')?.focus(); }
     function exportGlobalCharsToJson() { if(!globalCharacters.length) { toast("素材角色库为空"); return; } const blob = new Blob([JSON.stringify(globalCharacters,null,2)], {type:"application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `material_characters_${Date.now()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("已导出"); }
-    function importGlobalCharsFromJson(file) { const reader = new FileReader(); reader.onload = e => { try { const imported = JSON.parse(e.target.result); if(!Array.isArray(imported)) throw new Error(); let added=0; imported.forEach(item => { if(item.name && typeof item.name==='string') { globalCharacters.push({ id:uuid(), name:item.name, appearance:item.appearance||'', personality:item.personality||'', special:item.special||'', relationship:item.relationship||'' }); added++; } }); if(added) { saveAll(); renderGlobalCharList(); toast(`已导入 ${added} 个角色`); } else toast("无有效角色"); } catch(err) { toast("解析失败"); } }; reader.readAsText(file); }
+    function importGlobalCharsFromJson(file) { const reader = new FileReader(); reader.onload = e => { try { const parsed = JSON.parse(e.target.result); let imported = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.characters) ? parsed.characters : null); if(!imported) throw new Error('无有效角色数组'); let added=0; const idMap = new Map(); const copies = []; imported.forEach(item => { if(item && item.name && typeof item.name==='string') { const copy = JSON.parse(JSON.stringify(item)); const oldId = String(copy.id || ''); const newId = uuid(); if(oldId) idMap.set(oldId, newId); copy.id = newId; copy.relationships = Array.isArray(copy.relationships) ? copy.relationships : []; copies.push(copy); added++; } }); copies.forEach(copy => { copy.relationships = copy.relationships.filter(r => r && idMap.has(String(r.targetId))).map(r => ({ ...r, targetId: idMap.get(String(r.targetId)) })); }); copies.forEach(c => globalCharacters.push(c)); if(added) { saveAll(); renderGlobalCharList(); toast(`已导入 ${added} 个角色`); } else toast("无有效角色"); } catch(err) { toast("解析失败"); } }; reader.readAsText(file); }
 
     function renderActionList() {
         const container = $('actionList'); if(!container) return;
@@ -1068,11 +1105,13 @@ document.addEventListener('DOMContentLoaded', function() {
         globalActions.forEach(action => {
             const div = document.createElement('div');
             div.className = `item-card ${currentEditingGlobalActionId===action.id?'active':''}`;
+            div.dataset.name = action.name;
             div.innerHTML = `<div class="item-name">${escapeHtml(action.name)}</div><div class="item-preview">${escapeHtml(action.keyPoints||'').slice(0,20)}</div><div class="item-actions"><button class="small-btn edit-global-action" data-id="${action.id}">编辑</button><button class="small-btn del-global-action" data-id="${action.id}" style="background:#4A2A2A;">删除</button></div>`;
             div.querySelector('.edit-global-action').addEventListener('click',()=> editGlobalAction(action.id));
             div.querySelector('.del-global-action').addEventListener('click',()=> { if(confirm(`删除动作「${action.name}」？`)) deleteGlobalAction(action.id); });
             container.appendChild(div);
         });
+        applyLibFilter('action');
     }
     function editGlobalAction(id) {
         const action = globalActions.find(a=>a.id==id);
@@ -1097,7 +1136,11 @@ document.addEventListener('DOMContentLoaded', function() {
         currentEditingGlobalActionId = null; clearGlobalActionForm(); if(!persistOrWarn()) return; renderActionList();
         toast("动作已保存");
     }
-    function deleteGlobalAction(id) { globalActions = globalActions.filter(a=>a.id!=id); if(currentEditingGlobalActionId==id) clearGlobalActionForm(); if(!persistOrWarn()) return; renderActionList(); toast("动作已删除"); }
+    function deleteGlobalAction(id) { globalActions = globalActions.filter(a=>a.id!=id); if(currentEditingGlobalActionId==id) clearGlobalActionForm();
+        // v6.5：删除全局动作时清理所有书精准模式中的旧 ID（防界面计数与实际注入不一致）
+        books.forEach(b => { if(b.precisionActions) b.precisionActions = b.precisionActions.filter(pid => String(pid) !== String(id)); });
+        if(!persistOrWarn()) return; renderActionList(); updatePrecisionButton(); // v6.7：删除后立即刷新精准按钮（所有书 precisionActions 已清，当前书按钮同步）
+        toast("动作已删除"); }
     function clearGlobalActionForm() {
         ['globalActionName','globalActionKeyPoints','globalActionLines','globalActionDescriptionTips'].forEach(id => { let el=$(id); if(el) el.value=''; });
         currentEditingGlobalActionId = null; renderActionList();
@@ -1113,11 +1156,13 @@ document.addEventListener('DOMContentLoaded', function() {
         globalCostumes.forEach(costume => {
             const div = document.createElement('div');
             div.className = `item-card ${currentEditingGlobalCostumeId===costume.id?'active':''}`;
+            div.dataset.name = costume.name;
             div.innerHTML = `<div class="item-name">${escapeHtml(costume.name)}</div><div class="item-preview">${escapeHtml(costume.styleDetail||'').slice(0,20)}</div><div class="item-actions"><button class="small-btn edit-global-costume" data-id="${costume.id}">编辑</button><button class="small-btn del-global-costume" data-id="${costume.id}" style="background:#4A2A2A;">删除</button></div>`;
             div.querySelector('.edit-global-costume').addEventListener('click',()=> editGlobalCostume(costume.id));
             div.querySelector('.del-global-costume').addEventListener('click',()=> { if(confirm(`删除服装「${costume.name}」？`)) deleteGlobalCostume(costume.id); });
             container.appendChild(div);
         });
+        applyLibFilter('costume');
     }
     function editGlobalCostume(id) {
         const costume = globalCostumes.find(a=>a.id==id);
@@ -1141,7 +1186,11 @@ document.addEventListener('DOMContentLoaded', function() {
         currentEditingGlobalCostumeId = null; clearGlobalCostumeForm(); if(!persistOrWarn()) return; renderCostumeList();
         toast("服装已保存");
     }
-    function deleteGlobalCostume(id) { globalCostumes = globalCostumes.filter(a=>a.id!=id); if(currentEditingGlobalCostumeId==id) clearGlobalCostumeForm(); if(!persistOrWarn()) return; renderCostumeList(); toast("服装已删除"); }
+    function deleteGlobalCostume(id) { globalCostumes = globalCostumes.filter(a=>a.id!=id); if(currentEditingGlobalCostumeId==id) clearGlobalCostumeForm();
+        // v6.5：删除全局服装时清理所有书精准模式中的旧 ID（防界面计数与实际注入不一致）
+        books.forEach(b => { if(b.precisionCostumes) b.precisionCostumes = b.precisionCostumes.filter(pid => String(pid) !== String(id)); });
+        if(!persistOrWarn()) return; renderCostumeList(); updatePrecisionButton(); // v6.7：删除后立即刷新精准按钮（所有书 precisionCostumes 已清，当前书按钮同步）
+        toast("服装已删除"); }
     function clearGlobalCostumeForm() {
         ['globalCostumeName','globalCostumeStyle','globalCostumeDescTips'].forEach(id => { let el=$(id); if(el) el.value=''; });
         currentEditingGlobalCostumeId = null; renderCostumeList();
@@ -1150,8 +1199,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function exportGlobalCostumesToJson() { if(!globalCostumes.length) { toast("服装库为空"); return; } const blob = new Blob([JSON.stringify(globalCostumes,null,2)], {type:"application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `global_costumes_${Date.now()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("已导出"); }
     function importGlobalCostumesFromJson(file) { const reader = new FileReader(); reader.onload = e => { try { const imported = JSON.parse(e.target.result); if(!Array.isArray(imported)) throw new Error(); let added=0; imported.forEach(item => { if(item.name && typeof item.name==='string') { globalCostumes.push({ id:uuid(), name:item.name, styleDetail:item.styleDetail||'', descriptionTips:item.descriptionTips||'' }); added++; } }); if(added) { saveAll(); renderCostumeList(); toast(`已导入 ${added} 个服装`); } else toast("无有效服装"); } catch(err) { toast("解析失败"); } }; reader.readAsText(file); }
 
-    function batchImport() { if(!globalCharacters.length) { toast("素材角色库为空"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>从素材库导入角色</h3><div class="batch-import-list" id="importListContainer"></div><div class="modal-buttons"><button id="confirmBatchImport" class="glass-btn">确认导入</button><button id="cancelBatchImport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#importListContainer'); globalCharacters.forEach(item => { const label = document.createElement('label'); const safeId = item.id.replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); modalDiv.querySelector('#confirmBatchImport').onclick = () => { const book = getCurrentBook(); if(!book) { toast("请先选择小说"); modalDiv.remove(); return; } let imported=0; modalDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => { const id = cb.getAttribute('data-id'); const original = globalCharacters.find(s => String(s.id) === String(id)); if(original) { const copy = JSON.parse(JSON.stringify(original)); copy.id = uuid(); initCharactersIfNeeded(book); book.characters.push(copy); imported++; } }); if(imported) { saveAll(); renderCharacterList(); toast(`已导入 ${imported} 个角色`); } else toast("未选择任何项"); modalDiv.remove(); }; modalDiv.querySelector('#cancelBatchImport').onclick = () => modalDiv.remove(); }
-    function batchExport() { const book = getCurrentBook(); if(!book || !book.characters.length) { toast("当前小说无角色可导出"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>导出到素材角色库</h3><div class="batch-import-list" id="exportListContainer"></div><div class="modal-buttons"><button id="confirmBatchExport" class="glass-btn">确认导出</button><button id="cancelBatchExport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#exportListContainer'); book.characters.forEach(item => { const label = document.createElement('label'); const safeId = item.id.replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); modalDiv.querySelector('#confirmBatchExport').onclick = () => { let exported=0; modalDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => { const id = cb.getAttribute('data-id'); const original = book.characters.find(s => String(s.id) === String(id)); if(original) { const copy = JSON.parse(JSON.stringify(original)); copy.id = uuid(); globalCharacters.push(copy); exported++; } }); if(exported) { saveAll(); renderGlobalCharList(); toast(`已导出 ${exported} 个角色到素材库`); } else toast("未选择任何项"); modalDiv.remove(); }; modalDiv.querySelector('#cancelBatchExport').onclick = () => modalDiv.remove(); }
+    function batchImport() { if(!globalCharacters.length) { toast("素材角色库为空"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>从素材库导入角色</h3><div class="batch-import-list" id="importListContainer"></div><div class="modal-buttons"><button id="confirmBatchImport" class="glass-btn">确认导入</button><button id="cancelBatchImport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#importListContainer'); globalCharacters.forEach(item => { const label = document.createElement('label'); const safeId = item.id.replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); modalDiv.querySelector('#confirmBatchImport').onclick = () => { const book = getCurrentBook(); if(!book) { toast("请先选择小说"); modalDiv.remove(); return; } let imported=0; const idMap = new Map(); const copies = []; modalDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => { const id = cb.getAttribute('data-id'); const original = globalCharacters.find(s => String(s.id) === String(id)); if(original) { const copy = JSON.parse(JSON.stringify(original)); const oldId = copy.id; const newId = uuid(); idMap.set(String(oldId), newId); copy.id = newId; copy.relationships = Array.isArray(copy.relationships) ? copy.relationships : []; copies.push(copy); } }); copies.forEach(copy => { copy.relationships = copy.relationships.filter(r => r && idMap.has(String(r.targetId))).map(r => ({ ...r, targetId: idMap.get(String(r.targetId)) })); }); if(copies.length) { initCharactersIfNeeded(book); copies.forEach(c => book.characters.push(c)); imported = copies.length; } if(imported) { saveAll(); renderCharacterList(); toast(`已导入 ${imported} 个角色`); } else toast("未选择任何项"); modalDiv.remove(); }; modalDiv.querySelector('#cancelBatchImport').onclick = () => modalDiv.remove(); }
+    function batchExport() { const book = getCurrentBook(); if(!book || !book.characters.length) { toast("当前小说无角色可导出"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>导出到素材角色库</h3><div class="batch-import-list" id="exportListContainer"></div><div class="modal-buttons"><button id="confirmBatchExport" class="glass-btn">确认导出</button><button id="cancelBatchExport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#exportListContainer'); book.characters.forEach(item => { const label = document.createElement('label'); const safeId = item.id.replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); modalDiv.querySelector('#confirmBatchExport').onclick = () => { let exported=0; const idMap = new Map(); const copies = []; modalDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => { const id = cb.getAttribute('data-id'); const original = book.characters.find(s => String(s.id) === String(id)); if(original) { const copy = JSON.parse(JSON.stringify(original)); const oldId = String(copy.id); const newId = uuid(); idMap.set(oldId, newId); copy.id = newId; copy.relationships = Array.isArray(copy.relationships) ? copy.relationships : []; copies.push(copy); } }); copies.forEach(copy => { copy.relationships = copy.relationships.filter(r => r && idMap.has(String(r.targetId))).map(r => ({ ...r, targetId: idMap.get(String(r.targetId)) })); }); copies.forEach(c => { globalCharacters.push(c); exported++; }); if(exported) { saveAll(); renderGlobalCharList(); toast(`已导出 ${exported} 个角色到素材库`); } else toast("未选择任何项"); modalDiv.remove(); }; modalDiv.querySelector('#cancelBatchExport').onclick = () => modalDiv.remove(); }
 
     function renderForbiddenList() { const book = getCurrentBook(); if(!book) return; initForbiddenWordsIfNeeded(book); const container = $('forbiddenList'); if(!container) return; container.innerHTML = ''; if(book.forbiddenWords.length===0) { container.innerHTML='<div style="padding:12px;color:#6A627A;">暂无禁用词</div>'; return; } book.forbiddenWords.forEach(item => { if(!item.id) item.id = uuid(); const div = document.createElement('div'); div.className = `item-card ${currentEditingForbiddenId===item.id?'active':''}`; div.innerHTML = `<div class="item-name">${escapeHtml(item.word)}</div><div class="item-actions"><button class="small-btn edit-forbidden" data-fid="${item.id}">编辑</button><button class="small-btn del-forbidden" data-fid="${item.id}" style="background:#4A2A2A;">删除</button></div>`; div.querySelector('.edit-forbidden').addEventListener('click',()=> editForbiddenWord(item.id)); div.querySelector('.del-forbidden').addEventListener('click',()=> { if(confirm(`删除禁用词「${item.word}」？`)) deleteForbiddenWord(item.id); }); container.appendChild(div); }); }
     function editForbiddenWord(fid) { const book = getCurrentBook(); const item = book?.forbiddenWords.find(f=>f.id===fid); if(item) { currentEditingForbiddenId = fid; const forbiddenWordInput = $('forbiddenWordInput'); if(forbiddenWordInput) forbiddenWordInput.value = item.word; renderForbiddenList(); } }
@@ -1175,10 +1224,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // ======================== 人物关系图 ========================
     let relationNodePositions = {};
     let graphDragging = null, graphDragOx=0, graphDragOy=0;
-    let graphSuppressClick = false;
-    // 布局模式（v5.8）：'ring' 环形（默认）| 'square' 方形棋盘；方形时画布高=内容所需，SVG 自动缩放一屏显示
-    let graphLayoutMode = 'ring';
+    let graphSuppressClickUntil = 0; // v6.5：时间戳抑制（此前布尔标志依赖"下一次 click 消耗"，拖动中 renderRelationGraph 重建节点后 click 不触发导致标志残留，下一次正常点击被吞）
+    // v6.4：布局恒为方形（取消环形布局，默认方形，重置也是方形）
+    let graphLayoutMode = 'square';
     let graphCanvasH = 0;
+    let graphSnapGrid = false; // v6.2：方形布局网格吸附开关（仅方形生效，持久化到书）
     const NODE_W = 80, NODE_H = 50;
     const RELATION_PALETTE = ['#3B8ED4','#7F77DD','#1D9E75','#378ADD','#D85A30','#D4537E','#EF9F27','#639922','#BA7517','#993556','#185FA5','#0F6E56','#534AB7','#854F0B','#72243E','#3C3489'];
     let relationColorMap = {};
@@ -1202,10 +1252,164 @@ document.addEventListener('DOMContentLoaded', function() {
         const relationBookName = $('relationBookName'); if(relationBookName) relationBookName.innerText = book.name;
         const modal = $('relationGraphModal'); if(modal) modal.style.display='flex';
         relationColorMap = {}; loadRelationPositions(book);
-        // 恢复持久化的布局模式与画布高（方形布局重开不裁切）
-        graphLayoutMode = book.relationLayoutMode === 'square' ? 'square' : 'ring';
+        // v6.4：布局恒为方形（兼容存量 relationLayoutMode:'ring' 存档，统一按 square 处理）
+        graphLayoutMode = 'square';
+        // v6.5：旧环形存档自动迁移——ring 标记的旧坐标仍是环形排布，打开时清空位置让方形重新排布
+        if(book.relationLayoutMode && book.relationLayoutMode !== 'square') {
+            relationNodePositions = {}; book.relationPositions = {}; book.relationLayoutMode = 'square'; book.relationCanvasH = 0;
+        }
         graphCanvasH = (book.relationCanvasH && book.relationCanvasH > 0) ? book.relationCanvasH : 0;
+        // v6.2：恢复网格吸附开关状态（存书）
+        graphSnapGrid = book.graphSnapGrid === true;
+        updateGraphSnapBtn();
+        // v6.4：加载区域数据 + 默认激活页签 0 + 渲染页签
+        loadGraphRegions(book);
+        graphActiveTab = 0;
+        renderRegionTabs();
         renderRelationGraph();
+    }
+
+    // v6.2：方形布局网格吸附——开关切换 + 持久化到书 + 按钮高亮
+    function toggleGraphSnap() {
+        const book = getCurrentBook(); if(!book) return;
+        graphSnapGrid = !graphSnapGrid;
+        book.graphSnapGrid = graphSnapGrid;
+        saveAll();
+        updateGraphSnapBtn();
+        toast(graphSnapGrid ? '网格吸附已开启（方形布局，间隔 0.5 单位）' : '网格吸附已关闭');
+    }
+    function updateGraphSnapBtn() {
+        const btn = $('graphSnapBtn');
+        if(!btn) return;
+        if(graphSnapGrid) { btn.classList.add('active'); btn.title = '网格吸附开启（方形布局生效）'; }
+        else { btn.classList.remove('active'); btn.title = '网格吸附（方形布局生效）'; }
+    }
+
+    // ======================== 区域系统（v6.4） ========================
+    // 区域：纯视觉分组参考（不参与创作逻辑链）。半透明框线 + 随机底色（区域间不重复）+ 名称双线框居中。
+    // 页签隔离：页签0=拖人物；页签N=拖区域N；一次只激活一个，严格隔离。
+    let graphRegions = [];          // [{id,name,shape,size,color,x,y}]  x/y=区域中心（viewBox 坐标）
+    let graphActiveTab = 0;         // 0=人物，N=区域N
+    const REGION_COLORS = ['#E05A5A','#E08A3C','#E0C03C','#7FC24E','#4EB87A','#3BA8A0','#3B8ED4','#5A6BD0','#8A5AD0','#C05AD0','#D4537E','#C07050','#9BA0A8','#E07A9A','#A0B84E','#4E9AD0','#D0A04E','#7A9AD0','#D07A8A','#5AC0A0','#B0B0D0','#D08A60','#6A8AD0','#C0C04E'];
+    const REGION_MAX = 20, REGION_SIZE_MAX = 50;
+    // 最优网格拟合：N 个角色卡片（80×50）穷举列数 K，行 M=ceil(N/K)。
+    // 间隔用 0.5 单位真实值（横 40px / 纵 25px，为关系线留白）；留白 0.1 单位（8px）。
+    // 优先级：空位最少 → 形状接近卡片比例(80/50≈1.6) → 面积最小（避免"单行/单列"极端导致区域超宽/超高）
+    function calcRegionSize(n) {
+        // v6.4 用户实测修正：区域按 2N 卡位计算包围盒——原算法只够"挤下 N 个卡片"，
+        // 实际拖入角色 + 关系线/标签需要翻倍空间（实测舒适容纳 ≈ 数值/2），故 ×2 补偿
+        n = Math.min(n * 2, 100);
+        const CW = 80, CH = 50, GAP_X = 40, GAP_Y = 25, PAD = 8;
+        let best = null;
+        for(let k = 1; k <= n; k++) {
+            const m = Math.ceil(n / k);
+            const w = k*CW + (k-1)*GAP_X + 2*PAD;
+            const h = m*CH + (m-1)*GAP_Y + 2*PAD;
+            const empty = k*m - n;
+            const ratioDiff = Math.abs(k/m - CW/CH);
+            const area = w*h;
+            if(!best || empty < best.empty || (empty === best.empty && ratioDiff < best.ratioDiff) || (empty === best.empty && ratioDiff === best.ratioDiff && area < best.area)) best = {k, m, w, h, area, empty, ratioDiff};
+        }
+        return best;
+    }
+    function loadGraphRegions(book) { graphRegions = Array.isArray(book.graphRegions) ? JSON.parse(JSON.stringify(book.graphRegions)) : []; }
+    function saveGraphRegions(book) { book.graphRegions = JSON.parse(JSON.stringify(graphRegions)); saveAll(); }
+    function openRegionModal() {
+        const book = getCurrentBook(); if(!book) { toast('请先选择小说'); return; }
+        if(graphRegions.length >= REGION_MAX) { toast('区域数量已达上限（'+REGION_MAX+' 个）'); return; }
+        const rm = $('regionModal'); if(rm) rm.style.display = 'flex';
+        const inp = $('regionNameInp'); if(inp) inp.focus();
+    }
+    function saveRegion() {
+        const book = getCurrentBook(); if(!book) return;
+        const shape = $('regionShapeSel')?.value || 'rect';
+        const size = parseInt($('regionSizeInp')?.value) || 0;
+        const name = ($('regionNameInp')?.value || '').trim();
+        if(size < 1 || size > REGION_SIZE_MAX) { toast('大小需在 1~'+REGION_SIZE_MAX+' 之间'); return; }
+        if(!name) { toast('请输入区域名称'); return; }
+        if(name.length > 20) { toast('名称不超过 20 字'); return; }
+        if(graphRegions.length >= REGION_MAX) { toast('区域数量已达上限（'+REGION_MAX+' 个）'); return; }
+        const used = new Set(graphRegions.map(r=>r.color));
+        const avail = REGION_COLORS.filter(c=>!used.has(c));
+        if(!avail.length) { toast('颜色池已用完，请先删除部分区域'); return; }
+        const color = avail[Math.floor(Math.random()*avail.length)];
+        const container = $('graphContainer');
+        const svg = $('graphSvg');
+        // v6.4 修正：区域初始位置用 viewBox 实际中心——方形布局 viewBox 高可能 > 容器（SVG 缩放），
+        // 用 clientHeight/2 会偏上；viewBox 中心才是视觉中心
+        const vb = svg && svg.viewBox && svg.viewBox.baseVal;
+        const vh = vb && vb.height ? vb.height : (container ? container.clientHeight : 600);
+        const cx = (container ? container.clientWidth : 880) / 2, cy = vh / 2;
+        graphRegions.push({ id: uuid(), name, shape, size, color, x: cx, y: cy });
+        saveGraphRegions(book);
+        const rm = $('regionModal'); if(rm) rm.style.display = 'none';
+        const ni = $('regionNameInp'); if(ni) ni.value = '';
+        renderRegionTabs(); renderRelationGraph();
+        toast('区域「'+name+'」已创建（'+shape+' / 容纳'+size+'角色）');
+    }
+    function deleteRegion(idx) {
+        const book = getCurrentBook(); if(!book) return;
+        // v6.4：删除当前激活页签的区域 → 自动切回页签 0（用户需求）
+        if(graphActiveTab === idx + 1) graphActiveTab = 0;
+        graphRegions.splice(idx, 1);
+        // 删除后按新长度兜底：激活页签超出剩余区域数（页签 1~L 对应区域 1~L，tab 有效范围 0~L）→ 切回 0 防悬空
+        if(graphActiveTab > graphRegions.length) graphActiveTab = 0;
+        saveGraphRegions(book);
+        renderRegionTabs(); renderRelationGraph();
+        toast('区域已删除');
+    }
+    // 页签渲染：0=人物，N=区域N（横向布局：名称靠左省略、✕ 放右侧；页签 0 显示"👤 人物"）
+    function renderRegionTabs() {
+        const tabs = $('graphRegionTabs'); if(!tabs) return;
+        let html = '<div class="region-tab'+(graphActiveTab===0?' active':'')+'" data-tab="0" title="拖动人物关系"><span class="region-tab-icon">👤</span><span class="region-tab-label">人物</span></div>';
+        graphRegions.forEach((r,i)=>{
+            html += '<div class="region-tab'+(graphActiveTab===i+1?' active':'')+'" data-tab="'+(i+1)+'" style="border-color:'+r.color+';" title="'+escapeHtml(r.name)+'"><span class="region-tab-name" style="color:'+r.color+';">'+escapeHtml(r.name.substring(0,3))+'</span><i class="fas fa-times region-tab-del" data-idx="'+i+'"></i></div>';
+        });
+        tabs.innerHTML = html;
+        tabs.querySelectorAll('[data-tab]').forEach(el=>{
+            el.addEventListener('click', (e)=>{
+                if(e.target.classList.contains('region-tab-del')) return;
+                graphActiveTab = parseInt(el.dataset.tab);
+                renderRegionTabs();
+            });
+        });
+        tabs.querySelectorAll('.region-tab-del').forEach(el=>{
+            el.addEventListener('click', (e)=>{
+                e.stopPropagation();
+                deleteRegion(parseInt(el.dataset.idx));
+            });
+        });
+    }
+    // 区域拖动（仅激活页签可拖，严格隔离）
+    function regionDragStart(e, region) {
+        const idx = graphRegions.indexOf(region);
+        if(graphActiveTab !== idx + 1) return;
+        const svg = $('graphSvg'); if(!svg) return;
+        const startPt = getSvgPoint(svg, e.clientX, e.clientY);
+        if(!startPt) return;
+        const ox = startPt.x - region.x, oy = startPt.y - region.y;
+        let hasMoved = false;
+        const onMove = (ev)=>{
+            const dx = ev.clientX - e.clientX, dy = ev.clientY - e.clientY;
+            if(!hasMoved && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+            hasMoved = true;
+            const pt = getSvgPoint(svg, ev.clientX, ev.clientY);
+            if(!pt) return;
+            const vb = svg.viewBox.baseVal;
+            const W = vb && vb.width ? vb.width : (svg.clientWidth || 880);
+            const H = vb && vb.height ? vb.height : (svg.clientHeight || 600);
+            const sz = calcRegionSize(region.size);
+            region.x = Math.max(sz.w/2, Math.min(W - sz.w/2, pt.x - ox));
+            region.y = Math.max(sz.h/2, Math.min(H - sz.h/2, pt.y - oy));
+            renderRelationGraph();
+        };
+        const onUp = ()=>{
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            const book = getCurrentBook(); if(book) saveGraphRegions(book);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
     }
 
     function renderRelationGraph() {
@@ -1219,10 +1423,15 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         const W = container.clientWidth || 880;
-        // 画布高：方形=内容所需高度（SVG 等比缩放实现一屏显示）；环形=容器实际高度
-        const H = (graphLayoutMode === 'square' && graphCanvasH > 0) ? graphCanvasH : (container.clientHeight || 600);
+        // 画布高：方形=内容所需高度（SVG 等比缩放实现一屏显示）；环形=容器实际高度。
+        // v6.0 修复：方形且内容高度 < 容器时，viewBox 高度至少=容器高度——
+        // 否则默认 xMidYMid meet 使内容垂直居中，viewBox 顶部对应 CSS 中上部，
+        // 拖拽边界 clamp 后容器顶部变成死区（节点拖不到顶部区域）。
+        let H = (graphLayoutMode === 'square' && graphCanvasH > 0) ? graphCanvasH : (container.clientHeight || 600);
+        if(graphLayoutMode === 'square' && H < (container.clientHeight || 600)) H = container.clientHeight || 600;
         svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.innerHTML = '';
-        if(chars.length===0) { const txt = document.createElementNS('http://www.w3.org/2000/svg','text'); txt.setAttribute('x',W/2); txt.setAttribute('y',H/2); txt.setAttribute('text-anchor','middle'); txt.setAttribute('fill','#6A627A'); txt.setAttribute('font-size','14'); txt.textContent='暂无角色，请先在角色库中添加'; svg.appendChild(txt); return; }
+        // v6.4：空角色不 return——区域是纯视觉（允许空书创建），空角色也要渲染区域层
+        if(chars.length===0) { const txt = document.createElementNS('http://www.w3.org/2000/svg','text'); txt.setAttribute('x',W/2); txt.setAttribute('y',H/2); txt.setAttribute('text-anchor','middle'); txt.setAttribute('fill','#6A627A'); txt.setAttribute('font-size','14'); txt.textContent='暂无角色，请先在角色库中添加'; svg.appendChild(txt); }
         chars.forEach((c,i)=>{ if(!relationNodePositions[c.id]) { const angle = (2*Math.PI*i)/chars.length - Math.PI/2; const rx = W/2-120, ry = H/2-100; relationNodePositions[c.id] = { x: W/2 + rx*Math.cos(angle), y: H/2 + ry*Math.sin(angle) }; } });
         const lineGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
         const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
@@ -1237,6 +1446,62 @@ document.addEventListener('DOMContentLoaded', function() {
         seenPairs.forEach(key=>{ const ids = key.split('|'); const refFrom = relationNodePositions[ids[0]], refTo = relationNodePositions[ids[1]]; if(!refFrom || !refTo) return; const rdx = refTo.x - refFrom.x, rdy = refTo.y - refFrom.y; const rlen = Math.sqrt(rdx*rdx+rdy*rdy) || 1; pairPerp[key] = { px: -rdy/rlen*14, py: rdx/rlen*14 }; });
         edgeMeta.forEach(e=>{ const from = relationNodePositions[e.from], to = relationNodePositions[e.to]; if(!from||!to) return; const color = getRelationColor(e.type); let fx = from.x, fy = from.y, tx = to.x, ty = to.y; if(e.offsetSide && e.isBidirectional) { const pairKey = [e.from, e.to].sort().join('|'); const pp = pairPerp[pairKey]; if(pp) { fx += pp.px * e.offsetSide; fy += pp.py * e.offsetSide; tx += pp.px * e.offsetSide; ty += pp.py * e.offsetSide; } } const ep1 = edgeIntersect(fx, fy, tx, ty); const ep2 = edgeIntersect(tx, ty, fx, fy); const g = document.createElementNS('http://www.w3.org/2000/svg','g'); const line = document.createElementNS('http://www.w3.org/2000/svg','line'); line.setAttribute('x1',ep1.x); line.setAttribute('y1',ep1.y); line.setAttribute('x2',ep2.x); line.setAttribute('y2',ep2.y); line.setAttribute('stroke',color); line.setAttribute('stroke-width','3'); line.setAttribute('stroke-linecap','round'); line.setAttribute('marker-end','url(#arr-'+color.replace('#','')+')'); g.appendChild(line); const label = document.createElementNS('http://www.w3.org/2000/svg','text'); const midX = (fx+tx)/2, midY = (fy+ty)/2; label.setAttribute('x',midX); label.setAttribute('y',midY-10); label.setAttribute('class','graph-line-label'); label.setAttribute('fill',color); label.textContent = e.type; g.appendChild(label); lineGroup.appendChild(g); });
         chars.forEach(c=>{ const pos = relationNodePositions[c.id]; if(!pos) return; const x = pos.x - NODE_W/2, y = pos.y - NODE_H/2; const g = document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('data-id',c.id); g.style.cursor = 'pointer'; g.addEventListener('click',()=>{ graphNodeClick(c.id); }); g.addEventListener('mousedown',(ev)=>{ graphNodeDragStart(ev,c.id); }); const rect = document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',NODE_W); rect.setAttribute('height',NODE_H); rect.setAttribute('rx','10'); rect.setAttribute('ry','10'); rect.setAttribute('fill','#1C1A28'); rect.setAttribute('stroke','#3B8ED4'); rect.setAttribute('stroke-width','1.5'); g.appendChild(rect); const name = document.createElementNS('http://www.w3.org/2000/svg','text'); name.setAttribute('x',pos.x); name.setAttribute('y',pos.y-4); name.setAttribute('class','graph-node-text'); name.textContent = (c.name||'?').substring(0, 5); g.appendChild(name); const relCount = (c.relationships||[]).length; const sub = document.createElementNS('http://www.w3.org/2000/svg','text'); sub.setAttribute('x',pos.x); sub.setAttribute('y',pos.y+16); sub.setAttribute('class','graph-node-sub'); sub.textContent = relCount ? relCount+'个关系' : '无关系'; g.appendChild(sub); nodeGroup.appendChild(g); });
+        // v6.4：区域底层绘制（先于人物/关系，置于最底层；半透明底色 + 框线 + 名称双线框居中）
+        if(graphRegions.length) {
+            const regionGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
+            graphRegions.forEach(r=>{
+                const sz = calcRegionSize(r.size);
+                const w = sz.w, h = sz.h;
+                const rx = r.x - w/2, ry = r.y - h/2;
+                const fill = r.color + '26'; // 15% 透明底色
+                let shapeEl;
+                if(r.shape === 'ellipse') {
+                    shapeEl = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+                    shapeEl.setAttribute('cx',r.x); shapeEl.setAttribute('cy',r.y);
+                    shapeEl.setAttribute('rx',w/2); shapeEl.setAttribute('ry',h/2);
+                } else if(r.shape === 'hex') {
+                    shapeEl = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+                    shapeEl.setAttribute('points', (rx+w/4)+','+ry+' '+(rx+3*w/4)+','+ry+' '+(rx+w)+','+(ry+h/2)+' '+(rx+3*w/4)+','+(ry+h)+' '+(rx+w/4)+','+(ry+h)+' '+rx+','+(ry+h/2));
+                } else {
+                    shapeEl = document.createElementNS('http://www.w3.org/2000/svg','rect');
+                    shapeEl.setAttribute('x',rx); shapeEl.setAttribute('y',ry);
+                    shapeEl.setAttribute('width',w); shapeEl.setAttribute('height',h);
+                    shapeEl.setAttribute('rx',12); shapeEl.setAttribute('ry',12);
+                }
+                shapeEl.setAttribute('fill',fill);
+                shapeEl.setAttribute('stroke',r.color);
+                shapeEl.setAttribute('stroke-width','1.5');
+                const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+                g.setAttribute('data-region',r.id);
+                g.style.cursor = graphActiveTab === graphRegions.indexOf(r)+1 ? 'move' : 'default';
+                g.addEventListener('mousedown',(ev)=>{ regionDragStart(ev,r); });
+                g.appendChild(shapeEl);
+                // 名称双线框（居中，与区域同色底色）
+                const fontSize = 12, pad = 8;
+                const textW = r.name.length * fontSize + pad*2;
+                const textH = fontSize + 12;
+                const nbx = r.x - textW/2, nby = r.y - textH/2;
+                const outer = document.createElementNS('http://www.w3.org/2000/svg','rect');
+                outer.setAttribute('x',nbx-2); outer.setAttribute('y',nby-2);
+                outer.setAttribute('width',textW+4); outer.setAttribute('height',textH+4);
+                outer.setAttribute('rx',6); outer.setAttribute('ry',6);
+                outer.setAttribute('fill',r.color+'3D');
+                outer.setAttribute('stroke',r.color); outer.setAttribute('stroke-width','2');
+                const inner = document.createElementNS('http://www.w3.org/2000/svg','rect');
+                inner.setAttribute('x',nbx); inner.setAttribute('y',nby);
+                inner.setAttribute('width',textW); inner.setAttribute('height',textH);
+                inner.setAttribute('rx',4); inner.setAttribute('ry',4);
+                inner.setAttribute('fill','none'); inner.setAttribute('stroke',r.color); inner.setAttribute('stroke-width','1');
+                const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+                txt.setAttribute('x',r.x); txt.setAttribute('y',r.y+4);
+                txt.setAttribute('text-anchor','middle');
+                txt.setAttribute('fill','#EDEAF2'); txt.setAttribute('font-size',fontSize);
+                txt.textContent = r.name;
+                g.appendChild(outer); g.appendChild(inner); g.appendChild(txt);
+                regionGroup.appendChild(g);
+            });
+            svg.appendChild(regionGroup);
+        }
         svg.appendChild(lineGroup); svg.appendChild(nodeGroup);
     }
 
@@ -1253,6 +1518,8 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch(e) { return null; }
     }
     function graphNodeDragStart(e, charId) {
+        // v6.4：页签隔离——仅页签 0（人物）可拖人物
+        if(graphActiveTab !== 0) { toast('当前为区域页签，请切回页签 0 再拖动人物'); return; }
         const svg = $('graphSvg'); if(!svg) return;
         const startPt = getSvgPoint(svg, e.clientX, e.clientY);
         if(!startPt) return;
@@ -1269,22 +1536,30 @@ document.addEventListener('DOMContentLoaded', function() {
             const vb = svg.viewBox.baseVal;
             const W = vb && vb.width ? vb.width : (svg.clientWidth || 880);
             const H = vb && vb.height ? vb.height : (svg.clientHeight || 600);
-            const x = Math.max(NODE_W/2, Math.min(W - NODE_W/2, pt.x - graphDragOx));
-            const y = Math.max(NODE_H/2, Math.min(H - NODE_H/2, pt.y - graphDragOy));
+            let x = Math.max(NODE_W/2, Math.min(W - NODE_W/2, pt.x - graphDragOx));
+            let y = Math.max(NODE_H/2, Math.min(H - NODE_H/2, pt.y - graphDragOy));
+            // v6.2：方形布局 + 网格吸附开启 → 坐标吸附到 120×75 网格（间隔 0.5 单位，
+            // 方形 80×50 中心落网格点，方形间最小间距 40×25），吸附后重新 clamp 防越界
+            if(graphLayoutMode === 'square' && graphSnapGrid) {
+                x = Math.round(x / 120) * 120;
+                y = Math.round(y / 75) * 75;
+                x = Math.max(NODE_W/2, Math.min(W - NODE_W/2, x));
+                y = Math.max(NODE_H/2, Math.min(H - NODE_H/2, y));
+            }
             relationNodePositions[charId] = { x, y };
             renderRelationGraph();
         };
-        const onUp = ()=>{ if(hasMoved) { graphDragging = null; graphSuppressClick = true; const book = getCurrentBook(); if(book) { saveRelationPositions(book); saveAll(); } } document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); };
+        const onUp = ()=>{ if(hasMoved) { graphDragging = null; graphSuppressClickUntil = Date.now() + 150; const book = getCurrentBook(); if(book) { saveRelationPositions(book); saveAll(); } } document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); };
         document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp);
     }
 
     let relationEditCharId = null;
-    function graphNodeClick(charId) { if(graphSuppressClick) { graphSuppressClick = false; return; } const book = getCurrentBook(); if(!book) return; const char = book.characters.find(c=>c.id===charId); if(!char) return; initCharRelations(book); char.relationships = char.relationships || []; relationEditCharId = charId; const nameSpan = $('relEditCharName'); if(nameSpan) nameSpan.textContent = char.name; const select = $('relTargetSelect'); if(select) { select.innerHTML = '<option value="">选择目标角色...</option>'; book.characters.forEach(c=>{ if(c.id!==charId) { const opt=document.createElement('option'); opt.value=c.id; opt.textContent=c.name; select.appendChild(opt); } }); } renderRelationEditList(book, char); const inp = $('relTypeInput'); if(inp) inp.value = ''; const modal = $('relationEditModal'); if(modal) modal.style.display = 'flex'; }
-    function renderRelationEditList(book, char) { const list = $('relExistingList'); if(!list) return; if(!char.relationships.length) { list.innerHTML = '<span style="color:#6A627A;">暂无关系</span>'; return; } let html = ''; char.relationships.forEach((r,i)=>{ const target = book.characters.find(c=>c.id===r.targetId); html += `<span style="display:inline-block;background:#1A1825;border-radius:12px;padding:2px 10px;margin:2px 4px;font-size:0.7rem;">${escapeHtml(r.type)} → ${escapeHtml(target?target.name:'?')} <i class="fas fa-times" style="cursor:pointer;opacity:0.6;margin-left:4px;" data-del="${i}" title="删除此关系"></i></span>`; }); list.innerHTML = html; list.querySelectorAll('[data-del]').forEach(icon=>{ icon.addEventListener('click',(e)=>{ e.stopPropagation(); const idx = parseInt(icon.getAttribute('data-del')); if(!isNaN(idx) && idx>=0 && idx<char.relationships.length) { const removed = char.relationships[idx]; char.relationships.splice(idx,1); cleanupRelationColor(removed.type); if(!persistOrWarn()) return; renderRelationGraph(); renderRelationEditList(book, char); toast('已删除：'+char.name+' → '+removed.type); } }); }); }
+    function graphNodeClick(charId) { if(Date.now() < graphSuppressClickUntil) return; const book = getCurrentBook(); if(!book) return; const char = book.characters.find(c=>c.id===charId); if(!char) return; initCharRelations(book); char.relationships = char.relationships || []; relationEditCharId = charId; const nameSpan = $('relEditCharName'); if(nameSpan) nameSpan.textContent = char.name; const select = $('relTargetSelect'); if(select) { select.innerHTML = '<option value="">选择目标角色...</option>'; book.characters.forEach(c=>{ if(c.id!==charId) { const opt=document.createElement('option'); opt.value=c.id; opt.textContent=c.name; select.appendChild(opt); } }); } renderRelationEditList(book, char); const inp = $('relTypeInput'); if(inp) inp.value = ''; const modal = $('relationEditModal'); if(modal) modal.style.display = 'flex'; }
+    function renderRelationEditList(book, char) { const list = $('relExistingList'); if(!list) return; if(!char.relationships.length) { list.innerHTML = '<span style="color:#6A627A;">暂无关系</span>'; return; } let html = ''; char.relationships.forEach((r,i)=>{ const target = book.characters.find(c=>String(c.id)===String(r.targetId)); html += `<span style="display:inline-block;background:#1A1825;border-radius:12px;padding:2px 10px;margin:2px 4px;font-size:0.7rem;">${escapeHtml(r.type)} → ${escapeHtml(target?target.name:'?')} <i class="fas fa-times" style="cursor:pointer;opacity:0.6;margin-left:4px;" data-del="${i}" title="删除此关系"></i></span>`; }); list.innerHTML = html; list.querySelectorAll('[data-del]').forEach(icon=>{ icon.addEventListener('click',(e)=>{ e.stopPropagation(); const idx = parseInt(icon.getAttribute('data-del')); if(!isNaN(idx) && idx>=0 && idx<char.relationships.length) { const removed = char.relationships[idx]; char.relationships.splice(idx,1); cleanupRelationColor(removed.type); if(!persistOrWarn()) return; renderRelationGraph(); renderRelationEditList(book, char); toast('已删除：'+char.name+' → '+removed.type); } }); }); }
     function cleanupRelationColor(type) { const book = getCurrentBook(); if(!book) return; initCharRelations(book); const stillUsed = book.characters.some(c => (c.relationships||[]).some(r => r.type === type)); if(!stillUsed) delete relationColorMap[type]; }
     function addRelationFromModal() { const book = getCurrentBook(); if(!book) return; const char = book.characters.find(c=>c.id===relationEditCharId); if(!char) return; const select = $('relTargetSelect'); const inp = $('relTypeInput'); if(!select || !inp) return; const targetId = select.value; const relType = inp.value.trim(); if(!targetId) { toast('请选择目标角色'); return; } if(!relType) { toast('请输入关系名称'); return; } char.relationships = char.relationships || []; if(char.relationships.some(r=>r.targetId===targetId && r.type===relType)) { toast('此关系已存在'); return; } char.relationships.push({ targetId, type: relType }); if(!persistOrWarn()) return; renderRelationGraph(); renderRelationEditList(book, char); inp.value = ''; const target = book.characters.find(c=>c.id===targetId); toast('已添加：'+char.name+' → '+relType+' → '+(target?target.name:'?')); }
     function closeRelationEdit() { const modal = $('relationEditModal'); if(modal) modal.style.display = 'none'; relationEditCharId = null; }
-    function resetGraphLayout() { const book = getCurrentBook(); relationNodePositions = {}; relationColorMap = {}; graphLayoutMode = 'ring'; graphCanvasH = 0; if(book) { book.relationPositions = {}; book.relationLayoutMode = 'ring'; book.relationCanvasH = 0; saveAll(); } renderRelationGraph(); toast('布局已重置'); }
+    function resetGraphLayout() { const book = getCurrentBook(); relationNodePositions = {}; relationColorMap = {}; graphLayoutMode = 'square'; graphCanvasH = 0; if(book) { book.relationPositions = {}; book.relationLayoutMode = 'square'; book.relationCanvasH = 0; saveAll(); } renderRelationGraph(); toast('布局已重置'); }
 
     // 方形棋盘布局（v5.8）：先还原环形基准（清空位置，顺序=角色数组顺序），
     // 再按棋盘式网格逐个排列；格距自动压缩保证一屏显示（SVG 等比缩放），
@@ -1335,58 +1610,103 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function buildActionText(precisionIds) { if(globalActions.length===0) return ''; let filtered = precisionIds ? globalActions.filter(a => precisionIds.includes(a.id)) : globalActions; if(!filtered.length) return ''; let txt = precisionIds ? '【当前场景动作规范】\n' : '【必须严格遵守的动作描写规则】\n'; filtered.forEach(a => { txt += `- 动作"${a.name}"：`; if(a.keyPoints) txt += `动作要领：${a.keyPoints}；`; if(a.linesUsage) txt += `台词运用：${a.linesUsage}；`; if(a.descriptionTips) txt += `描写建议：${a.descriptionTips}；`; txt += '\n'; }); return txt; }
     function buildCostumeText(precisionIds) { if(globalCostumes.length===0) return ''; let filtered = precisionIds ? globalCostumes.filter(a => precisionIds.includes(a.id)) : globalCostumes; if(!filtered.length) return ''; let txt = precisionIds ? '【当前场景服装规范】\n' : '【必须严格遵守的服装描写规则】\n'; filtered.forEach(a => { txt += `- 服装"${a.name}"：`; if(a.styleDetail) txt += `详细款式：${a.styleDetail}；`; if(a.descriptionTips) txt += `描写建议：${a.descriptionTips}；`; txt += '\n'; }); return txt; }
-    function buildRelationText(book) { if(!book.characters || book.characters.length===0) return ''; const edges = []; const seen = new Set(); book.characters.forEach(c => { (c.relationships||[]).forEach(r => { const key = [c.id,r.targetId,r.type].sort().join('|'); if(!seen.has(key)){ seen.add(key); const t=book.characters.find(tc=>tc.id===r.targetId); edges.push(`${c.name} → ${r.type} → ${t?t.name:'?'}`); } }); }); if(!edges.length) return ''; return '【角色关系图】\n'+edges.map(e=>'- '+e).join('\n')+'\n'; }
+    function buildRelationText(book) { if(!book.characters || book.characters.length===0) return ''; const edges = []; const seen = new Set(); book.characters.forEach(c => { (c.relationships||[]).forEach(r => { const t=book.characters.find(tc=>String(tc.id)===String(r.targetId)); if(!t) return; const key = c.id + '\u0000' + r.targetId + '\u0000' + r.type; if(!seen.has(key)){ seen.add(key); edges.push(`${c.name} → ${r.type} → ${t.name}`); } }); }); if(!edges.length) return ''; return '【角色关系图】\n'+edges.map(e=>'- '+e).join('\n')+'\n'; }
     function buildCharacterText(book, precisionIds) { if(!book.characters || book.characters.length===0) return ''; let filtered = precisionIds ? book.characters.filter(c => precisionIds.includes(c.id)) : book.characters; if(!filtered.length) return ''; let txt = precisionIds ? '【当前出场角色】\n' : '【重要·本书角色库】\n'; filtered.forEach(c => { txt += `- ${c.name}：`; if(c.appearance) txt += `外貌体征：${c.appearance}；`; if(c.personality) txt += `性格：${c.personality}；`; if(c.special) txt += `服装及其他设定：${c.special}；`; if(c.relationship) txt += `身份关联：${c.relationship}；`; txt += '\n'; }); return txt; }
     function buildForbiddenWarning(book) { if(!book.forbiddenWords || book.forbiddenWords.length===0) return ''; let warning = '【严格禁止以下词语】\n'; book.forbiddenWords.forEach(({word}) => { warning += `- 绝对禁止出现"${word}"。\n`; }); return warning; }
     function buildSys(book, usePrecision = false) { let precisionChars = null, precisionActions = null, precisionCostumes = null; if(usePrecision && book.precisionMode && book.precisionChars && book.precisionActions && (book.precisionChars.length || book.precisionActions.length || (book.precisionCostumes||[]).length)) { precisionChars = book.precisionChars; precisionActions = book.precisionActions; precisionCostumes = book.precisionCostumes; } let relationLib = buildRelationText(book); let actionLib = buildActionText(precisionActions); let costumeLib = buildCostumeText(precisionCostumes); let charLib = buildCharacterText(book, precisionChars); let forbiddenWarning = buildForbiddenWarning(book); const parts = []; if(book.globalPrompt && book.globalPrompt.trim()) parts.push(book.globalPrompt.trim()); if(book.writingStyle && book.writingStyle.trim()) parts.push('【行文】'+book.writingStyle.trim()); if(relationLib) parts.push(relationLib.replace(/\n$/,'')); if(charLib) parts.push(charLib.replace(/\n$/,'')); if(actionLib) parts.push(actionLib.replace(/\n$/,'')); if(costumeLib) parts.push(costumeLib.replace(/\n$/,'')); if(forbiddenWarning) parts.push(forbiddenWarning.replace(/\n$/,'')); if(book.worldview && book.worldview.trim()) parts.push('【世界观】'+book.worldview.trim()); if(book.plotSet && book.plotSet.trim()) parts.push('【情节】'+book.plotSet.trim()); if(book.termSet && book.termSet.trim()) parts.push('【专有词】'+book.termSet.trim()); return parts.join('\n') + '\n输出Markdown正文。'; }
     function getPrev(book, idx) { let start = Math.max(0, idx - api.ctxChapters); let prev = book.chapters.slice(start, idx); if(!prev.length) return "开篇。"; let txt = "【前文完整内容】\n"; let totalChars = 0; const MAX_TOTAL = 30000, MAX_SINGLE = 5000, MAX_SUMMARY = 300; let regularNo = book.chapters.slice(0, start).filter(ch => !ch.isInterlude).length; for(let i=0;i<prev.length;i++) { const ch = prev[i]; regularNo += ch.isInterlude ? 0 : 1; if(ch.summary && ch.summary.trim()) { const summary = ch.summary.trim().slice(0, MAX_SUMMARY); totalChars += summary.length; if(totalChars > MAX_TOTAL) { txt += '\n…（前文摘要总长已截断）'; break; } txt += `${ch.isInterlude ? '间章' : '第'+regularNo+'章'} ${ch.title}（摘要）：${summary}\n`; } else { let body = ch.content || ''; if(body.length > MAX_SINGLE) body = body.slice(0, MAX_SINGLE) + '\n…（前文单章过长已截断）'; txt += `${ch.isInterlude ? '间章' : '第'+regularNo+'章'} ${ch.title}\n${body}\n\n`; totalChars += body.length; if(totalChars > MAX_TOTAL) { txt += '\n…（前文总长超限已截断，建议补充各章摘要）'; break; } } } return txt; }
     function extractTitle(content, fallbackTitle) { let lines = content.split('\n'); for(let line of lines) { let t=line.trim(); if(t.startsWith('#') && t.length>1) return t.replace(/^#+\s*/,'').trim(); } return fallbackTitle; }
 
+    // v6.3：前 20 章人物经历参考——有摘要用摘要（≤300字），无摘要回退正文节选（前 500 字），总量 ≤8000
+    function buildCheckPrev(book, chapter) {
+        const idx = book.chapters.findIndex(c=>c.id===chapter.id);
+        const start = Math.max(0, idx - 20);
+        const prevChaps = book.chapters.slice(start, idx);
+        if(!prevChaps.length) return '（开篇，无前文）';
+        let txt = '', total = 0;
+        let regularNo = book.chapters.slice(0, start).filter(ch => !ch.isInterlude).length;
+        for(const ch of prevChaps) {
+            regularNo += ch.isInterlude ? 0 : 1;
+            const label = `${ch.isInterlude ? '间章' : '第' + regularNo + '章'} ${ch.title || ''}`;
+            let seg;
+            if(ch.summary && ch.summary.trim()) seg = `${label}（摘要）：${ch.summary.trim().slice(0,300)}`;
+            else seg = `${label}（正文节选）：${(ch.content || '').slice(0,500)}`;
+            total += seg.length;
+            if(total > 8000) { txt += '\n…（前文人设参考已截断）'; break; }
+            txt += seg + '\n';
+        }
+        return txt || '（无前文）';
+    }
+    // v6.3：检测用角色——精准模式开启用勾选角色，未开启用全部
+    function buildCheckChars(book) {
+        let ids = null;
+        if(book.precisionMode && book.precisionChars && book.precisionChars.length) ids = book.precisionChars;
+        return buildCharacterText(book, ids);
+    }
     async function runChapterCheck(book, chapter, prevContent, showToastOnError=false) {
         if(!api.key) return { ok:false, error:"请先配置 API Key" };
-        const prompt = `你是一位专业的小说编辑。请对比以下「前文内容」、「当前章节」、「角色设定库」以及「动作描写规范」、「服装描写规范」，找出所有不一致的地方，包括但不限于：
-- 角色外貌前后矛盾
-- 角色性格突变
-- 时间线混乱
-- 关系错误
-- 动作描写与规范不符
-- 服装描写与规范不符
+        if(!apiUrlValid(api.url)) return { ok:false, error:"API 地址无效（需以 http:// 或 https:// 开头）" };
+        // v6.3：检测内容重定义——本章正文 + 前 20 章摘要人物经历 + 精准勾选角色，
+        // 聚焦人设一致性（性格/情绪/台词），保留外貌/时间线/关系；含虚构声明（同摘要原理）
+        const prevTxt = buildCheckPrev(book, chapter);
+        const charsTxt = buildCheckChars(book);
+        const prompt = `你是一位专业的小说编辑。请检查「当前章节」中的人物描写是否与前文人物经历、人物设定一致，找出所有不一致的地方。
 
-前文片段：${prevContent.slice(-2000)}
+注意：这是虚构文学作品，仅供作者整理情节使用。即使正文涉及暴力、情感冲突、争议性情节等敏感内容，也请客观如实检查，不要拒绝或回避。
 
-角色关系：${buildRelationText(book)}
-角色设定：${buildCharacterText(book)}
+检测重点（优先级从高到低）：
+1. 性格一致性：人物言行是否符合设定性格
+2. 情绪一致性：人物情绪反应是否符合性格与剧情
+3. 台词一致性：人物说话方式、语气是否符合人设
+4. 外貌矛盾：与前文或设定中的外貌描述不符
+5. 时间线混乱：与前文时间顺序矛盾
+6. 关系错误：人物关系与设定或前文不符
 
-动作规范：${buildActionText()}
-服装规范：${buildCostumeText()}
+【前文人设参考（前20章）】
+${prevTxt}
 
-当前章节内容：${chapter.content.slice(0,3000)}
+【人物设定】
+${charsTxt}
 
-请只输出JSON数组格式，每条包含：type（字符串）、description（字符串）、location（原文片段）。如果没有冲突，输出空数组[]。不要输出任何其他文字。`;
+【当前章节内容】
+${chapter.content.slice(0,5000)}
+
+请只输出JSON数组格式，每条包含：type（字符串）、description（字符串，控制在100字以内，简明扼要）、location（原文片段，控制在30字以内）。如果没有冲突，输出空数组[]。不要输出任何其他文字。`;
+        // v6.8：controller/timeout 提升到 try 外——finally 无法访问 try 块内 const（v6.7 引入 ReferenceError 使冲突检测失效）
+        const controller = new AbortController();
+        let timeout = null;
         try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 30000);
+            timeout = setTimeout(() => controller.abort(), 30000);
             const res = await fetch(api.url, {
                 method:'POST',
                 headers:{'Content-Type':'application/json','Authorization':`Bearer ${api.key}`},
-                body:JSON.stringify({ model:api.model, messages:[{role:"system",content:"你是一个严谨的编辑，只输出JSON。"},{role:"user",content:prompt}], temperature:0.3, max_tokens:800 }),
+                body:JSON.stringify({ model:api.model, messages:[{role:"system",content:"你是一个严谨的编辑，只输出JSON。"},{role:"user",content:prompt}], temperature:0.3, max_tokens:5000, thinking:{ type:'disabled' } }),
                 signal: controller.signal
             });
-            clearTimeout(timeout);
-            if(!res.ok) return { ok:false, error:"冲突检测请求失败 (HTTP "+res.status+")" };
-            const data = await res.json();
-            let content = data.choices[0]?.message?.content;
-            if(!content) return { ok:false, error:"冲突检测返回内容为空" };
+            if(!res.ok) return { ok:false, error:"冲突检测请求失败 (" + await extractApiError(res) + ")" };
+            const data = await res.json();            let content = data.choices[0]?.message?.content;
+            if(!content) {
+                // v6.3：空内容诊断——带出 finish_reason 与 message 字段，便于定位（length=截断/思考结构/API 异常）
+                const ch = data.choices && data.choices[0];
+                let diag = '无 choices';
+                if(ch) {
+                    const msgKeys = ch.message ? Object.keys(ch.message).join(',') : '无 message';
+                    diag = 'finish=' + (ch.finish_reason || '?') + ' msg=[' + msgKeys + ']';
+                    if(!ch.message && data.error) diag += ' apiError=' + String(data.error.message || data.error).slice(0, 80);
+                }
+                return { ok:false, error:"冲突检测返回内容为空（" + diag + "）" };
+            }
             let jsonMatch = content.match(/\[[\s\S]*\]/);
             if(jsonMatch) return { ok:true, conflicts: JSON.parse(jsonMatch[0]) };
             let cleaned = content.replace(/```json\s*|\s*```/g, '').trim();
             if(cleaned.startsWith('[')) return { ok:true, conflicts: JSON.parse(cleaned) };
             return { ok:true, conflicts: [] };
         } catch(e) {
+            if(e && e.name === 'AbortError') { return { ok:false, error:"冲突检测超时（30秒）" }; } // v6.8：超时专属提示（此前一律显示"解析失败"误导）
             if(showToastOnError) toast("冲突检测解析失败，请稍后重试");
             console.warn("冲突检测解析失败",e);
             return { ok:false, error:"冲突检测解析失败" };
-        }
+        } finally { if(timeout) clearTimeout(timeout); } // v6.8：判空防重复清理 // v6.7：超时覆盖完整请求链路（fetch 响应头 + 响应正文 + JSON 解析），防 res.json() 悬挂时永久卡"检查中"
     }
     // 冲突检测状态栏计数器：自动/手动检测并行时，先结束的不得提前隐藏"检查中"提示
     let conflictCheckingCount = 0;
@@ -1410,13 +1730,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const current = book.chapters.find(c => c.id === chapterId);
             if(!current || current.checkRequestVersion !== checkVer || current.content !== contentSnapshot) return; // 正文已变/已编辑，旧检测作废
             if(result.ok) { current.checkResult = result.conflicts; current.checkState = 'done'; }
-            else { current.checkResult = []; current.checkState = 'error'; console.warn(result.error); }
+            else { current.checkResult = []; current.checkState = 'error'; toast("冲突检测失败：" + (result.error || '请稍后重试')); console.warn(result.error); }
             saveAll();
             // UI 更新前校验来源书籍仍为当前书（防切书后旧结果误染新书按钮）
             const checkBtn = $('checkConflictBtn');
             if(currentBookId === book.id && book.currentChapterId === current.id && checkBtn) {
                 checkBtn.style.background = current.checkResult.length ? "#C97A3A" : "#3A3A6A";
-                if(current.checkResult.length) toast(`检查发现 ${current.checkResult.length} 处潜在冲突`);
+                if(current.checkResult.length) {
+                    toast(`检查发现 ${current.checkResult.length} 处潜在冲突`);
+                    // v6.3：自动检测发现冲突 → 自动打开面板展示（面板已开则刷新内容）
+                    if(conflictVisible) { toggleConflictPanel(); toggleConflictPanel(); }
+                    else toggleConflictPanel();
+                } else toast("未检测到明显冲突");
             }
         } finally { setConflictChecking(false); }
     }
@@ -1429,12 +1754,15 @@ document.addEventListener('DOMContentLoaded', function() {
     let summaryGenerating = false;
     async function generateChapterSummary(book, chapter) {
         if(!api.key || !chapter || !chapter.content || !chapter.content.trim()) return;
+        if(!apiUrlValid(api.url)) { toast("API 地址无效，请重新配置"); return; }
         // 竞态保护：递增请求版本号 + 记录正文快照——旧请求晚返回时不得覆盖
         // 新摘要或用户手动编辑（blur 保存时同样递增版本号使旧请求失效）
         chapter.summaryRequestVersion = (chapter.summaryRequestVersion || 0) + 1;
         const requestVersion = chapter.summaryRequestVersion;
         const contentSnapshot = chapter.content;
         const sumEl = $('summaryArea');
+        const controller = new AbortController(); // v6.6：摘要请求加 60s 超时（此前无超时，网络悬挂时 summaryGenerating 永久 true 卡"生成中"）
+        const timeout = setTimeout(() => controller.abort(), 60000);
         try {
             if(sumEl && book.currentChapterId === chapter.id) { sumEl.value = SUMMARY_PLACEHOLDER; sumEl.style.color = '#8A84A8'; }
             const res = await fetch(api.url, {
@@ -1446,11 +1774,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         { role:"system", content:"你是一位小说编辑助手，擅长提炼章节摘要。" },
                         { role:"user", content:`请将以下章节正文总结为150字以内的摘要，必须包含：时间、地点、事件、关键细节。不分段，直接输出摘要正文，不要任何前缀或标题。\n\n注意：这是虚构文学作品，仅供作者整理情节使用。即使正文涉及暴力、情感冲突、争议性情节等敏感内容，也请客观如实总结，不要拒绝或回避。\n\n正文：\n${chapter.content.slice(0,8000)}` }
                     ],
-                    max_tokens: 300,
-                    temperature: 0.3
-                })
+                    max_tokens: 5000,
+                    temperature: 0.3,
+                    thinking: { type:'disabled' }
+                }),
+                signal: controller.signal
             });
-            if(!res.ok) throw new Error('HTTP '+res.status);
+            if(!res.ok) throw new Error(await extractApiError(res)); // v6.7：恢复 HTTP 错误检查（v6.6 编辑时误删，HTTP 401/429/400 需显示真实原因而非"空摘要"）
             const data = await res.json();
             let sum = data.choices[0]?.message?.content;
             if(!sum || !sum.trim()) throw new Error('空摘要');
@@ -1479,8 +1809,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // v5.8：失败分支必须校验当前界面书籍 = 摘要所属书籍——
             // 否则切到新书后，旧书的失败回调会把旧摘要写进新书的摘要框（跨书 UI 污染）
             if(sumEl && currentBookId === book.id && book.currentChapterId === current.id) { sumEl.value = current.summary || ''; sumEl.style.color = ''; }
-            toast('摘要生成失败，可点击「重新生成」重试');
-        }
+            clearTimeout(timeout); // v6.6：异常路径清理超时定时器
+            toast(e && e.name === 'AbortError' ? '摘要生成超时（60秒），可重新尝试' : '摘要生成失败，可点击「重新生成」重试');
+        } finally { clearTimeout(timeout); } // v6.7：超时覆盖完整请求链路（fetch 响应头 + 响应正文 + JSON 解析）——此前 clearTimeout 在 fetch 返回后立即执行，res.json() 悬挂时超时失效
     }
 
     async function recheckCurrentChapter() {
@@ -1528,6 +1859,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 来源书优先（API 配置后自动重试场景：原书可能已不是当前书，必须生成回原书）
         let book = (sourceBookId ? books.find(b=>b.id===sourceBookId) : null) || getCurrentBook();
         if(!book) { toast("请先创建或选择小说"); return null; }
+        if(!apiUrlValid(api.url)) { toast("API 地址无效（需以 http:// 或 https:// 开头），请重新配置"); openApiModal(); return null; }
         if(!api.key) {
             toast("请先配置 API Key"); openApiModal();
             pendingGeneration = { sourceBookId: book.id, instr, isRegen, targetId, isCont, chatId, onSuccess, isDual };
@@ -1558,7 +1890,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let effectiveInstr = (instr && instr.trim()) ? instr : `请根据前文重新创作本章，保持连贯。`;
             user = `${effectiveInstr}\n\n【前文】\n${prev}`;
         } else {
-            user = `创作指令：${instr}\n\n【前文】\n${prev}`;
+            user = `创作指令：${instr}\n\n【前文】\n${prev}\n\n请以 Markdown 标题格式 "# 章节标题" 开头输出正文。`;
         }
         if(globalActions.length) user += `\n\n请严格按照【全局动作库】中的定义来描写动作。`;
         if(globalCostumes.length) user += `\n\n请严格按照【全局服装库】中的定义来描写服装。`;
@@ -1587,7 +1919,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if(res.status === 401) throw new Error("API Key 无效(401)");
                 if(res.status === 429) throw new Error("请求过于频繁，请稍后重试(429)");
                 if(res.status === 402) throw new Error("API 余额不足(402)");
-                throw new Error(`HTTP ${res.status}`);
+                throw new Error(await extractApiError(res)); // v6.5：兜底错误带后端具体原因
             }
             let data = await res.json();
             // 会话校验：响应解析完成后的首个异步节点——停止后旧任务响应已到达时在此拦截，
@@ -1606,8 +1938,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             // 同请求提取摘要（v5.8）：正文末尾【摘要】标记分离
             // 长度校验：摘要段若 >300 字（明显不是150字摘要），视为正文误含标记，不分离
+            // v6.5：改用 lastIndexOf（正文中部若出现【摘要】字样，优先取末尾真实摘要标记，防误切）
             let summaryText = '';
-            const sumIdx = content.indexOf('【摘要】');
+            const sumIdx = content.lastIndexOf('【摘要】');
             if(sumIdx !== -1) {
                 const candidate = content.substring(sumIdx + '【摘要】'.length).trim();
                 if(candidate.length <= 300) {
@@ -2138,12 +2471,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     let contentDirty = false;
-    function markContentDirty() { contentDirty = true; const saveSpan = $('saveStatus'); if(saveSpan) saveSpan.innerText = '未保存'; const book = getCurrentBook(); const chap = book && book.currentChapterId ? book.chapters.find(c=>c.id===book.currentChapterId) : null; if(chap) { chap.checkState = 'never'; chap.checkResult = []; chap.checkRequestVersion = (chap.checkRequestVersion || 0) + 1; chap.summaryRequestVersion = (chap.summaryRequestVersion || 0) + 1;
-        // v5.9：任何正文编辑都递增版本号——即使章节从未检测过（checkState=never）且手动检测在途，
-        // 编辑也使旧检测结果失效（v5.8 的 checkState!=='never' 条件在"首次检测进行中编辑"时漏拦截）
+    function markContentDirty() { contentDirty = true; const saveSpan = $('saveStatus'); if(saveSpan) saveSpan.innerText = '未保存'; const book = getCurrentBook(); const chap = book && book.currentChapterId ? book.chapters.find(c=>c.id===book.currentChapterId) : null; if(chap) { chap.checkRequestVersion = (chap.checkRequestVersion || 0) + 1; chap.summaryRequestVersion = (chap.summaryRequestVersion || 0) + 1;
+        // v6.3：编辑正文不再清空 checkState/checkResult（用户编辑后会主动点「重新检测」更新，
+        // 旧结果保留供查看）；仅递增版本号使在途检测/摘要结果作废（竞态保护不变）
         // v6.0：正文编辑同时递增 summaryRequestVersion——摘要在途时编辑正文，旧摘要返回也会被丢弃，
         // 否则旧正文摘要会被写入并被后续章节作为前文上下文注入，造成剧情错位
-        const checkBtn = $('checkConflictBtn'); if(checkBtn) checkBtn.style.background = "#3A3A6A"; } }
+        // v6.3：按钮颜色按保留的 checkResult 着色（有旧冲突保持橙色，与面板保留结果一致）——
+        // 修复前强制变蓝会与"结果保留"状态矛盾（按钮显示无冲突、面板却有旧冲突）
+        const checkBtn = $('checkConflictBtn'); if(checkBtn) checkBtn.style.background = (chap.checkResult && chap.checkResult.length) ? "#C97A3A" : "#3A3A6A"; } }
     function saveCurChapter() {
         let b = getCurrentBook(); if(!b || !b.currentChapterId) return false;
         let c = b.chapters.find(ch=>ch.id===b.currentChapterId);
@@ -2233,6 +2568,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function loadCurChapter() {
         contentDirty = false;
+        // v6.3：切章/切书时关闭冲突面板——面板随当前章节走，残留旧章节结果无意义
+        const conflictPanelEl = $('conflictPanel'); if(conflictPanelEl) conflictPanelEl.style.display = 'none';
+        conflictVisible = false;
         let b = getCurrentBook();
         const novelContent = $('novelContent'); const curChapName = $('curChapName'); const sumEl = $('summaryArea');
         if(!b) { if(novelContent) novelContent.innerText='✨ 新建小说开始创作'; if(sumEl) sumEl.value=''; return; }
@@ -2315,7 +2653,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(scratchpadEl && scratchpadModalEl && scratchpadModalEl.style.display === 'flex') {
             scratchpadContent = scratchpadEl.value;
         }
-        const backupData = { version:"6.0", timestamp:Date.now(), books, currentBookId, apiConfig:api, globalCharacters, globalActions, globalCostumes, scratchpadContent };
+        const backupData = { version:"6.9", timestamp:Date.now(), books, currentBookId, apiConfig:api, globalCharacters, globalActions, globalCostumes, scratchpadContent };
         const blob = new Blob([JSON.stringify(backupData,null,2)], {type:"application/json"});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `小说参数备份_${new Date().toISOString().slice(0,10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("备份已导出");
     }
@@ -2328,12 +2666,15 @@ document.addEventListener('DOMContentLoaded', function() {
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                if(!data.books || !Array.isArray(data.books)) throw new Error("备份文件格式无效：缺少 books 数组"); var compatVersions = ["2.6","2.7","2.8","2.9","3.0","3.1","3.2","3.3","3.4","3.6","3.7","3.8","3.9","4.0","4.1","4.2","4.3","4.4","4.5","4.6","4.7","4.8","4.9","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7","5.8","5.9","6.0"]; if(data.version && !compatVersions.includes(data.version)) { if(!confirm("备份版本("+data.version+")与当前版本(6.0)不匹配，可能存在兼容性问题。\n\n是否继续导入？")) { throw new Error("用户取消导入"); } }
+                if(!data.books || !Array.isArray(data.books)) throw new Error("备份文件格式无效：缺少 books 数组"); var compatVersions = ["2.6","2.7","2.8","2.9","3.0","3.1","3.2","3.3","3.4","3.6","3.7","3.8","3.9","4.0","4.1","4.2","4.3","4.4","4.5","4.6","4.7","4.8","4.9","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7","5.8","5.9","6.0","6.1","6.2","6.3","6.4","6.5","6.6","6.7","6.8","6.9"]; if(data.version && !compatVersions.includes(data.version)) { if(!confirm("备份版本("+data.version+")与当前版本(6.9)不匹配，可能存在兼容性问题。\n\n是否继续导入？")) { throw new Error("用户取消导入"); } }
                 books = data.books.filter(b => b && typeof b === 'object');
                 books.forEach(book => { book.characters = ensureArray(book.characters); book.chatHistory = ensureArray(book.chatHistory); book.chapters = ensureArray(book.chapters); book.forbiddenWords = ensureArray(book.forbiddenWords); book.chapters.forEach(ch => { if(!Array.isArray(ch.checkResult)) ch.checkResult=[]; }); migrateChapter(book); });
                 if(data.globalCharacters) globalCharacters = ensureArray(data.globalCharacters);
                 if(data.globalActions) globalActions = ensureArray(data.globalActions);
                 if(data.globalCostumes) globalCostumes = ensureArray(data.globalCostumes);
+                // v6.8：normalize 移到全局库载入后——此前在 books.forEach 内先于 globalActions/Costumes 赋值执行，
+                // 用旧的空库清空备份中的动作/服装精准选择（P0-2 数据破坏）
+                books.forEach(book => { normalizePrecisionSelections(book); });
                 if(data.scratchpadContent !== undefined) { scratchpadContent = data.scratchpadContent; try { localStorage.setItem('scratchpad_v1', scratchpadContent); } catch(e) {} }
                 if(data.apiConfig) Object.assign(api, data.apiConfig);
                 currentBookId = data.currentBookId || (books[0]?.id||null);
@@ -2362,7 +2703,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if(conflictVisible) { conflictPanel.style.display = 'none'; conflictVisible = false; }
         else {
             conflictList.innerHTML = '';
-            if(chap.checkState === 'error') { conflictList.innerHTML = '<div style="padding:12px;color:#FFA070;">检测失败，请点击「重新检测」重试</div>'; }
+            if(chap.checkState === 'never' || chap.checkResult === undefined) { conflictList.innerHTML = '<div style="padding:12px;color:#6A627A;">本章尚未检测，点击「重新检测」发起检测</div>'; }
+            else if(chap.checkState === 'error') { conflictList.innerHTML = '<div style="padding:12px;color:#FFA070;">检测失败，请点击「重新检测」重试</div>'; }
             else if(!chap.checkResult || chap.checkResult.length===0) { conflictList.innerHTML = '<div style="padding:12px;color:#6A627A;">未检测到明显冲突</div>'; }
             else { chap.checkResult.forEach(conf => { let div = document.createElement('div'); div.className = 'conflict-item'; div.innerHTML = `<div class="conflict-type"><i class="fas fa-exclamation-triangle"></i> ${escapeHtml(conf.type||'潜在矛盾')}</div><div class="conflict-desc">${escapeHtml(conf.description)}</div><div class="conflict-loc">📍 ${escapeHtml(conf.location||'')}</div>`; conflictList.appendChild(div); }); }
             conflictPanel.style.display = 'flex'; conflictVisible = true;
@@ -2449,8 +2791,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const prevBtn = $('prevChap'); if(prevBtn) prevBtn.onclick = () => changeChap(-1);
         const nextBtn = $('nextChap'); if(nextBtn) nextBtn.onclick = () => changeChap(1);
         const addChapIcon = $('addChapIcon'); if(addChapIcon) addChapIcon.onclick = addNewChapter;
-        const exportBtn = $('exportBtn'); if(exportBtn) exportBtn.onclick = exportFull;
-        const exportChapterBtn = $('exportChapterBtn'); if(exportChapterBtn) exportChapterBtn.onclick = exportCurrentChapter;
+        // v6.4：导出按钮合并——点击弹窗选择「导出全书 / 导出本章」
+        const exportBtn = $('exportBtn'); if(exportBtn) exportBtn.onclick = () => { const em = $('exportChoiceModal'); if(em) em.style.display = 'flex'; };
+        const exportFullChoiceBtn = $('exportFullChoiceBtn'); if(exportFullChoiceBtn) exportFullChoiceBtn.onclick = () => { const em = $('exportChoiceModal'); if(em) em.style.display = 'none'; exportFull(); };
+        const exportChapterChoiceBtn = $('exportChapterChoiceBtn'); if(exportChapterChoiceBtn) exportChapterChoiceBtn.onclick = () => { const em = $('exportChoiceModal'); if(em) em.style.display = 'none'; exportCurrentChapter(); };
+        const closeExportChoiceBtn = $('closeExportChoiceBtn'); if(closeExportChoiceBtn) closeExportChoiceBtn.onclick = () => { const em = $('exportChoiceModal'); if(em) em.style.display = 'none'; };
         const newBookIcon = $('newBookIcon'); if(newBookIcon) newBookIcon.onclick = newBook;
         const newBookBtn = $('newBookBtn'); if(newBookBtn) newBookBtn.onclick = newBook;
         const apiBtnSidebar = $('apiBtnSidebar'); if(apiBtnSidebar) apiBtnSidebar.onclick = openApiModal;
@@ -2482,7 +2827,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const relAddBtn = $('relAddBtn'); if(relAddBtn) relAddBtn.onclick = addRelationFromModal;
         const relCloseBtn = $('relCloseBtn'); if(relCloseBtn) relCloseBtn.onclick = closeRelationEdit;
         const resetGraphLayoutBtn = $('resetGraphLayoutBtn'); if(resetGraphLayoutBtn) resetGraphLayoutBtn.onclick = resetGraphLayout;
-        const squareLayoutBtn = $('squareLayoutBtn'); if(squareLayoutBtn) squareLayoutBtn.onclick = applySquareLayout;
+        // v6.4：区域按钮绑定（创建/取消）
+        const graphRegionBtn = $('graphRegionBtn'); if(graphRegionBtn) graphRegionBtn.onclick = openRegionModal;
+        const saveRegionBtn = $('saveRegionBtn'); if(saveRegionBtn) saveRegionBtn.onclick = saveRegion;
+        const closeRegionBtn = $('closeRegionBtn'); if(closeRegionBtn) closeRegionBtn.onclick = () => { const rm = $('regionModal'); if(rm) rm.style.display = 'none'; };
+        const graphSnapBtn = $('graphSnapBtn'); if(graphSnapBtn) graphSnapBtn.onclick = toggleGraphSnap;
         const exportBookCharsBtn = $('exportBookCharsBtn'); if(exportBookCharsBtn) exportBookCharsBtn.onclick = exportBookCharsJson;
         const closeForbiddenModal = $('closeForbiddenModal'); if(closeForbiddenModal) closeForbiddenModal.onclick = () => { const forbiddenWordsModal = $('forbiddenWordsModal'); if(forbiddenWordsModal) forbiddenWordsModal.style.display='none'; };
         const saveCharBtn = $('saveCharBtn'); if(saveCharBtn) saveCharBtn.onclick = saveCurrentCharacter;
@@ -2512,17 +2861,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const cancelForbiddenWordBtn = $('cancelForbiddenWordBtn'); if(cancelForbiddenWordBtn) cancelForbiddenWordBtn.onclick = clearForbiddenForm;
         const newForbiddenWordBtn = $('newForbiddenWordBtn'); if(newForbiddenWordBtn) newForbiddenWordBtn.onclick = () => { clearForbiddenForm(); currentEditingForbiddenId=null; };
         const checkConflictBtn = $('checkConflictBtn');
-        if(checkConflictBtn) checkConflictBtn.onclick = async () => {
+        // v6.3：检查按钮 = 纯开关（只开/关面板，永不发检测请求）；
+        // 检测入口只有面板内「重新检测」按钮（recheckConflictBtn）
+        if(checkConflictBtn) checkConflictBtn.onclick = () => {
             const book = getCurrentBook(); if(!book || !book.currentChapterId) { toast("请先选择章节"); return; }
-            const chap = book.chapters.find(c=>c.id===book.currentChapterId); if(!chap) return;
-            if(conflictVisible) { toggleConflictPanel(); return; }
-            if(chap.checkState === 'done' || chap.checkState === 'error') { toggleConflictPanel(); return; }
-            if(!api.key) { toast("请先配置 API Key"); return; }
-            // v6.0：检测进行中/生成进行中禁止发起新检测——重复点击不再发请求浪费费用；
-            // 且拦截时直接 return 不执行 toggleConflictPanel（否则面板会打开并显示检测前的旧状态误导用户）
-            if(conflictCheckingCount > 0) { toast('冲突检测进行中，请稍候'); return; }
-            if(isGenerating) { toast('生成进行中，请稍候'); return; }
-            await recheckCurrentChapter();
             toggleConflictPanel();
         };
         const recheckConflictBtn = $('recheckConflictBtn'); if(recheckConflictBtn) recheckConflictBtn.onclick = async () => { await recheckCurrentChapter(); if(conflictVisible) { toggleConflictPanel(); toggleConflictPanel(); } };
@@ -2533,7 +2875,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Ctrl+G 全局续写快捷键（即使焦点不在聊天框也生效）
         document.addEventListener('keydown', (e) => { const aeG = document.activeElement; const inInputG = aeG && (aeG.tagName==='INPUT' || aeG.tagName==='TEXTAREA' || aeG.isContentEditable); if((e.ctrlKey || e.metaKey) && e.key === 'g' && !inInputG) { const anyModalOpen = ['apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','precisionModal','scratchpadModal'].some(id => { const m = $(id); return m && m.style.display === 'flex'; }); if(anyModalOpen) return; e.preventDefault(); onContinue(); } });
         document.addEventListener('keydown', (e) => { if((e.ctrlKey || e.metaKey) && e.key === 's' && document.activeElement?.id !== 'chatInp' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') { e.preventDefault(); const ok = saveCurChapter(); toast(ok ? '已保存' : '❌ 保存失败'); } });
-        document.addEventListener('keydown', (e) => { if(e.key === 'Escape') { const findBar = $('findBar'); if(findBar && findBar.style.display !== 'none') { hideFindBar(); return; } ['precisionModal','scratchpadModal','apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal'].forEach(id => { let m = $(id); if(m && m.style.display === 'flex') { m.style.display = 'none'; if(id === 'apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } }); const relationEditModal = $('relationEditModal'); if(relationEditModal && relationEditModal.style.display === 'flex') closeRelationEdit(); } });
+        document.addEventListener('keydown', (e) => { if(e.key === 'Escape') { const findBar = $('findBar'); if(findBar && findBar.style.display !== 'none') { hideFindBar(); return; } ['precisionModal','scratchpadModal','exportChoiceModal','regionModal','apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal'].forEach(id => { let m = $(id); if(m && m.style.display === 'flex') { m.style.display = 'none'; if(id === 'apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } }); const relationEditModal = $('relationEditModal'); if(relationEditModal && relationEditModal.style.display === 'flex') closeRelationEdit(); } });
         const notifyBtn = $('notifyBtn'); if(notifyBtn) notifyBtn.onclick = () => {
             api.notify = !api.notify;
             if(api.notify) { notifyBtn.classList.add('guide-highlight'); toast('页签提醒已开启：生成完成时页签将闪烁 30 秒'); }
@@ -2587,7 +2929,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('click', (e) => {
             if (modalMouseDownTarget !== e.target) { modalMouseDownTarget = null; return; }
             modalMouseDownTarget = null;
-            ['apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','precisionModal','scratchpadModal'].forEach(id => { let m = $(id); if(e.target === m && m) { m.style.display='none'; if(id==='apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } });
+            ['apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','precisionModal','scratchpadModal','exportChoiceModal','regionModal'].forEach(id => { let m = $(id); if(e.target === m && m) { m.style.display='none'; if(id==='apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } });
             const relationEditModal = $('relationEditModal'); if(e.target === relationEditModal && relationEditModal) closeRelationEdit();
             // 动态创建的模态框（如批量导入/导出）：无id的.modal元素，点遮罩即关闭
             if (e.target.classList.contains('modal') && !e.target.id && e.target.parentNode === document.body) {
@@ -2640,6 +2982,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const div = document.createElement('div');
             const selected = precisionTempChars.includes(c.id);
             div.className = `precision-card ${selected ? 'selected' : ''}`;
+            div.dataset.name = c.name;
             div.innerHTML = `<input type="checkbox" data-id="${c.id}" ${selected ? 'checked' : ''}><div class="pc-info"><div class="pc-name">${escapeHtml(c.name)}</div><div class="pc-desc">${escapeHtml((c.appearance||'') + (c.personality ? ' · ' + c.personality : '')).slice(0,35)}</div></div><div class="pc-badge char">角色</div>`;
             div.addEventListener('click', (e) => { if(e.target.tagName !== 'INPUT') { const cb = div.querySelector('input'); cb.checked = !cb.checked; togglePrecisionItem(c.id, 'char', cb.checked); } });
             div.querySelector('input').addEventListener('change', (e) => { togglePrecisionItem(c.id, 'char', e.target.checked); });
@@ -2649,6 +2992,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const div = document.createElement('div');
             const selected = precisionTempActions.includes(a.id);
             div.className = `precision-card ${selected ? 'selected' : ''}`;
+            div.dataset.name = a.name;
             div.innerHTML = `<input type="checkbox" data-id="${a.id}" ${selected ? 'checked' : ''}><div class="pc-info"><div class="pc-name">${escapeHtml(a.name)}</div><div class="pc-desc">${escapeHtml((a.keyPoints||'').slice(0,35))}</div></div><div class="pc-badge action">动作</div>`;
             div.addEventListener('click', (e) => { if(e.target.tagName !== 'INPUT') { const cb = div.querySelector('input'); cb.checked = !cb.checked; togglePrecisionItem(a.id, 'action', cb.checked); } });
             div.querySelector('input').addEventListener('change', (e) => { togglePrecisionItem(a.id, 'action', e.target.checked); });
@@ -2658,12 +3002,93 @@ document.addEventListener('DOMContentLoaded', function() {
             const div = document.createElement('div');
             const selected = precisionTempCostumes.includes(a.id);
             div.className = `precision-card ${selected ? 'selected' : ''}`;
+            div.dataset.name = a.name;
             div.innerHTML = `<input type="checkbox" data-id="${a.id}" ${selected ? 'checked' : ''}><div class="pc-info"><div class="pc-name">${escapeHtml(a.name)}</div><div class="pc-desc">${escapeHtml((a.styleDetail||'').slice(0,35))}</div></div><div class="pc-badge costume">服装</div>`;
             div.addEventListener('click', (e) => { if(e.target.tagName !== 'INPUT') { const cb = div.querySelector('input'); cb.checked = !cb.checked; togglePrecisionItem(a.id, 'costume', cb.checked); } });
             div.querySelector('input').addEventListener('change', (e) => { togglePrecisionItem(a.id, 'costume', e.target.checked); });
             costumeList.appendChild(div);
         });
         updatePrecisionCounts();
+        // 重建后重放当前搜索词（selectAll/取消等触发重建时搜索不丢）
+        applyPrecisionFilter('char'); applyPrecisionFilter('action'); applyPrecisionFilter('costume');
+    }
+
+    // 精准模式三库模糊搜索（v6.0）：仅匹配名称，大小写不敏感 includes；DOM 显隐不重建，
+    // 勾选状态/选中高亮天然保留。空关键词显示全部，无匹配时列表内提示。
+    function applyPrecisionFilter(type) {
+        const cfg = {
+            char:   { inp: 'precCharSearch',   list: 'precisionCharList',   clear: 'precCharSearchClear' },
+            action: { inp: 'precActionSearch', list: 'precisionActionList', clear: 'precActionSearchClear' },
+            costume:{ inp: 'precCostumeSearch',list: 'precisionCostumeList',clear: 'precCostumeSearchClear' }
+        }[type];
+        if(!cfg) return;
+        const inp = $(cfg.inp), list = $(cfg.list), clearBtn = $(cfg.clear);
+        const kw = (inp && inp.value || '').trim().toLowerCase();
+        if(clearBtn) clearBtn.style.display = kw ? 'block' : 'none';
+        if(!list) return;
+        let visible = 0;
+        list.querySelectorAll('.precision-card').forEach(card => {
+            const hit = !kw || (card.dataset.name || '').toLowerCase().includes(kw);
+            card.style.display = hit ? '' : 'none';
+            if(hit) visible++;
+        });
+        let empty = list.querySelector('.precision-empty');
+        if(!kw) { if(empty) empty.remove(); return; }
+        if(visible === 0) {
+            if(!empty) { empty = document.createElement('div'); empty.className = 'precision-empty'; empty.innerText = '无匹配项'; list.appendChild(empty); }
+        } else if(empty) { empty.remove(); }
+    }
+
+    // 精准搜索框事件绑定（input 实时过滤 + ✕ 清除）
+    function bindPrecisionSearch() {
+        const bind = (inpId, clearId, type) => {
+            const inp = $(inpId); if(!inp) return;
+            inp.addEventListener('input', () => applyPrecisionFilter(type));
+            const clearBtn = $(clearId);
+            if(clearBtn) clearBtn.addEventListener('click', () => { inp.value = ''; applyPrecisionFilter(type); inp.focus(); });
+        };
+        bind('precCharSearch', 'precCharSearchClear', 'char');
+        bind('precActionSearch', 'precActionSearchClear', 'action');
+        bind('precCostumeSearch', 'precCostumeSearchClear', 'costume');
+    }
+
+    // 四库管理弹窗模糊搜索（v6.1）：复用精准搜索模式——仅匹配名称、DOM 显隐不重建、
+    // 编辑/选中状态天然保留。char=本书角色 / globalChar=素材角色 / action=全局动作 / costume=全局服装
+    function applyLibFilter(type) {
+        const cfg = {
+            char:       { inp: 'libCharSearch',       list: 'charList',       clear: 'libCharSearchClear' },
+            globalChar: { inp: 'libGlobalCharSearch', list: 'globalCharList', clear: 'libGlobalCharSearchClear' },
+            action:     { inp: 'libActionSearch',     list: 'actionList',     clear: 'libActionSearchClear' },
+            costume:    { inp: 'libCostumeSearch',    list: 'costumeList',    clear: 'libCostumeSearchClear' }
+        }[type];
+        if(!cfg) return;
+        const inp = $(cfg.inp), list = $(cfg.list), clearBtn = $(cfg.clear);
+        const kw = (inp && inp.value || '').trim().toLowerCase();
+        if(clearBtn) clearBtn.style.display = kw ? 'block' : 'none';
+        if(!list) return;
+        let visible = 0;
+        list.querySelectorAll('.item-card').forEach(card => {
+            const hit = !kw || (card.dataset.name || '').toLowerCase().includes(kw);
+            card.style.display = hit ? '' : 'none';
+            if(hit) visible++;
+        });
+        let empty = list.querySelector('.precision-empty');
+        if(!kw) { if(empty) empty.remove(); return; }
+        if(visible === 0) {
+            if(!empty) { empty = document.createElement('div'); empty.className = 'precision-empty'; empty.innerText = '无匹配项'; list.appendChild(empty); }
+        } else if(empty) { empty.remove(); }
+    }
+    function bindLibSearch() {
+        const bind = (inpId, clearId, type) => {
+            const inp = $(inpId); if(!inp) return;
+            inp.addEventListener('input', () => applyLibFilter(type));
+            const clearBtn = $(clearId);
+            if(clearBtn) clearBtn.addEventListener('click', () => { inp.value = ''; applyLibFilter(type); inp.focus(); });
+        };
+        bind('libCharSearch', 'libCharSearchClear', 'char');
+        bind('libGlobalCharSearch', 'libGlobalCharSearchClear', 'globalChar');
+        bind('libActionSearch', 'libActionSearchClear', 'action');
+        bind('libCostumeSearch', 'libCostumeSearchClear', 'costume');
     }
 
     function togglePrecisionItem(id, type, checked) {
@@ -2696,6 +3121,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function openPrecisionModal() {
         const book = getCurrentBook(); if(!book) { toast("请先选择小说"); return; }
+        // 重新打开时清空搜索词（v6.0：无搜索词记忆）
+        ['precCharSearch','precActionSearch','precCostumeSearch'].forEach(id => { const el = $(id); if(el) el.value = ''; });
         renderPrecisionPanel();
         const modal = $('precisionModal'); if(modal) modal.style.display = 'flex';
     }
@@ -2710,7 +3137,7 @@ document.addEventListener('DOMContentLoaded', function() {
         book.precisionChars = [...precisionTempChars];
         book.precisionActions = [...precisionTempActions];
         book.precisionCostumes = [...precisionTempCostumes];
-        saveAll();
+        if(!persistOrWarn()) return; // v6.5：保存失败不提示"已启用"（防假成功）
         updatePrecisionButton();
         const modal = $('precisionModal'); if(modal) modal.style.display = 'none';
         const cc = precisionTempChars.length, ac = precisionTempActions.length;
@@ -2722,14 +3149,28 @@ document.addEventListener('DOMContentLoaded', function() {
         book.precisionMode = false;
         book.precisionChars = [];
         book.precisionActions = []; book.precisionCostumes = [];
-        saveAll();
+        if(!persistOrWarn()) return; // v6.5：保存失败不提示"已切换"（防假成功）
         updatePrecisionButton();
         const modal = $('precisionModal'); if(modal) modal.style.display = 'none';
         toast("已切换为非精准模式（全量注入）");
     }
 
+    // v6.6：清理精准模式中指向已删除项目（角色/动作/服装）的旧 ID——存量脏数据修复（幂等，无脏数据零副作用）
+    function normalizePrecisionSelections(book) {
+        if(!book) return;
+        const validCharIds = new Set((book.characters || []).map(c => String(c.id)));
+        const validActionIds = new Set(globalActions.map(a => String(a.id)));
+        const validCostumeIds = new Set(globalCostumes.map(c => String(c.id)));
+        let changed = false;
+        if(Array.isArray(book.precisionChars)) { const f = book.precisionChars.filter(pid => validCharIds.has(String(pid))); if(f.length !== book.precisionChars.length) { book.precisionChars = f; changed = true; } }
+        if(Array.isArray(book.precisionActions)) { const f = book.precisionActions.filter(pid => validActionIds.has(String(pid))); if(f.length !== book.precisionActions.length) { book.precisionActions = f; changed = true; } }
+        if(Array.isArray(book.precisionCostumes)) { const f = book.precisionCostumes.filter(pid => validCostumeIds.has(String(pid))); if(f.length !== book.precisionCostumes.length) { book.precisionCostumes = f; changed = true; } }
+        if(book.precisionMode && !book.precisionChars.length && !book.precisionActions.length && !book.precisionCostumes.length) { book.precisionMode = false; changed = true; }
+        if(changed) saveAll();
+    }
     function updatePrecisionButton() {
         const book = getCurrentBook();
+        normalizePrecisionSelections(book); // v6.6：每次更新按钮时惰性清理存量无效 ID（覆盖切书/打开面板/导入备份后）
         const btn = $('precisionBtn');
         if(!btn) return;
         if(book && book.precisionMode && (book.precisionChars.length || book.precisionActions.length || (book.precisionCostumes||[]).length)) {
@@ -2748,7 +3189,7 @@ document.addEventListener('DOMContentLoaded', function() {
         else { btn.classList.remove('active'); btn.title = '并发双版（单次生效）'; }
     }
 
-    // ======================== 素材草稿本 ========================
+    // ======================== 草稿本 ========================
     let scratchpadContent = '';
 
     function loadScratchpad() {
@@ -2785,7 +3226,8 @@ document.addEventListener('DOMContentLoaded', function() {
         rollbackSnapshot = null;
         currentEditingCharId = null; currentEditingGlobalCharId = null; currentEditingGlobalActionId = null; currentEditingGlobalCostumeId = null; currentEditingForbiddenId = null;
         relationNodePositions = {}; relationColorMap = {};
-        graphLayoutMode = 'ring'; graphCanvasH = 0;
+        graphLayoutMode = 'square'; graphCanvasH = 0;
+        graphRegions = []; graphActiveTab = 0; // v6.4：清空区域
         
         // 刷新 UI
         const curBookName = $('curBookName'); if(curBookName) curBookName.innerText = '未选择';
@@ -2873,7 +3315,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(currentBookId && books.find(b=>b.id===currentBookId)) switchBook(currentBookId);
         else if(books.length) switchBook(books[0].id);
         else { const curBookName = $('curBookName'); if(curBookName) curBookName.innerText='未选择'; const novelContent = $('novelContent'); if(novelContent) novelContent.innerText='✨ 点击「新建小说」开始创作'; }
-        bindEvents(); initResize(); initDragSort(); initEditorBlurSnapshot(); initFindKeys(); startAutoSave();
+        bindEvents(); bindPrecisionSearch(); bindLibSearch(); initResize(); initDragSort(); initEditorBlurSnapshot(); initFindKeys(); startAutoSave();
         updateStorageIndicator(); updatePrecisionButton(); initialized = true;
     }
     init();
