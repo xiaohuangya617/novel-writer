@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AI小说生成器 | v6.9</title>
+    <title>AI小说生成器 | v7.0</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📖%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
     <style>
@@ -92,6 +92,10 @@
         .tab-pane{padding:10px;display:none;flex-direction:column;gap:10px;}
         .tab-pane.active{display:flex;}
         .tab-pane textarea{background:#13121C;border:1px solid #2D2A3A;border-radius:14px;padding:8px;color:#EDEAF2;font-size:0.7rem;resize:vertical;width:100%;}
+        .log-item{display:flex;gap:8px;padding:6px 8px;border-radius:10px;background:#1A1825;margin:4px 0;font-size:0.7rem;align-items:baseline;}
+        .log-time{color:#8A84A8;flex-shrink:0;font-family:monospace;}
+        .log-msg{color:#C9C4DE;word-break:break-all;}
+        #logList{max-height:55vh;overflow-y:auto;} /* v7.0 审查修复：日志 30 条可能超出右侧栏被裁，加独立滚动 */
         .section-label{font-size:0.6rem;color:#B8AECF;margin-bottom:4px;}
         .status-bar{background:#0A0A0F;border-top:1px solid #1A1825;padding:4px 20px;display:flex;justify-content:space-between;font-size:0.6rem;color:#7A728F;}
         .toast{position:fixed;bottom:20px;right:20px;background:#1E1C2C;border:1px solid #4A3F6E;border-radius:30px;padding:6px 16px;font-size:0.7rem;z-index:2000;animation:fadeInOut 2.5s ease forwards;pointer-events:none;}
@@ -204,7 +208,7 @@
     <div class="top-bar">
         <div class="logo">
             <h2><i class="fas fa-pen-fancy"></i> AI小说生成器</h2>
-            <span class="version-badge">v6.9</span>
+            <span class="version-badge">v7.0</span>
             <div class="current-book-badge"><i class="fas fa-book"></i> <span id="curBookName">未选择</span></div>
             <span id="storageIndicator" class="storage-indicator">💾 0MB / 5MB</span>
         </div>
@@ -281,9 +285,10 @@
         <div class="right-side" id="rightSide">
             <div class="resize-right" id="resizeRight"></div>
             <div class="settings-box">
-                <div class="tabs"><button class="tab active" data-tab="world">📖 世界书</button><button class="tab" data-tab="global">🌍 全局提示</button></div>
+                <div class="tabs"><button class="tab active" data-tab="world">📖 世界书</button><button class="tab" data-tab="global">🌍 全局提示</button><button class="tab" data-tab="log">📜 日志</button></div>
                 <div class="tab-pane active" id="pane-world"><div class="section-label">🌍 世界观</div><textarea id="worldview" rows="10"></textarea><div class="section-label">⚙️ 情节主线</div><textarea id="plotSet" rows="10"></textarea><div class="section-label">📜 专有名词</div><textarea id="termSet" rows="10"></textarea></div>
                 <div class="tab-pane" id="pane-global"><div class="section-label">🎭 全局提示词</div><textarea id="globalPrompt" rows="10" placeholder="你是一位擅长细腻情感的言情小说家。"></textarea><div class="section-label">✍️ 行文规范</div><textarea id="writingStyle" rows="10" placeholder="文风细腻，多用心理描写。"></textarea></div>
+<div class="tab-pane" id="pane-log"><div class="section-label">📜 日志 · 右下角提示历史（最多 30 条）</div><div id="logList"></div></div>
             </div>
         </div>
     </div>
@@ -302,9 +307,9 @@
 <div id="relationGraphModal" class="modal"><div class="modal-card" style="width:96vw;max-width:96vw;height:94vh;max-height:94vh;overflow:hidden;display:flex;flex-direction:column;">
 <h3><i class="fas fa-project-diagram"></i> 本书关系图 · <span id="relationBookName"></span></h3>
 <div style="font-size:0.6rem;color:#7A728F;margin:4px 0;">拖拽节点调整布局 · 点击角色添加关系 · 关系名称自由填写 · 左侧页签切换可拖对象（0=人物 / N=区域N）</div>
-<div id="graphContainer" style="width:100%;flex:1;background:#0E0D14;border-radius:16px;border:1px solid #22202C;overflow:hidden;position:relative;min-height:300px;">
-<div id="graphRegionTabs" style="position:absolute;left:0;top:0;bottom:0;width:66px;z-index:5;display:flex;flex-direction:column;gap:4px;padding:6px;overflow-y:auto;background:rgba(14,13,20,0.55);"></div>
-<svg id="graphSvg" width="100%" height="100%" style="display:block;"></svg>
+<div id="graphContainer" style="width:100%;flex:1;background:#0E0D14;border-radius:16px;border:1px solid #22202C;overflow:hidden;position:relative;min-height:300px;display:flex;">
+<div id="graphRegionTabs" style="width:66px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;padding:6px;overflow-y:auto;background:rgba(14,13,20,0.55);border-right:1px solid rgba(255,255,255,0.08);"></div>
+<svg id="graphSvg" style="display:block;flex:1;min-width:0;"></svg>
 </div>
 <div style="display:flex;gap:10px;margin-top:10px;flex-shrink:0;">
 <button id="addRelationBtn" class="glass-btn"><i class="fas fa-plus"></i> 添加关系</button>
@@ -348,7 +353,7 @@
 
 <div id="fullGuideModal" class="modal">
     <div class="modal-card" style="max-width:800px;">
-        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v6.9 完整说明</h3>
+        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v7.0 完整说明</h3>
         <div class="full-guide">
             <h4>一、快速上手（3步）</h4>
             <p>1. 左侧面板点击「+ 新建小说」，输入书名创建</p>
@@ -507,7 +512,7 @@
     <div class="precision-col"><h4>👗 全局服装 <span id="precCostumeTotal"></span></h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="precCostumeSearch" placeholder="搜索服装…"><i class="fas fa-times precision-clear" id="precCostumeSearchClear"></i></div><div class="precision-list" id="precisionCostumeList"></div></div>
 </div>
 <div style="display:flex;gap:10px;justify-content:space-between;margin-top:16px;">
-    <div><button id="precSelectAllChars" class="glass-btn" style="font-size:0.6rem;">全选角色</button><button id="precSelectAllActions" class="glass-btn" style="font-size:0.6rem;margin-left:4px;">全选动作</button><button id="precSelectAllCostumes" class="glass-btn" style="font-size:0.6rem;margin-left:4px;">全选服装</button><button id="precDeselectAll" class="glass-btn" style="font-size:0.6rem;margin-left:4px;">全部取消</button></div>
+    <div><button id="precSelectAllChars" class="glass-btn" style="font-size:0.6rem;">全选角色</button><button id="precSelectAllActions" class="glass-btn" style="font-size:0.6rem;margin-left:4px;">全选动作</button><button id="precSelectAllCostumes" class="glass-btn" style="font-size:0.6rem;margin-left:4px;">全选服装</button><button id="precDeselectAll" class="glass-btn" style="font-size:0.6rem;margin-left:4px;">全部取消</button><button id="precRandomCombo" class="glass-btn" style="font-size:0.6rem;margin-left:4px;" title="随机抽取 1 角色 + 3 动作 + 1 服装，复制到剪贴板">🎲 随机组合</button></div>
     <div><button id="precDisableBtn" class="glass-btn" style="background:#4A2A2A;">关闭精准模式</button><button id="savePrecisionBtn" class="glass-btn" style="background:#2A5A3A;margin-left:6px;">保存</button><button id="closePrecisionBtn" class="glass-btn" style="margin-left:4px;">取消</button></div>
 </div></div></div>
 
@@ -526,7 +531,7 @@
 <input type="file" id="importGlobalCostumesFileInput" accept=".json" style="display:none" />
 
 <script>
-// ======================== AI小说生成器 v6.9 — 完整脚本 ========================
+// ======================== AI小说生成器 v7.0 — 完整脚本 ========================
 document.addEventListener('DOMContentLoaded', function() {
     // 全局数据
     let books = [], currentBookId = null;
@@ -568,8 +573,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function $(id) { return document.getElementById(id); }
     let toastCount = 0;
-    function toast(msg) { let t=document.createElement('div'); t.className='toast'; t.innerText=msg; t.style.bottom = `${20 + toastCount * 42}px`; toastCount++; document.body.appendChild(t); setTimeout(()=>{ t.remove(); toastCount = Math.max(0, toastCount-1); },2500); }
+    function toast(msg) { pushLog(msg); let t=document.createElement('div'); t.className='toast'; t.innerText=msg; t.style.bottom = `${20 + toastCount * 42}px`; toastCount++; document.body.appendChild(t); setTimeout(()=>{ t.remove(); toastCount = Math.max(0, toastCount-1); },2500); }
 
+    // ===== v7.0：日志系统（记录全部 toast，持久化 localStorage，最多 30 条） =====
+    let appLogs = [];
+    try { const _l = JSON.parse(localStorage.getItem('app_logs_v1') || '[]'); if(Array.isArray(_l)) appLogs = _l.slice(-30); } catch(e) {}
+    function pushLog(msg) { appLogs.push({ t: Date.now(), msg }); if(appLogs.length > 30) appLogs = appLogs.slice(-30); try { localStorage.setItem('app_logs_v1', JSON.stringify(appLogs)); } catch(e) {} }
+    function fmtLogTime(ts) { const d = new Date(ts), p = n => String(n).padStart(2,'0'); return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds()); }
+    function renderLogList() {
+        const list = $('logList'); if(!list) return;
+        if(!appLogs.length) { list.innerHTML = '<div style="padding:12px;color:#6A627A;font-size:0.75rem;">暂无日志——右下角每次提示都会记录在这里（最多保留 30 条）</div>'; return; }
+        list.innerHTML = appLogs.slice().reverse().map(l => '<div class="log-item"><span class="log-time">' + fmtLogTime(l.t) + '</span><span class="log-msg">' + escapeHtml(l.msg) + '</span></div>').join('');
+    }
+    // ===== v7.0：剪贴板复制（navigator.clipboard + execCommand 降级，兼容 file:// 双击打开） =====
+    function copyToClipboard(text) {
+        if(navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).catch(() => fallbackCopy(text)); }
+        else fallbackCopy(text);
+    }
+    function fallbackCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } catch(e) {}
+        document.body.removeChild(ta);
+    }
+    // ===== v7.0：随机组合——随机抽取 1 角色 + 3 动作 + 1 服装，拼接复制到剪贴板 =====
+    function randomComboFromPrecision() {
+        const book = getCurrentBook(); if(!book) { toast('请先选择小说'); return; }
+        const chars = (book.characters||[]).filter(c => c && c.name && String(c.name).trim());
+        if(!chars.length) { toast('角色库为空，无法随机组合'); return; }
+        if(globalActions.length < 3) { toast('全局动作不足 3 个，无法随机组合'); return; }
+        if(!globalCostumes.length) { toast('全局服装库为空，无法随机组合'); return; }
+        const pick = (arr, n) => { const c = arr.slice(), out = []; while(out.length < n && c.length) out.push(c.splice(Math.floor(Math.random()*c.length),1)[0]); return out; };
+        const char = chars[Math.floor(Math.random()*chars.length)];
+        const acts = pick(globalActions, 3);
+        const costume = globalCostumes[Math.floor(Math.random()*globalCostumes.length)];
+        const combo = [char.name, ...acts.map(a => a.name), costume.name].join('+');
+        copyToClipboard(combo);
+        toast('已随机抽取组合：' + combo);
+    }
     function sendSystemNotification(title, body) {
         // ⚠️ 系统通知（Notification API）自 v5.8 起废弃，不再被调用。
         // 需安全上下文(https/localhost)且要权限，双击 HTML(file://) 无法使用，
@@ -1228,6 +1270,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // v6.4：布局恒为方形（取消环形布局，默认方形，重置也是方形）
     let graphLayoutMode = 'square';
     let graphCanvasH = 0;
+    let graphCanvasW = 0; // v6.9 窗口自适应：画布宽固化，不随容器实时漂移
     let graphSnapGrid = false; // v6.2：方形布局网格吸附开关（仅方形生效，持久化到书）
     const NODE_W = 80, NODE_H = 50;
     const RELATION_PALETTE = ['#3B8ED4','#7F77DD','#1D9E75','#378ADD','#D85A30','#D4537E','#EF9F27','#639922','#BA7517','#993556','#185FA5','#0F6E56','#534AB7','#854F0B','#72243E','#3C3489'];
@@ -1259,6 +1302,10 @@ document.addEventListener('DOMContentLoaded', function() {
             relationNodePositions = {}; book.relationPositions = {}; book.relationLayoutMode = 'square'; book.relationCanvasH = 0;
         }
         graphCanvasH = (book.relationCanvasH && book.relationCanvasH > 0) ? book.relationCanvasH : 0;
+        graphCanvasW = (book.relationCanvasW && book.relationCanvasW > 0) ? book.relationCanvasW : 0;
+        // v6.9 窗口自适应：画布宽首开取容器宽并持久化，此后 viewBox 宽不随窗口漂移
+        // （节点/区域坐标是绝对 viewBox 坐标，旧逻辑每次重绘取实时容器宽，窗口调小后重绘会裁掉右侧内容）
+        if(graphCanvasW <= 0) { const c0 = $('graphContainer'); graphCanvasW = (c0 && c0.clientWidth) ? c0.clientWidth : 880; book.relationCanvasW = graphCanvasW; }
         // v6.2：恢复网格吸附开关状态（存书）
         graphSnapGrid = book.graphSnapGrid === true;
         updateGraphSnapBtn();
@@ -1266,6 +1313,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadGraphRegions(book);
         graphActiveTab = 0;
         renderRegionTabs();
+        fitCanvasToContent(); saveAll();
         renderRelationGraph();
     }
 
@@ -1339,12 +1387,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // 用 clientHeight/2 会偏上；viewBox 中心才是视觉中心
         const vb = svg && svg.viewBox && svg.viewBox.baseVal;
         const vh = vb && vb.height ? vb.height : (container ? container.clientHeight : 600);
-        const cx = (container ? container.clientWidth : 880) / 2, cy = vh / 2;
+        const cx = (graphCanvasW > 0 ? graphCanvasW : (container ? container.clientWidth : 880)) / 2, cy = vh / 2;
         graphRegions.push({ id: uuid(), name, shape, size, color, x: cx, y: cy });
         saveGraphRegions(book);
         const rm = $('regionModal'); if(rm) rm.style.display = 'none';
         const ni = $('regionNameInp'); if(ni) ni.value = '';
-        renderRegionTabs(); renderRelationGraph();
+        renderRegionTabs(); fitCanvasToContent(); renderRelationGraph();
         toast('区域「'+name+'」已创建（'+shape+' / 容纳'+size+'角色）');
     }
     function deleteRegion(idx) {
@@ -1355,7 +1403,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 删除后按新长度兜底：激活页签超出剩余区域数（页签 1~L 对应区域 1~L，tab 有效范围 0~L）→ 切回 0 防悬空
         if(graphActiveTab > graphRegions.length) graphActiveTab = 0;
         saveGraphRegions(book);
-        renderRegionTabs(); renderRelationGraph();
+        renderRegionTabs(); fitCanvasToContent(); renderRelationGraph();
         toast('区域已删除');
     }
     // 页签渲染：0=人物，N=区域N（横向布局：名称靠左省略、✕ 放右侧；页签 0 显示"👤 人物"）
@@ -1412,6 +1460,34 @@ document.addEventListener('DOMContentLoaded', function() {
         document.addEventListener('mouseup', onUp);
     }
 
+    // v6.9 窗口自适应（修订版）：按内容包围盒（节点+区域含尺寸）校准画布宽高
+    // 存量坐标基于旧窗口宽度布局（如 x 最大 1727 > 容器 1477），仅固化容器宽仍会被裁；
+    // 改为按内容定画布：viewBox 一定包住全部节点与区域，窗口大小只影响 SVG 等比缩放
+    function fitCanvasToContent() {
+        const book = getCurrentBook(); const container = $('graphContainer');
+        if(!book || !container) return;
+        let maxX = 0, maxY = 0;
+        (book.characters||[]).forEach(c => {
+            const p = relationNodePositions[c.id];
+            if(p) { maxX = Math.max(maxX, p.x + NODE_W/2); maxY = Math.max(maxY, p.y + NODE_H/2); }
+        });
+        graphRegions.forEach(r => {
+            const sz = calcRegionSize(r.size);
+            maxX = Math.max(maxX, r.x + sz.w/2);
+            maxY = Math.max(maxY, r.y + sz.h/2);
+        });
+        // v6.9 修正：不加边距——画布仅扩展到内容边界，不主动加 PAD。
+        // 原因：拖动 clamp 允许区域/节点贴到 viewBox 边缘（右缘=W），若此处再加 PAD，
+        // 每次打开都会 +60 膨胀（拖到右下角保存后重开，区域位置右下漂移、反复膨胀）。
+        // 内容贴边是用户拖出来的结果，画布保持内容刚好装下即可稳定恢复。
+        const svg = $('graphSvg');
+        const cw = (svg && svg.clientWidth) ? svg.clientWidth : (container.clientWidth || 880);
+        const ch = container.clientHeight || 600;
+        graphCanvasW = Math.max(cw, maxX);
+        graphCanvasH = Math.max(ch, maxY);
+        book.relationCanvasW = graphCanvasW;
+        book.relationCanvasH = graphCanvasH;
+    }
     function renderRelationGraph() {
         const book = getCurrentBook(); const svg = $('graphSvg'); const container = $('graphContainer');
         if(!book || !svg || !container) return;
@@ -1422,7 +1498,11 @@ document.addEventListener('DOMContentLoaded', function() {
             applySquareLayout();
             return;
         }
-        const W = container.clientWidth || 880;
+        // v6.9 修正：网格宽度含区域占位——区域可能比容器/画布宽，若网格只按画布宽排，
+        // fit 后画布变宽则节点整体偏左；取 max(画布, 区域右缘) 保证网格与最终画布一致
+        let regionMaxX = 0;
+        graphRegions.forEach(rg => { const rsz = calcRegionSize(rg.size); regionMaxX = Math.max(regionMaxX, rg.x + rsz.w/2); });
+        const W = Math.max((graphCanvasW > 0) ? graphCanvasW : (container.clientWidth || 880), regionMaxX);
         // 画布高：方形=内容所需高度（SVG 等比缩放实现一屏显示）；环形=容器实际高度。
         // v6.0 修复：方形且内容高度 < 容器时，viewBox 高度至少=容器高度——
         // 否则默认 xMidYMid meet 使内容垂直居中，viewBox 顶部对应 CSS 中上部，
@@ -1559,7 +1639,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function cleanupRelationColor(type) { const book = getCurrentBook(); if(!book) return; initCharRelations(book); const stillUsed = book.characters.some(c => (c.relationships||[]).some(r => r.type === type)); if(!stillUsed) delete relationColorMap[type]; }
     function addRelationFromModal() { const book = getCurrentBook(); if(!book) return; const char = book.characters.find(c=>c.id===relationEditCharId); if(!char) return; const select = $('relTargetSelect'); const inp = $('relTypeInput'); if(!select || !inp) return; const targetId = select.value; const relType = inp.value.trim(); if(!targetId) { toast('请选择目标角色'); return; } if(!relType) { toast('请输入关系名称'); return; } char.relationships = char.relationships || []; if(char.relationships.some(r=>r.targetId===targetId && r.type===relType)) { toast('此关系已存在'); return; } char.relationships.push({ targetId, type: relType }); if(!persistOrWarn()) return; renderRelationGraph(); renderRelationEditList(book, char); inp.value = ''; const target = book.characters.find(c=>c.id===targetId); toast('已添加：'+char.name+' → '+relType+' → '+(target?target.name:'?')); }
     function closeRelationEdit() { const modal = $('relationEditModal'); if(modal) modal.style.display = 'none'; relationEditCharId = null; }
-    function resetGraphLayout() { const book = getCurrentBook(); relationNodePositions = {}; relationColorMap = {}; graphLayoutMode = 'square'; graphCanvasH = 0; if(book) { book.relationPositions = {}; book.relationLayoutMode = 'square'; book.relationCanvasH = 0; saveAll(); } renderRelationGraph(); toast('布局已重置'); }
+    function resetGraphLayout() { const book = getCurrentBook(); relationNodePositions = {}; relationColorMap = {}; graphLayoutMode = 'square'; graphCanvasH = 0; graphCanvasW = 0; if(book) { book.relationPositions = {}; book.relationLayoutMode = 'square'; book.relationCanvasH = 0; book.relationCanvasW = 0; saveAll(); } fitCanvasToContent(); saveAll(); renderRelationGraph(); toast('布局已重置'); }
 
     // 方形棋盘布局（v5.8）：先还原环形基准（清空位置，顺序=角色数组顺序），
     // 再按棋盘式网格逐个排列；格距自动压缩保证一屏显示（SVG 等比缩放），
@@ -1570,7 +1650,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const container = $('graphContainer'); if(!container) return;
         const chars = book.characters;
         if(!chars.length) { toast('暂无角色'); return; }
-        const W = container.clientWidth || 880;
+        // v6.9 修正：网格宽度含区域占位——区域可能比容器/画布宽，若网格只按画布宽排，
+        // fit 后画布变宽则节点整体偏左；取 max(画布, 区域右缘) 保证网格与最终画布一致
+        let regionMaxX = 0;
+        graphRegions.forEach(rg => { const rsz = calcRegionSize(rg.size); regionMaxX = Math.max(regionMaxX, rg.x + rsz.w/2); });
+        const W = Math.max((graphCanvasW > 0) ? graphCanvasW : (container.clientWidth || 880), regionMaxX);
         relationNodePositions = {}; // ① 还原环形基准
         // ② 自适应格距：标准 92×62，超目标高度则等比压缩
         // 最小格距绑定节点尺寸（NODE_W+8 / NODE_H+6）→ 数学上永不重叠；
@@ -1596,13 +1680,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const col = i % cols, row = Math.floor(i / cols);
             relationNodePositions[c.id] = { x: startX + col * cellW, y: startY + row * cellH };
         });
-        // ④ 画布高=内容所需（SVG 自动缩放，一屏显示不滚动）
-        graphCanvasH = rows * cellH + 60;
+        // ④ 画布尺寸统一由 fitCanvasToContent 按「节点+区域」包围盒决定——旧逻辑只按节点行数算
+        // 画布高（rows*cellH+60），重置后区域超出画布被裁、viewBox 高度不足导致画布下沉/卡片大小变化
         graphLayoutMode = 'square';
-        // ⑤ 持久化 + 重绘（布局模式与画布高一并存书：刷新/重开恢复方形视图，防节点超出画布被裁）
+        // ⑤ 持久化 + 重绘（fit 会把节点+区域包围盒写入 book.relationCanvasW/H）
         book.relationPositions = JSON.parse(JSON.stringify(relationNodePositions));
         book.relationLayoutMode = 'square';
-        book.relationCanvasH = graphCanvasH;
+        fitCanvasToContent();
         saveAll(); renderRelationGraph();
         toast(`方形布局：${chars.length} 个角色已按网格排列`);
     }
@@ -2653,7 +2737,7 @@ ${chapter.content.slice(0,5000)}
         if(scratchpadEl && scratchpadModalEl && scratchpadModalEl.style.display === 'flex') {
             scratchpadContent = scratchpadEl.value;
         }
-        const backupData = { version:"6.9", timestamp:Date.now(), books, currentBookId, apiConfig:api, globalCharacters, globalActions, globalCostumes, scratchpadContent };
+        const backupData = { version:"7.0", timestamp:Date.now(), books, currentBookId, apiConfig:api, globalCharacters, globalActions, globalCostumes, scratchpadContent, appLogs };
         const blob = new Blob([JSON.stringify(backupData,null,2)], {type:"application/json"});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `小说参数备份_${new Date().toISOString().slice(0,10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("备份已导出");
     }
@@ -2666,7 +2750,7 @@ ${chapter.content.slice(0,5000)}
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                if(!data.books || !Array.isArray(data.books)) throw new Error("备份文件格式无效：缺少 books 数组"); var compatVersions = ["2.6","2.7","2.8","2.9","3.0","3.1","3.2","3.3","3.4","3.6","3.7","3.8","3.9","4.0","4.1","4.2","4.3","4.4","4.5","4.6","4.7","4.8","4.9","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7","5.8","5.9","6.0","6.1","6.2","6.3","6.4","6.5","6.6","6.7","6.8","6.9"]; if(data.version && !compatVersions.includes(data.version)) { if(!confirm("备份版本("+data.version+")与当前版本(6.9)不匹配，可能存在兼容性问题。\n\n是否继续导入？")) { throw new Error("用户取消导入"); } }
+                if(!data.books || !Array.isArray(data.books)) throw new Error("备份文件格式无效：缺少 books 数组"); var compatVersions = ["2.6","2.7","2.8","2.9","3.0","3.1","3.2","3.3","3.4","3.6","3.7","3.8","3.9","4.0","4.1","4.2","4.3","4.4","4.5","4.6","4.7","4.8","4.9","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7","5.8","5.9","6.0","6.1","6.2","6.3","6.4","6.5","6.6","6.7","6.8","6.9","7.0"]; if(data.version && !compatVersions.includes(data.version)) { if(!confirm("备份版本("+data.version+")与当前版本(7.0)不匹配，可能存在兼容性问题。\n\n是否继续导入？")) { throw new Error("用户取消导入"); } }
                 books = data.books.filter(b => b && typeof b === 'object');
                 books.forEach(book => { book.characters = ensureArray(book.characters); book.chatHistory = ensureArray(book.chatHistory); book.chapters = ensureArray(book.chapters); book.forbiddenWords = ensureArray(book.forbiddenWords); book.chapters.forEach(ch => { if(!Array.isArray(ch.checkResult)) ch.checkResult=[]; }); migrateChapter(book); });
                 if(data.globalCharacters) globalCharacters = ensureArray(data.globalCharacters);
@@ -2687,6 +2771,8 @@ ${chapter.content.slice(0,5000)}
                 // 导入的 API 配置需走 loadApi 统一兜底与刷新（数值校验/dualMode/notify 按钮高亮），
                 // 否则异常备份的数值直接生效、按钮状态与功能脱节
                 loadApi();
+                // v7.0：恢复日志（兼容旧备份无 appLogs 字段）
+                if(Array.isArray(data.appLogs)) { appLogs = data.appLogs.slice(-30); try { localStorage.setItem('app_logs_v1', JSON.stringify(appLogs)); } catch(e) {} }
                 if(savedOk) toast("恢复成功");
                 else toast("备份已载入当前会话但未能保存到本地");
             } catch(err) { isImporting = false; toast("恢复失败: "+err.message); }
@@ -2936,7 +3022,7 @@ ${chapter.content.slice(0,5000)}
                 e.target.remove();
             }
         });
-        document.querySelectorAll('.tab').forEach(t => { t.onclick = () => { document.querySelectorAll('.tab').forEach(tt=>tt.classList.remove('active')); document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active')); t.classList.add('active'); const pane = $(`pane-${t.dataset.tab}`); if(pane) pane.classList.add('active'); }; });
+        document.querySelectorAll('.tab').forEach(t => { t.onclick = () => { document.querySelectorAll('.tab').forEach(tt=>tt.classList.remove('active')); document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active')); t.classList.add('active'); const pane = $(`pane-${t.dataset.tab}`); if(pane) pane.classList.add('active'); if(t.dataset.tab === 'log') renderLogList(); }; });
         const sortIcon = $('sortChaptersIcon'); if(sortIcon) { sortIcon.style.opacity = '0.7'; sortIcon.title = "拖拽排序已启用"; }
         // 字体大小按钮
         const fontSizeDown = $('fontSizeDown'); const fontSizeUp = $('fontSizeUp');
@@ -2944,6 +3030,7 @@ ${chapter.content.slice(0,5000)}
         if(fontSizeUp) fontSizeUp.onclick = () => changeFontSize(1);
         // 精准模式
         const precisionBtn = $('precisionBtn'); if(precisionBtn) precisionBtn.onclick = openPrecisionModal;
+        const precRandomCombo = $('precRandomCombo'); if(precRandomCombo) precRandomCombo.onclick = randomComboFromPrecision;
         const savePrecisionBtn = $('savePrecisionBtn'); if(savePrecisionBtn) savePrecisionBtn.onclick = savePrecision;
         const closePrecisionBtn = $('closePrecisionBtn'); if(closePrecisionBtn) closePrecisionBtn.onclick = () => { $('precisionModal').style.display='none'; };
         const precDisableBtn = $('precDisableBtn'); if(precDisableBtn) precDisableBtn.onclick = disablePrecision;
@@ -3226,7 +3313,7 @@ ${chapter.content.slice(0,5000)}
         rollbackSnapshot = null;
         currentEditingCharId = null; currentEditingGlobalCharId = null; currentEditingGlobalActionId = null; currentEditingGlobalCostumeId = null; currentEditingForbiddenId = null;
         relationNodePositions = {}; relationColorMap = {};
-        graphLayoutMode = 'square'; graphCanvasH = 0;
+        graphLayoutMode = 'square'; graphCanvasH = 0; graphCanvasW = 0;
         graphRegions = []; graphActiveTab = 0; // v6.4：清空区域
         
         // 刷新 UI
