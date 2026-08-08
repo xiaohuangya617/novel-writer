@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AI小说生成器 | v7.3</title>
+    <title>AI小说生成器 | v7.4</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📖%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
     <style>
@@ -25,6 +25,15 @@
         .glass-btn:hover{background:#3D3457;border-color:#3B8ED4;color:#6EC6F8;}
         .guide-highlight{background:linear-gradient(135deg,#3B8ED4,#2B6EA4);border:1px solid #6EC6F8;color:#fff;font-weight:bold;box-shadow:0 0 6px rgba(59,142,212,0.5);}
         .guide-highlight:hover{background:linear-gradient(135deg,#4B9EE4,#3B7EB4);color:#fff;}
+        .white-outline{border:1px solid rgba(255,255,255,0.45);}
+        /* v7.4 草稿本页签：胶囊式页签栏 */
+        .scratchpad-tabs{display:flex;gap:6px;padding:4px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;margin-bottom:12px;}
+        .scratchpad-tab{flex:1;padding:8px 0;border:none;border-radius:9px;background:transparent;color:#8E86A3;font-size:0.78rem;font-weight:600;cursor:pointer;text-align:center;position:relative;transition:all .22s ease;font-family:inherit;}
+        .scratchpad-tab:hover{background:rgba(255,255,255,0.09);color:#C9C3D8;}
+        .scratchpad-tab.active{background:linear-gradient(135deg,#3B8ED4,#2B6EA4);color:#fff;box-shadow:0 2px 10px rgba(59,142,212,0.45);}
+        .scratchpad-tab.active:hover{background:linear-gradient(135deg,#4B9EE4,#3B7EB4);color:#fff;}
+        .scratchpad-tab .tab-dot{position:absolute;top:5px;right:calc(50% - 16px);width:5px;height:5px;border-radius:50%;background:#6EC6F8;box-shadow:0 0 4px rgba(110,198,248,0.9);}
+        .scratchpad-tab.active .tab-dot{background:#fff;box-shadow:0 0 4px rgba(255,255,255,0.9);}
         .main-row{display:flex;flex:1;overflow:hidden;gap:8px;padding:10px;position:relative;}
         .left-stack{width:240px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;position:relative;}
         .resize-left{position:absolute;right:-4px;top:0;bottom:0;width:8px;cursor:ew-resize;background:transparent;z-index:10;}
@@ -110,7 +119,12 @@
         .lib-container{display:flex;gap:20px;margin-top:16px;}
         .lib-list{flex:1;border-right:1px solid #2D2A3A;padding-right:12px;max-height:55vh;overflow-y:auto;}
         .lib-list h4{margin-bottom:8px;color:#3B8ED4;}
-        .lib-editor{flex:2;padding-left:12px;}
+        .lib-editor{flex:0 1 auto;width:60%;min-width:240px;max-width:65%;padding-left:12px;}
+        /* v7.4：库编辑栏拖拽分隔条 + 保存布局按钮 */
+        .lib-resizer{width:6px;cursor:ew-resize;flex-shrink:0;background:transparent;border-radius:3px;transition:background .2s;align-self:stretch;}
+        .lib-resizer:hover{background:rgba(59,142,212,0.5);}
+        .lib-editor h4{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+        .lib-save-layout-btn{font-size:0.6rem;padding:2px 8px;flex-shrink:0;}
         .lib-editor input,.lib-editor textarea{width:100%;margin-bottom:10px;}
         .item-card{background:#13121C;border-radius:16px;padding:8px;margin-bottom:8px;border-left:3px solid #3B8ED4;cursor:pointer;}
         .item-card.active{border-left-color:#6EC6F8;background:#1C1A28;}
@@ -245,7 +259,7 @@
     <div class="top-bar">
         <div class="logo">
             <h2><i class="fas fa-pen-fancy"></i> AI小说生成器</h2>
-            <span class="version-badge">v7.3</span>
+            <span class="version-badge">v7.4</span>
             <div class="current-book-badge"><i class="fas fa-book"></i> <span id="curBookName">未选择</span></div>
             <span id="storageIndicator" class="storage-indicator">💾 0MB / 5MB</span>
         </div>
@@ -253,15 +267,15 @@
             <button id="actionLibraryBtn" class="glass-btn"><i class="fas fa-fist-raised"></i> 全局动作库</button>
             <button id="costumeLibraryBtn" class="glass-btn"><i class="fas fa-tshirt"></i> 全局服装库</button>
             <button id="globalRoleBtn" class="glass-btn"><i class="fas fa-box"></i> 素材角色库</button>
-            <button id="scratchpadBtn" class="glass-btn guide-highlight"><i class="fas fa-sticky-note"></i> 草稿本</button>
+            <button id="scratchpadBtn" class="glass-btn white-outline"><i class="fas fa-sticky-note"></i> 草稿本</button>
             <button id="roleLibraryBtn" class="glass-btn"><i class="fas fa-users"></i> 本书角色库</button>
             <button id="relationGraphBtn" class="glass-btn"><i class="fas fa-project-diagram"></i> 本书关系图</button>
             <button id="forbiddenWordsBtn" class="glass-btn"><i class="fas fa-ban"></i> 本书禁用词</button>
-            <button id="backupExportBtn" class="glass-btn"><i class="fas fa-archive"></i> 备份</button>
-            <button id="backupImportBtn" class="glass-btn"><i class="fas fa-upload"></i> 恢复</button>
+            <button id="backupExportBtn" class="glass-btn white-outline"><i class="fas fa-archive"></i> 备份</button>
+            <button id="backupImportBtn" class="glass-btn white-outline"><i class="fas fa-upload"></i> 恢复</button>
             <button id="exportBtn" class="glass-btn"><i class="fas fa-download"></i> 导出</button>
             <button id="notifyBtn" class="glass-btn"><i class="fas fa-bell"></i> 页签提醒</button>
-            <button id="guideBtn" class="glass-btn guide-highlight"><i class="fas fa-question-circle"></i> 使用指南</button>
+            <button id="guideBtn" class="glass-btn"><i class="fas fa-question-circle"></i> 使用指南</button>
             <button id="resetAllBtn" class="glass-btn" style="background:#3A2A2A;"><i class="fas fa-redo-alt"></i> 初始化</button>
         </div>
     </div>
@@ -337,10 +351,10 @@
 <!-- 模态框 -->
 <div id="branchModal" class="modal"><div class="modal-card" style="width:1240px;max-width:96vw;"><h3><i class="fas fa-code-branch"></i> 续写走向 · 选择一条继续</h3><div id="branchCardWrap"></div><div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;"><button id="closeBranchBtn">取消</button></div></div></div>
 <div id="apiModal" class="modal"><div class="modal-card" style="max-width:680px;"><h3>⚙️ API 调参</h3><div style="background:#3A2A2A;border-radius:12px;padding:8px 12px;margin-bottom:10px;font-size:0.65rem;color:#FFA070;"><i class="fas fa-shield-alt"></i> ⚠️ API Key 仅存储在浏览器本地，不会上传到任何服务器。请妥善保管，勿分享给他人。</div><div class="api-tabs" style="display:flex;gap:6px;margin-bottom:12px;"><button class="api-tab glass-btn active" data-apitab="main" style="flex:1;padding:8px 0;">✍️ 正文 API</button><button class="api-tab glass-btn" data-apitab="polish" style="flex:1;padding:8px 0;">🔍 审稿 API</button><button class="api-tab glass-btn" data-apitab="image" style="flex:1;padding:8px 0;opacity:0.45;cursor:not-allowed;" title="生图功能规划中（仅 EXE 版实装）">🎨 生图 API</button></div><div id="apiPane-main"><input type="text" id="apiUrlInp" placeholder="API地址"><input type="password" id="apiKeyInp" placeholder="API Key"><input type="text" id="modelInp" placeholder="模型"><div class="range-row"><span>温度</span><input type="range" id="tempRange" min="0" max="2" step="0.05" value="0.95"><span id="tempVal">0.95</span></div><div class="range-row"><span>核采样 Top-p</span><input type="range" id="topPRange" min="0.1" max="1" step="0.01" value="0.95"><span id="topPVal">0.95</span></div><div class="range-row"><span>重复惩罚</span><input type="range" id="repPenaltyRange" min="1" max="2" step="0.05" value="1.0"><span id="repPenaltyVal">1.0</span></div><div class="range-row"><span>最大长度</span><input type="number" id="maxTokensInp" value="2200"></div><div class="range-row"><span>频率惩罚</span><input type="range" id="freqRange" min="0" max="1" step="0.05" value="0.25"><span id="freqVal">0.25</span></div><div class="range-row"><span>存在惩罚</span><input type="range" id="presRange" min="0" max="1" step="0.05" value="0.2"><span id="presVal">0.2</span></div><div class="range-row"><span>上下文章节</span><input type="range" id="ctxRange" min="1" max="50" step="1" value="3"><span id="ctxVal">2</span></div><div class="range-row"><span>停止词 (逗号分隔)</span><input type="text" id="stopWordsInp" style="width:100%"></div><div class="range-row" style="align-items:center;"><span>💭 思考模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="thinkingCheck" style="width:auto;margin:0;"> 开启思考模式后创意参数失效，请谨慎开启</label></div><div class="range-row"><span>推理强度</span><input type="range" id="reasoningRange" min="0" max="2" step="1" value="1"><span id="reasoningVal">high</span></div><div class="range-row" style="align-items:center;"><span>🧭 续写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="branchAutoSendCheck" style="width:auto;margin:0;"> 开启后自动续写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>🔄 重写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="rewriteAutoSendCheck" style="width:auto;margin:0;"> 开启后自动重写生文（默认关，自动回填消息栏）</label></div></div><div id="apiPane-polish" style="display:none;"><div style="background:#2A3A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#7AC0A8;"><i class="fas fa-search"></i> 审稿 API 用于润色审查（DeepSeek：默认开启思考模式，仅推理强度可调，对同人内容宽松）</div><input type="text" id="polishUrlInp" placeholder="审稿 API 地址"><input type="password" id="polishKeyInp" placeholder="审稿 API Key"><input type="text" id="polishModelInp" placeholder="模型（如 deepseek-v4-flash）"><div class="range-row"><span>🧠 推理强度</span><input type="range" id="polishReasoningRange" min="0" max="2" step="1" value="2"><span id="polishReasoningVal">max</span></div><div class="range-row"><span>✂️ 低幅度理由线</span><input type="range" id="polishRatioRange" min="20" max="90" step="1" value="50" title="字符变动比例低于此线的修改，前端会标注黄色理由供你判断是否采纳"><span id="polishRatioVal">50%</span></div><div class="range-row"><span>最大长度</span><input type="number" id="polishMaxTokensInp" value="50000"></div></div><div id="apiPane-image" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:24px;text-align:center;color:#8A84A8;font-size:0.8rem;"><i class="fas fa-palette" style="font-size:1.4rem;display:block;margin-bottom:8px;"></i>🎨 生图功能规划中（仅 EXE 版实装），敬请期待</div></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="testApiBtn" class="glass-btn">测试连接</button><button id="saveApiBtn" class="glass-btn">保存</button><button id="closeApiBtn" class="glass-btn">取消</button></div></div></div>
-<div id="roleModal" class="modal"><div class="modal-card"><h3><i class="fas fa-users"></i> 本书角色库 · <span id="roleBookName"></span></h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="importGlobalCharsBtn" class="glass-btn"><i class="fas fa-download"></i> 从素材库导入</button><button id="exportToGlobalCharBtn" class="glass-btn"><i class="fas fa-upload"></i> 导出到素材库</button><button id="exportBookCharsBtn" class="glass-btn"><i class="fas fa-file-export"></i> 导出 JSON</button><button id="newCharBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增角色</button></div><div class="lib-container"><div class="lib-list"><h4>角色列表</h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="libCharSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="libCharSearchClear"></i></div><div id="charList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑角色</h4><input type="text" id="charName" placeholder="姓名"><textarea id="charAppearance" rows="3" placeholder="外貌体征"></textarea><textarea id="charPersonality" rows="2" placeholder="性格"></textarea><textarea id="charSpecial" rows="3" placeholder="服装及其他设定"></textarea><textarea id="charRelation" rows="3" placeholder="身份关联"></textarea><div id="charGrowthBox" style="margin-top:6px;"><div style="font-size:0.65rem;color:#8A84A8;margin-bottom:4px;">📈 成长经历</div><div id="charGrowthList" style="max-height:120px;overflow-y:auto;background:#1A1825;border:1px solid rgba(255,255,255,0.14);border-radius:8px;padding:6px 8px;font-size:0.68rem;color:#B8B4D0;white-space:pre-wrap;"></div></div><div><button id="saveCharBtn" class="glass-btn">保存角色</button><button id="cancelEditCharBtn" class="glass-btn">取消编辑</button></div></div></div><div><button id="closeRoleModal" class="glass-btn">关闭</button></div></div></div>
-<div id="globalRoleModal" class="modal"><div class="modal-card"><h3><i class="fas fa-box"></i> 素材角色库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalCharBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增素材角色</button><button id="exportGlobalCharsJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalCharsJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>角色列表</h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="libGlobalCharSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="libGlobalCharSearchClear"></i></div><div id="globalCharList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑角色</h4><input type="text" id="globalCharName" placeholder="姓名"><textarea id="globalCharAppearance" rows="3" placeholder="外貌体征"></textarea><textarea id="globalCharPersonality" rows="2" placeholder="性格"></textarea><textarea id="globalCharSpecial" rows="3" placeholder="服装及其他设定"></textarea><textarea id="globalCharRelation" rows="3" placeholder="身份关联"></textarea><div><button id="saveGlobalCharBtn" class="glass-btn">保存</button><button id="cancelGlobalCharBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeGlobalRoleModal" class="glass-btn">关闭</button></div></div></div>
-<div id="actionModal" class="modal"><div class="modal-card"><h3><i class="fas fa-fist-raised"></i> 全局动作库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalActionBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增动作</button><button id="exportGlobalActionsJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalActionsJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>动作列表</h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="libActionSearch" placeholder="搜索动作…"><i class="fas fa-times precision-clear" id="libActionSearchClear"></i></div><div id="actionList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑动作</h4><input type="text" id="globalActionName" placeholder="动作名称"><textarea id="globalActionKeyPoints" rows="3" placeholder="动作要领"></textarea><textarea id="globalActionLines" rows="3" placeholder="台词运用"></textarea><textarea id="globalActionDescriptionTips" rows="3" placeholder="描写建议"></textarea><div><button id="saveGlobalActionBtn" class="glass-btn">保存</button><button id="cancelGlobalActionBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeActionModal" class="glass-btn">关闭</button></div></div></div>
-<div id="costumeModal" class="modal"><div class="modal-card"><h3><i class="fas fa-tshirt"></i> 全局服装库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalCostumeBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增服装</button><button id="exportGlobalCostumesJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalCostumesJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>服装列表</h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="libCostumeSearch" placeholder="搜索服装…"><i class="fas fa-times precision-clear" id="libCostumeSearchClear"></i></div><div id="costumeList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>编辑服装</h4><input type="text" id="globalCostumeName" placeholder="服装名称"><textarea id="globalCostumeStyle" rows="3" placeholder="详细款式"></textarea><textarea id="globalCostumeDescTips" rows="3" placeholder="描写建议"></textarea><div><button id="saveGlobalCostumeBtn" class="glass-btn">保存</button><button id="cancelGlobalCostumeBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeCostumeModal" class="glass-btn">关闭</button></div></div></div>
+<div id="roleModal" class="modal"><div class="modal-card"><h3><i class="fas fa-users"></i> 本书角色库 · <span id="roleBookName"></span></h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="importGlobalCharsBtn" class="glass-btn"><i class="fas fa-download"></i> 从素材库导入</button><button id="exportToGlobalCharBtn" class="glass-btn"><i class="fas fa-upload"></i> 导出到素材库</button><button id="exportBookCharsBtn" class="glass-btn"><i class="fas fa-file-export"></i> 导出 JSON</button><button id="newCharBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增角色</button></div><div class="lib-container"><div class="lib-list"><h4>角色列表</h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="libCharSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="libCharSearchClear"></i></div><div id="charList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor" style="resize:horizontal;overflow:auto;min-width:240px;max-width:65%;"><h4>编辑角色</h4><input type="text" id="charName" placeholder="姓名"><textarea id="charAppearance" rows="3" placeholder="外貌体征"></textarea><textarea id="charPersonality" rows="2" placeholder="性格"></textarea><textarea id="charSpecial" rows="3" placeholder="服装及其他设定"></textarea><textarea id="charRelation" rows="3" placeholder="身份关联"></textarea><div id="charGrowthBox" style="margin-top:6px;"><div style="font-size:0.65rem;color:#8A84A8;margin-bottom:4px;">📈 成长经历</div><div id="charGrowthList" style="max-height:120px;overflow-y:auto;background:#1A1825;border:1px solid rgba(255,255,255,0.14);border-radius:8px;padding:6px 8px;font-size:0.68rem;color:#B8B4D0;white-space:pre-wrap;"></div></div><div><button id="saveCharBtn" class="glass-btn">保存角色</button><button id="cancelEditCharBtn" class="glass-btn">取消编辑</button></div></div></div><div><button id="closeRoleModal" class="glass-btn">关闭</button></div></div></div>
+<div id="globalRoleModal" class="modal"><div class="modal-card"><h3><i class="fas fa-box"></i> 素材角色库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalCharBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增素材角色</button><button id="exportGlobalCharsJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalCharsJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>角色列表</h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="libGlobalCharSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="libGlobalCharSearchClear"></i></div><div id="globalCharList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor" style="resize:horizontal;overflow:auto;min-width:240px;max-width:65%;"><h4>编辑角色</h4><input type="text" id="globalCharName" placeholder="姓名"><textarea id="globalCharAppearance" rows="3" placeholder="外貌体征"></textarea><textarea id="globalCharPersonality" rows="2" placeholder="性格"></textarea><textarea id="globalCharSpecial" rows="3" placeholder="服装及其他设定"></textarea><textarea id="globalCharRelation" rows="3" placeholder="身份关联"></textarea><div><button id="saveGlobalCharBtn" class="glass-btn">保存</button><button id="cancelGlobalCharBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeGlobalRoleModal" class="glass-btn">关闭</button></div></div></div>
+<div id="actionModal" class="modal"><div class="modal-card"><h3><i class="fas fa-fist-raised"></i> 全局动作库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalActionBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增动作</button><button id="exportGlobalActionsJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalActionsJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>动作列表</h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="libActionSearch" placeholder="搜索动作…"><i class="fas fa-times precision-clear" id="libActionSearchClear"></i></div><div id="actionList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor" style="resize:horizontal;overflow:auto;min-width:240px;max-width:65%;"><h4>编辑动作</h4><input type="text" id="globalActionName" placeholder="动作名称"><textarea id="globalActionKeyPoints" rows="3" placeholder="动作要领"></textarea><textarea id="globalActionLines" rows="3" placeholder="台词运用"></textarea><textarea id="globalActionDescriptionTips" rows="3" placeholder="描写建议"></textarea><div><button id="saveGlobalActionBtn" class="glass-btn">保存</button><button id="cancelGlobalActionBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeActionModal" class="glass-btn">关闭</button></div></div></div>
+<div id="costumeModal" class="modal"><div class="modal-card"><h3><i class="fas fa-tshirt"></i> 全局服装库</h3><div style="display:flex;gap:10px;margin:12px 0;"><button id="addGlobalCostumeBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增服装</button><button id="exportGlobalCostumesJsonBtn" class="glass-btn"><i class="fas fa-download"></i> 导出 JSON</button><button id="importGlobalCostumesJsonBtn" class="glass-btn"><i class="fas fa-upload"></i> 导入 JSON</button></div><div class="lib-container"><div class="lib-list"><h4>服装列表</h4><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="libCostumeSearch" placeholder="搜索服装…"><i class="fas fa-times precision-clear" id="libCostumeSearchClear"></i></div><div id="costumeList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor" style="resize:horizontal;overflow:auto;min-width:240px;max-width:65%;"><h4>编辑服装</h4><input type="text" id="globalCostumeName" placeholder="服装名称"><textarea id="globalCostumeStyle" rows="3" placeholder="详细款式"></textarea><textarea id="globalCostumeDescTips" rows="3" placeholder="描写建议"></textarea><div><button id="saveGlobalCostumeBtn" class="glass-btn">保存</button><button id="cancelGlobalCostumeBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeCostumeModal" class="glass-btn">关闭</button></div></div></div>
 <div id="forbiddenWordsModal" class="modal"><div class="modal-card"><h3><i class="fas fa-ban"></i> 本书禁用词 · <span id="forbiddenBookName"></span></h3><div><button id="newForbiddenWordBtn" class="glass-btn"><i class="fas fa-plus"></i> 新增禁用词</button></div><div class="lib-container"><div class="lib-list"><h4>禁用词列表</h4><div id="forbiddenList" style="max-height:50vh;overflow-y:auto;"></div></div><div class="lib-editor"><h4>添加/编辑</h4><input type="text" id="forbiddenWordInput" placeholder="要禁用的词或短语"><div><button id="saveForbiddenWordBtn" class="glass-btn">保存</button><button id="cancelForbiddenWordBtn" class="glass-btn">取消</button></div></div></div><div><button id="closeForbiddenModal" class="glass-btn">关闭</button></div></div></div>
 
 <!-- 本书关系图模态框 -->
@@ -355,6 +369,7 @@
 <button id="addRelationBtn" class="glass-btn"><i class="fas fa-plus"></i> 添加关系</button>
 <button id="graphRegionBtn" class="glass-btn"><i class="fas fa-shapes"></i> 添加区域</button>
 <button id="graphSnapBtn" class="glass-btn graph-snap-btn"><i class="fas fa-border-all"></i> 网格吸附</button>
+<button id="graphExportBtn" class="glass-btn"><i class="fas fa-download"></i> 导出图片</button>
 <button id="resetGraphLayoutBtn" class="glass-btn"><i class="fas fa-sync-alt"></i> 重置布局</button>
 <button id="closeRelationModal" class="glass-btn">关闭</button>
 </div></div></div>
@@ -399,7 +414,7 @@
 
 <div id="fullGuideModal" class="modal">
     <div class="modal-card" style="max-width:800px;">
-        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v7.3 完整说明</h3>
+        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v7.4 完整说明</h3>
         <div class="full-guide">
             <h4>一、快速上手（3步）</h4>
             <p>1. 左侧面板点击「+ 新建小说」，输入书名创建</p>
@@ -574,6 +589,7 @@
 <div id="exportChoiceModal" class="modal"><div class="modal-card" style="width:380px;"><h3><i class="fas fa-download"></i> 导出</h3><div style="display:flex;gap:12px;margin-top:16px;"><button id="exportFullChoiceBtn" class="glass-btn" style="flex:1;padding:14px 10px;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fas fa-book"></i> 导出全书</button><button id="exportChapterChoiceBtn" class="glass-btn" style="flex:1;padding:14px 10px;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fas fa-file-alt"></i> 导出本章</button></div><div style="display:flex;justify-content:flex-end;margin-top:16px;"><button id="closeExportChoiceBtn" class="glass-btn">取消</button></div></div></div>
 <div id="scratchpadModal" class="modal"><div class="modal-card" style="width:700px;">
 <h3><i class="fas fa-sticky-note"></i> 草稿本</h3>
+<div id="scratchpadTabs" class="scratchpad-tabs"></div>
 <textarea id="scratchpadContent" style="width:100%;height:400px;background:#13121C;border:1px solid #3A3452;border-radius:16px;padding:14px;color:#EDEAF2;font-size:0.8rem;line-height:1.6;resize:vertical;font-family:'Georgia','Noto Serif SC',serif;" placeholder="在这里记录灵感、随笔、情节构思……"></textarea>
 <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">
 <button id="saveScratchpadBtn" class="glass-btn" style="background:#2A5A3A;"><i class="fas fa-save"></i> 保存</button>
@@ -585,7 +601,7 @@
 <input type="file" id="importGlobalCostumesFileInput" accept=".json" style="display:none" />
 
 <script>
-// ======================== AI小说生成器 v7.3 — 完整脚本 ========================
+// ======================== AI小说生成器 v7.4 — 完整脚本 ========================
 document.addEventListener('DOMContentLoaded', function() {
     // 全局数据
     let books = [], currentBookId = null;
@@ -1428,9 +1444,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function exportGlobalCostumesToJson() { if(!globalCostumes.length) { toast("服装库为空"); return; } const blob = new Blob([JSON.stringify(globalCostumes,null,2)], {type:"application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `global_costumes_${Date.now()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("已导出"); }
     function importGlobalCostumesFromJson(file) { const reader = new FileReader(); reader.onload = e => { try { const imported = JSON.parse(e.target.result); if(!Array.isArray(imported)) throw new Error(); let added=0; imported.forEach(item => { if(item.name && typeof item.name==='string') { globalCostumes.push({ id:uuid(), name:item.name, styleDetail:item.styleDetail||'', descriptionTips:item.descriptionTips||'' }); added++; } }); if(added) { saveAll(); renderCostumeList(); toast(`已导入 ${added} 个服装`); } else toast("无有效服装"); } catch(err) { toast("解析失败"); } }; reader.readAsText(file); }
 
-    function batchImport() { if(!globalCharacters.length) { toast("素材角色库为空"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>从素材库导入角色</h3><div class="batch-import-list" id="importListContainer"></div><div class="modal-buttons"><button id="confirmBatchImport" class="glass-btn">确认导入</button><button id="cancelBatchImport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#importListContainer'); globalCharacters.forEach(item => { const label = document.createElement('label'); const safeId = item.id.replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); modalDiv.querySelector('#confirmBatchImport').onclick = () => { const book = getCurrentBook(); if(!book) { toast("请先选择小说"); modalDiv.remove(); return; } let imported=0; const idMap = new Map(); const copies = []; modalDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => { const id = cb.getAttribute('data-id'); const original = globalCharacters.find(s => String(s.id) === String(id)); if(original) { const copy = JSON.parse(JSON.stringify(original)); const oldId = copy.id; const newId = uuid(); idMap.set(String(oldId), newId); copy.id = newId; copy.relationships = Array.isArray(copy.relationships) ? copy.relationships : []; copies.push(copy); } }); copies.forEach(copy => { // v7.3 用户拍板：关系无脑带走——targetId 在本次导入/导出集合内则重映射到新 ID，不在则保留原值（不因目标角色未选中而过滤删除）
+    function batchImport() { if(!globalCharacters.length) { toast("素材角色库为空"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>从素材库导入角色</h3><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="batchImportSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="batchImportSearchClear"></i></div><div class="batch-import-list" id="importListContainer"></div><div class="modal-buttons"><button id="confirmBatchImport" class="glass-btn">确认导入</button><button id="cancelBatchImport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#importListContainer'); globalCharacters.forEach(item => { const label = document.createElement('label'); const safeId = item.id.replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); // v7.4：弹窗搜索（CSS 过滤，选中状态保留）
+        const impSearch = modalDiv.querySelector('#batchImportSearch'); const impClear = modalDiv.querySelector('#batchImportSearchClear');
+        if(impSearch) impSearch.addEventListener('input', () => { const kw = impSearch.value.trim(); const items = container.querySelectorAll('label'); let shown = 0; items.forEach(l => { const nm = l.querySelector('.item-name'); const hit = !kw || (nm ? nm.textContent.includes(kw) : false); l.style.display = hit ? '' : 'none'; if(hit) shown++; }); let tip = container.querySelector('.batch-empty-tip'); if(!shown) { if(!tip) { tip = document.createElement('div'); tip.className='batch-empty-tip'; tip.style.cssText='padding:12px;color:#6A627A;font-size:0.7rem;'; tip.textContent='无匹配角色'; container.appendChild(tip); } } else if(tip) tip.remove(); });
+        if(impClear) impClear.onclick = () => { if(impSearch) { impSearch.value=''; impSearch.dispatchEvent(new Event('input')); } }; modalDiv.querySelector('#confirmBatchImport').onclick = () => { const book = getCurrentBook(); if(!book) { toast("请先选择小说"); modalDiv.remove(); return; } let imported=0; const idMap = new Map(); const copies = []; modalDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => { const id = cb.getAttribute('data-id'); const original = globalCharacters.find(s => String(s.id) === String(id)); if(original) { const copy = JSON.parse(JSON.stringify(original)); const oldId = copy.id; const newId = uuid(); idMap.set(String(oldId), newId); copy.id = newId; copy.relationships = Array.isArray(copy.relationships) ? copy.relationships : []; copies.push(copy); } }); copies.forEach(copy => { // v7.3 用户拍板：关系无脑带走——targetId 在本次导入/导出集合内则重映射到新 ID，不在则保留原值（不因目标角色未选中而过滤删除）
                 copy.relationships = Array.isArray(copy.relationships) ? copy.relationships.map(r => (r && idMap.has(String(r.targetId))) ? ({ ...r, targetId: idMap.get(String(r.targetId)) }) : r).filter(Boolean) : []; }); if(copies.length) { initCharactersIfNeeded(book); copies.forEach(c => book.characters.push(c)); imported = copies.length; } if(imported) { saveAll(); renderCharacterList(); toast(`已导入 ${imported} 个角色`); } else toast("未选择任何项"); modalDiv.remove(); }; modalDiv.querySelector('#cancelBatchImport').onclick = () => modalDiv.remove(); }
-    function batchExport() { const book = getCurrentBook(); if(!book || !book.characters.length) { toast("当前小说无角色可导出"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>导出到素材角色库</h3><div class="batch-import-list" id="exportListContainer"></div><div class="modal-buttons"><button id="confirmBatchExport" class="glass-btn">确认导出</button><button id="cancelBatchExport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#exportListContainer'); book.characters.forEach(item => { const label = document.createElement('label'); const safeId = item.id.replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); modalDiv.querySelector('#confirmBatchExport').onclick = () => { let exported=0; const idMap = new Map(); const copies = []; modalDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => { const id = cb.getAttribute('data-id'); const original = book.characters.find(s => String(s.id) === String(id)); if(original) { const copy = JSON.parse(JSON.stringify(original)); const oldId = String(copy.id); const newId = uuid(); idMap.set(oldId, newId); copy.id = newId; copy.relationships = Array.isArray(copy.relationships) ? copy.relationships : []; copies.push(copy); } }); copies.forEach(copy => { // v7.3 用户拍板：关系无脑带走——targetId 在本次导入/导出集合内则重映射到新 ID，不在则保留原值（不因目标角色未选中而过滤删除）
+    function batchExport() { const book = getCurrentBook(); if(!book || !book.characters.length) { toast("当前小说无角色可导出"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>导出到素材角色库</h3><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="batchExportSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="batchExportSearchClear"></i></div><div class="batch-import-list" id="exportListContainer"></div><div class="modal-buttons"><button id="confirmBatchExport" class="glass-btn">确认导出</button><button id="cancelBatchExport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#exportListContainer'); book.characters.forEach(item => { const label = document.createElement('label'); const safeId = item.id.replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); // v7.4：弹窗搜索（CSS 过滤，选中状态保留）
+        const expSearch = modalDiv.querySelector('#batchExportSearch'); const expClear = modalDiv.querySelector('#batchExportSearchClear');
+        if(expSearch) expSearch.addEventListener('input', () => { const kw = expSearch.value.trim(); const items = container.querySelectorAll('label'); let shown = 0; items.forEach(l => { const nm = l.querySelector('.item-name'); const hit = !kw || (nm ? nm.textContent.includes(kw) : false); l.style.display = hit ? '' : 'none'; if(hit) shown++; }); let tip = container.querySelector('.batch-empty-tip'); if(!shown) { if(!tip) { tip = document.createElement('div'); tip.className='batch-empty-tip'; tip.style.cssText='padding:12px;color:#6A627A;font-size:0.7rem;'; tip.textContent='无匹配角色'; container.appendChild(tip); } } else if(tip) tip.remove(); });
+        if(expClear) expClear.onclick = () => { if(expSearch) { expSearch.value=''; expSearch.dispatchEvent(new Event('input')); } }; modalDiv.querySelector('#confirmBatchExport').onclick = () => { let exported=0; const idMap = new Map(); const copies = []; modalDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => { const id = cb.getAttribute('data-id'); const original = book.characters.find(s => String(s.id) === String(id)); if(original) { const copy = JSON.parse(JSON.stringify(original)); const oldId = String(copy.id); const newId = uuid(); idMap.set(oldId, newId); copy.id = newId; copy.relationships = Array.isArray(copy.relationships) ? copy.relationships : []; copies.push(copy); } }); copies.forEach(copy => { // v7.3 用户拍板：关系无脑带走——targetId 在本次导入/导出集合内则重映射到新 ID，不在则保留原值（不因目标角色未选中而过滤删除）
                 copy.relationships = Array.isArray(copy.relationships) ? copy.relationships.map(r => (r && idMap.has(String(r.targetId))) ? ({ ...r, targetId: idMap.get(String(r.targetId)) }) : r).filter(Boolean) : []; }); copies.forEach(c => { globalCharacters.push(c); exported++; }); if(exported) { saveAll(); renderGlobalCharList(); toast(`已导出 ${exported} 个角色到素材库`); } else toast("未选择任何项"); modalDiv.remove(); }; modalDiv.querySelector('#cancelBatchExport').onclick = () => modalDiv.remove(); }
 
     function renderForbiddenList() { const book = getCurrentBook(); if(!book) return; initForbiddenWordsIfNeeded(book); const container = $('forbiddenList'); if(!container) return; container.innerHTML = ''; if(book.forbiddenWords.length===0) { container.innerHTML='<div style="padding:12px;color:#6A627A;">暂无禁用词</div>'; return; } book.forbiddenWords.forEach(item => { if(!item.id) item.id = uuid(); const div = document.createElement('div'); div.className = `item-card ${currentEditingForbiddenId===item.id?'active':''}`; div.innerHTML = `<div class="item-name">${escapeHtml(item.word)}</div><div class="item-actions"><button class="small-btn edit-forbidden" data-fid="${item.id}">编辑</button><button class="small-btn del-forbidden" data-fid="${item.id}" style="background:#4A2A2A;">删除</button></div>`; div.querySelector('.edit-forbidden').addEventListener('click',()=> editForbiddenWord(item.id)); div.querySelector('.del-forbidden').addEventListener('click',()=> { if(confirm(`删除禁用词「${item.word}」？`)) deleteForbiddenWord(item.id); }); container.appendChild(div); }); }
@@ -1551,6 +1573,43 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     function loadGraphRegions(book) { graphRegions = Array.isArray(book.graphRegions) ? JSON.parse(JSON.stringify(book.graphRegions)) : []; }
     function saveGraphRegions(book) { book.graphRegions = JSON.parse(JSON.stringify(graphRegions)); saveAll(); }
+    // v7.4：关系图导出 PNG（2x 高清、暗色背景、含区域）
+    function exportRelationGraph() {
+        const book = getCurrentBook(); const svg = $('graphSvg');
+        if(!book || !svg) return;
+        if(!(book.characters || []).length) { toast("暂无角色，无法导出关系图"); return; }
+        try {
+            const clone = svg.cloneNode(true);
+            const vb = (svg.getAttribute('viewBox') || '0 0 1200 800').split(/\s+/).map(Number);
+            const vbW = Math.max(400, vb[2] || 1200), vbH = Math.max(300, vb[3] || 800);
+            const ns = 'http://www.w3.org/2000/svg';
+            const bg = document.createElementNS(ns, 'rect');
+            bg.setAttribute('x','0'); bg.setAttribute('y','0'); bg.setAttribute('width', vbW); bg.setAttribute('height', vbH);
+            bg.setAttribute('fill','#0E0D14'); // 暗色背景与 UI 一致
+            clone.insertBefore(bg, clone.firstChild);
+            clone.setAttribute('viewBox', '0 0 ' + vbW + ' ' + vbH);
+            clone.setAttribute('width', vbW); clone.setAttribute('height', vbH);
+            const xml = new XMLSerializer().serializeToString(clone);
+            const svg64 = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
+            const img = new Image();
+            img.onload = () => {
+                const scale = 2; // 2x 保证清晰
+                const canvas = document.createElement('canvas');
+                canvas.width = vbW * scale; canvas.height = vbH * scale;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#0E0D14'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const a = document.createElement('a');
+                a.href = canvas.toDataURL('image/png');
+                a.download = sanitizeFilename(book.name) + '_关系图_' + new Date().toISOString().slice(0,10) + '.png';
+                a.click();
+                toast("关系图已导出为图片");
+            };
+            img.onerror = () => toast("导出失败：SVG 渲染异常");
+            img.src = svg64;
+        } catch(e) { toast("导出失败：" + e.message); }
+    }
+
     function openRegionModal() {
         const book = getCurrentBook(); if(!book) { toast('请先选择小说'); return; }
         if(graphRegions.length >= REGION_MAX) { toast('区域数量已达上限（'+REGION_MAX+' 个）'); return; }
@@ -1736,8 +1795,8 @@ document.addEventListener('DOMContentLoaded', function() {
         colors.forEach(color=>{ const m = document.createElementNS('http://www.w3.org/2000/svg','marker'); m.setAttribute('id','arr-'+color.replace('#','')); m.setAttribute('viewBox','0 0 8 8'); m.setAttribute('refX','7'); m.setAttribute('refY','4'); m.setAttribute('markerWidth','5'); m.setAttribute('markerHeight','5'); m.setAttribute('orient','auto'); const p = document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d','M0,0 L6,4 L0,8'); p.setAttribute('fill','none'); p.setAttribute('stroke',color); p.setAttribute('stroke-width','1.5'); p.setAttribute('stroke-linejoin','round'); m.appendChild(p); defs.appendChild(m); });
         const pairPerp = {};
         seenPairs.forEach(key=>{ const ids = key.split('|'); const refFrom = relationNodePositions[ids[0]], refTo = relationNodePositions[ids[1]]; if(!refFrom || !refTo) return; const rdx = refTo.x - refFrom.x, rdy = refTo.y - refFrom.y; const rlen = Math.sqrt(rdx*rdx+rdy*rdy) || 1; pairPerp[key] = { px: -rdy/rlen*14, py: rdx/rlen*14 }; });
-        edgeMeta.forEach(e=>{ const from = relationNodePositions[e.from], to = relationNodePositions[e.to]; if(!from||!to) return; const color = getRelationColor(e.type); let fx = from.x, fy = from.y, tx = to.x, ty = to.y; if(e.offsetSide && e.isBidirectional) { const pairKey = [e.from, e.to].sort().join('|'); const pp = pairPerp[pairKey]; if(pp) { fx += pp.px * e.offsetSide; fy += pp.py * e.offsetSide; tx += pp.px * e.offsetSide; ty += pp.py * e.offsetSide; } } const ep1 = edgeIntersect(fx, fy, tx, ty); const ep2 = edgeIntersect(tx, ty, fx, fy); const g = document.createElementNS('http://www.w3.org/2000/svg','g'); const line = document.createElementNS('http://www.w3.org/2000/svg','line'); line.setAttribute('x1',ep1.x); line.setAttribute('y1',ep1.y); line.setAttribute('x2',ep2.x); line.setAttribute('y2',ep2.y); line.setAttribute('stroke',color); line.setAttribute('stroke-width','3'); line.setAttribute('stroke-linecap','round'); line.setAttribute('marker-end','url(#arr-'+color.replace('#','')+')'); g.appendChild(line); const label = document.createElementNS('http://www.w3.org/2000/svg','text'); const midX = (fx+tx)/2, midY = (fy+ty)/2; label.setAttribute('x',midX); label.setAttribute('y',midY-10); label.setAttribute('class','graph-line-label'); label.setAttribute('fill',color); label.textContent = e.type; g.appendChild(label); lineGroup.appendChild(g); });
-        chars.forEach(c=>{ const pos = relationNodePositions[c.id]; if(!pos) return; const x = pos.x - NODE_W/2, y = pos.y - NODE_H/2; const g = document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('data-id',c.id); g.style.cursor = 'pointer'; g.addEventListener('click',()=>{ graphNodeClick(c.id); }); g.addEventListener('mousedown',(ev)=>{ graphNodeDragStart(ev,c.id); }); const rect = document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',NODE_W); rect.setAttribute('height',NODE_H); rect.setAttribute('rx','10'); rect.setAttribute('ry','10'); rect.setAttribute('fill','#1C1A28'); rect.setAttribute('stroke','#3B8ED4'); rect.setAttribute('stroke-width','1.5'); g.appendChild(rect); const name = document.createElementNS('http://www.w3.org/2000/svg','text'); name.setAttribute('x',pos.x); name.setAttribute('y',pos.y-4); name.setAttribute('class','graph-node-text'); name.textContent = (c.name||'?').substring(0, 5); g.appendChild(name); const relCount = (c.relationships||[]).length; const sub = document.createElementNS('http://www.w3.org/2000/svg','text'); sub.setAttribute('x',pos.x); sub.setAttribute('y',pos.y+16); sub.setAttribute('class','graph-node-sub'); sub.textContent = relCount ? relCount+'个关系' : '无关系'; g.appendChild(sub); nodeGroup.appendChild(g); });
+        edgeMeta.forEach(e=>{ const from = relationNodePositions[e.from], to = relationNodePositions[e.to]; if(!from||!to) return; const color = getRelationColor(e.type); let fx = from.x, fy = from.y, tx = to.x, ty = to.y; if(e.offsetSide && e.isBidirectional) { const pairKey = [e.from, e.to].sort().join('|'); const pp = pairPerp[pairKey]; if(pp) { fx += pp.px * e.offsetSide; fy += pp.py * e.offsetSide; tx += pp.px * e.offsetSide; ty += pp.py * e.offsetSide; } } const ep1 = edgeIntersect(fx, fy, tx, ty); const ep2 = edgeIntersect(tx, ty, fx, fy); const g = document.createElementNS('http://www.w3.org/2000/svg','g'); const line = document.createElementNS('http://www.w3.org/2000/svg','line'); line.setAttribute('x1',ep1.x); line.setAttribute('y1',ep1.y); line.setAttribute('x2',ep2.x); line.setAttribute('y2',ep2.y); line.setAttribute('stroke',color); line.setAttribute('stroke-width','3'); line.setAttribute('stroke-linecap','round'); line.setAttribute('marker-end','url(#arr-'+color.replace('#','')+')'); g.appendChild(line); const label = document.createElementNS('http://www.w3.org/2000/svg','text'); const midX = (fx+tx)/2, midY = (fy+ty)/2; label.setAttribute('x',midX); label.setAttribute('y',midY-10); label.setAttribute('class','graph-line-label'); label.setAttribute('fill',color); label.setAttribute('font-size','12'); label.setAttribute('text-anchor','middle'); label.setAttribute('font-weight','500'); label.textContent = e.type; g.appendChild(label); lineGroup.appendChild(g); });
+        chars.forEach(c=>{ const pos = relationNodePositions[c.id]; if(!pos) return; const x = pos.x - NODE_W/2, y = pos.y - NODE_H/2; const g = document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('data-id',c.id); g.style.cursor = 'pointer'; g.addEventListener('click',()=>{ graphNodeClick(c.id); }); g.addEventListener('mousedown',(ev)=>{ graphNodeDragStart(ev,c.id); }); const rect = document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',NODE_W); rect.setAttribute('height',NODE_H); rect.setAttribute('rx','10'); rect.setAttribute('ry','10'); rect.setAttribute('fill','#1C1A28'); rect.setAttribute('stroke','#3B8ED4'); rect.setAttribute('stroke-width','1.5'); g.appendChild(rect); const name = document.createElementNS('http://www.w3.org/2000/svg','text'); name.setAttribute('x',pos.x); name.setAttribute('y',pos.y-4); name.setAttribute('class','graph-node-text'); name.setAttribute('fill','#EDEAF2'); name.setAttribute('font-size','12'); name.setAttribute('text-anchor','middle'); name.setAttribute('pointer-events','none'); name.textContent = (c.name||'?').substring(0, 5); g.appendChild(name); const relCount = (c.relationships||[]).length; const sub = document.createElementNS('http://www.w3.org/2000/svg','text'); sub.setAttribute('x',pos.x); sub.setAttribute('y',pos.y+16); sub.setAttribute('class','graph-node-sub'); sub.setAttribute('fill','#7A728F'); sub.setAttribute('font-size','9'); sub.setAttribute('text-anchor','middle'); sub.setAttribute('pointer-events','none'); sub.textContent = relCount ? relCount+'个关系' : '无关系'; g.appendChild(sub); nodeGroup.appendChild(g); });
         // v6.4：区域底层绘制（先于人物/关系，置于最底层；半透明底色 + 框线 + 名称双线框居中）
         if(graphRegions.length) {
             const regionGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
@@ -2563,7 +2622,7 @@ ${chapter.content.slice(0,5000)}
     }
     function clearChatHistory() {
         // 生成/双版选择期间清空聊天会丢失"生成中"占位消息 → 结果反馈无法显示
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成或双版选择进行中，暂不能清空聊天记录"); return; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成或双版选择进行中，暂不能清空聊天记录"); return; }
         const book = getCurrentBook();
         if(!book || !book.chatHistory || !book.chatHistory.length) { toast("聊天记录已为空"); return; }
         if(!confirm(`确认清空全部 ${book.chatHistory.length} 条聊天记录？此操作不可撤销。`)) return;
@@ -2577,7 +2636,7 @@ ${chapter.content.slice(0,5000)}
         if(!instr) { toast("请输入创作指令"); return; }
         let book = getCurrentBook();
         if(isGenerating) { toast("已有生成任务进行中"); return; }
-        if(pendingPolish) { toast("润色进行中，请先等待完成"); return; }
+        if(pendingPolish || polishMode) { toast(pendingPolish ? "润色进行中，请先等待完成" : "润色预览中，请先应用或取消"); return; }
         if(pendingBranch) { toast("走向生成中，请稍候"); return; } // v7.3 C3 修复：走向请求期间禁止并发生成
         if(!ensureCurrentChapterSaved()) return;
         // v7.2：重写态——发送 = 重写本章（pendingRewrite 由 onRegenerate 设置，切章节/完成/新生成时清除）
@@ -2997,7 +3056,7 @@ ${chapter.content.slice(0,5000)}
         let book = getCurrentBook();
         if(!book || !book.chapters.length) { toast("请先生成第一章后再续写"); return; }
         if(isGenerating) { toast("已有生成任务进行中，请等待或点击停止"); return; }
-        if(pendingPolish) { toast("润色进行中，请先等待完成"); return; }
+        if(pendingPolish || polishMode) { toast(pendingPolish ? "润色进行中，请先等待完成" : "润色预览中，请先应用或取消"); return; }
         if(pendingBranch) { toast("走向生成中，请稍候"); return; }
         if(!ensureCurrentChapterSaved()) return;
         if(pendingGeneration) cancelPendingGeneration('⚠️ 已被新的生成任务覆盖');
@@ -3210,19 +3269,26 @@ ${chapter.content.slice(0,5000)}
         polishBeforeText = text; // v7.3：存润色前正文快照（取消 = 整体还原，预览期手动删改全部作废）
         let failed = 0;
         const applied = [];
+        // v7.3 修复：匹配位置跳过已被占用的索引——同一 old 在文中多次出现（或 AI 返回重复 old）时，
+        // 不再全部命中第一次出现，按出现顺序逐个分配，避免从后往前替换时错位
+        const usedPos = new Set();
+        const posMap = new Map();
         for(const e of edits) {
-            const i = text.indexOf(e.old);
+            let i = text.indexOf(e.old);
+            while(i >= 0 && usedPos.has(i)) i = text.indexOf(e.old, i + 1);
             if(i < 0) { failed++; continue; }
+            usedPos.add(i);
+            posMap.set(e, i);
             applied.push(e);
         }
         polishDiffs = applied;
         if(!applied.length) return failed;
         polishTargetId = chap.id; // v7.3：记录预览目标章节（切章后应用/放弃被拦截）
-        // 从后往前替换避免索引错乱
+        // 从后往前替换避免索引错乱（markers 位置基于原始 text，顺序分配不重复）
         let htmlText = text;
         const markers = [];
         for(const e of applied) {
-            const i = htmlText.indexOf(e.old);
+            const i = posMap.get(e);
             markers.push({ i, old: e.old, nw: e.new, ratio: e.ratio, reason: e.reason });
         }
         markers.sort((a,b) => b.i - a.i);
@@ -3317,7 +3383,7 @@ ${chapter.content.slice(0,5000)}
         let book = getCurrentBook();
         if(!book || !book.currentChapterId) { toast("请先选择章节"); return; }
         if(isGenerating) { toast("已有生成任务进行中，请等待或点击停止"); return; }
-        if(pendingPolish) { toast("润色进行中，请先等待完成"); return; }
+        if(pendingPolish || polishMode) { toast(pendingPolish ? "润色进行中，请先等待完成" : "润色预览中，请先应用或取消"); return; }
         if(pendingBranch) { toast("走向生成中，请稍候再重写"); return; }
         if(pendingRewrite) { toast("已有待发送的重写，先发送或切换章节取消"); return; }
         // v7.2：发起重写即清除走向待发态（消息栏将被原始指令覆盖，走向态作废）
@@ -3410,10 +3476,11 @@ ${chapter.content.slice(0,5000)}
         books.forEach(b => {
             let d = document.createElement('div');
             d.className = `book-card ${currentBookId===b.id?'active':''}`;
-            d.innerHTML = `<div class="book-title"><span>${escapeHtml(b.name)}</span><span style="display:flex;gap:2px;"><i class="fas fa-pen" data-action="rename" data-id="${b.id}" title="重命名"></i><i class="fas fa-trash" data-action="delete" data-id="${b.id}"></i></span></div><div class="book-meta">${b.chapters?.length||0}章 | 角色:${b.characters?.length||0} | ${getBookWordCount(b)}字</div>`;
+            d.innerHTML = `<div class="book-title"><span>${escapeHtml(b.name)}</span><span style="display:flex;gap:2px;"><i class="fas fa-pen" data-action="rename" data-id="${b.id}" title="重命名"></i><i class="fas fa-copy" data-action="duplicate" data-id="${b.id}" title="复制书籍"></i><i class="fas fa-trash" data-action="delete" data-id="${b.id}"></i></span></div><div class="book-meta">${b.chapters?.length||0}章 | 角色:${b.characters?.length||0} | ${getBookWordCount(b)}字</div>`;
             d.addEventListener('click', (e) => { if(e.target.tagName!=='I') switchBook(b.id); });
-            d.querySelector('[data-action="rename"]')?.addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成进行中，请等待完成或点击停止后再重命名"); return; } const nb = prompt('重命名小说', b.name); if(nb && nb.trim() && nb.trim() !== b.name) { const oldName = b.name; b.name = nb.trim(); renderBookshelf(); if(!persistOrWarn()) { b.name = oldName; renderBookshelf(); toast('保存失败，已还原'); return; } if(currentBookId === b.id) { const curBookName = $('curBookName'); if(curBookName) curBookName.innerText = b.name; } toast(`已重命名《${b.name}》`); } });
+            d.querySelector('[data-action="rename"]')?.addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再重命名"); return; } const nb = prompt('重命名小说', b.name); if(nb && nb.trim() && nb.trim() !== b.name) { const oldName = b.name; b.name = nb.trim(); renderBookshelf(); if(!persistOrWarn()) { b.name = oldName; renderBookshelf(); toast('保存失败，已还原'); return; } if(currentBookId === b.id) { const curBookName = $('curBookName'); if(curBookName) curBookName.innerText = b.name; } toast(`已重命名《${b.name}》`); } });
             d.querySelector('[data-action="delete"]')?.addEventListener('click', (e) => { e.stopPropagation(); if(confirm(`确认删除《${b.name}》？此操作不可撤销。`)) deleteBook(b.id); });
+            d.querySelector('[data-action="duplicate"]')?.addEventListener('click', (e) => { e.stopPropagation(); duplicateBook(b.id); });
             bookList.appendChild(d);
         });
         if(!books.length) bookList.innerHTML = '<div style="padding:12px;color:#6A627A;">暂无小说</div>';
@@ -3424,7 +3491,7 @@ ${chapter.content.slice(0,5000)}
     function switchBook(id, skipSave) {
         // 返回布尔值（v5.8）：saveApi 自动重试切回原书时需检查切换是否成功，
         // 失败则取消任务，杜绝"数据写入原书、界面停留新书"的错位
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成进行中，请等待完成或点击停止后再切换"); return false; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再切换"); return false; }
         // skipSave=true 用于删除当前书后的切换：该书已删除，其未保存修改随删除丢弃，
         // 必须先切 currentBookId 再加载，否则 saveCurChapter 会把旧编辑器内容写入新书（数据污染）
         if(initialized && !isImporting && !skipSave) { if(!ensureCurrentChapterSaved()) return false; }
@@ -3449,8 +3516,51 @@ ${chapter.content.slice(0,5000)}
         }
         return true;
     }
+    // v7.4：复制书籍——全量深拷贝（章节/角色+成长/关系/聊天/设定/精准/关系图布局），id 重映射，副本内关系重定向
+    function duplicateBook(id) {
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再复制"); return; }
+        const book = books.find(b => b.id === id); if(!book) return;
+        if(!ensureCurrentChapterSaved()) return;
+        const newName = prompt('复制为新书，请输入新书名（默认：原书名-副本）', book.name + '-副本');
+        if(!newName || !newName.trim()) { toast("已取消复制"); return; }
+        const copy = JSON.parse(JSON.stringify(book));
+        copy.id = uuid();
+        copy.name = newName.trim();
+        // 章节 id 重映射
+        (copy.chapters || []).forEach(ch => { ch.id = uuid(); });
+        // 角色 id 重映射
+        const charIdMap = new Map();
+        (copy.characters || []).forEach(c => { const oldId = String(c.id); const newId = uuid(); charIdMap.set(oldId, newId); c.id = newId; });
+        // 关系：副本内 targetId 重映射（集合外保留原值——沿用"无脑带走"逻辑）
+        (copy.characters || []).forEach(c => {
+            if(Array.isArray(c.relationships)) {
+                c.relationships = c.relationships.map(r => (r && charIdMap.has(String(r.targetId))) ? ({ ...r, targetId: charIdMap.get(String(r.targetId)) }) : r).filter(Boolean);
+            }
+        });
+        // 精准勾选：角色 id 重映射（动作/服装指向全局库，保持原值）
+        if(Array.isArray(copy.precisionChars)) {
+            copy.precisionChars = copy.precisionChars.map(pid => charIdMap.has(String(pid)) ? charIdMap.get(String(pid)) : pid);
+        }
+        // 关系图布局：key 按角色 id 重映射（区域/颜色映射随副本复制）
+        if(copy.relationPositions && typeof copy.relationPositions === 'object') {
+            const newPos = {};
+            for(const [k, v] of Object.entries(copy.relationPositions)) {
+                if(charIdMap.has(String(k))) newPos[charIdMap.get(String(k))] = v;
+            }
+            copy.relationPositions = newPos;
+        }
+        // 当前章节指向副本第一章节
+        copy.currentChapterId = (copy.chapters && copy.chapters.length) ? copy.chapters[0].id : null;
+        // 插入原书后，不自动切换
+        const idx = books.findIndex(b => b.id === id);
+        books.splice(idx + 1, 0, copy);
+        if(!persistOrWarn()) { books.splice(idx + 1, 1); toast("保存失败，已取消复制"); return; }
+        renderBookshelf();
+        toast(`已复制为《${copy.name}》`);
+    }
+
     function deleteBook(id) {
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成进行中，请等待完成或点击停止后再删除"); return; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再删除"); return; }
         let idx = books.findIndex(b=>b.id===id);
         if(idx!==-1) {
             const removed = books[idx]; // v5.8：保存失败时回滚用
@@ -3473,7 +3583,7 @@ ${chapter.content.slice(0,5000)}
         }
     }
     function newBook() {
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成进行中，请等待完成或点击停止后再新建"); return; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再新建"); return; }
         let name = prompt('小说名称', `新作${books.length+1}`);
         if(!name || !name.trim()) { toast("书名不能为空"); return; }
         let b = { id:uuid(), name:name.trim(), chapters:[], currentChapterId:null, chatHistory:[], worldview:'', plotSet:'', termSet:'', globalPrompt:'你是一位擅长细腻情感的言情小说家。', writingStyle:'文风细腻，多用心理描写。', characters:[], forbiddenWords:[], precisionMode:false, precisionChars:[], precisionActions:[], precisionCostumes:[] };
@@ -3493,6 +3603,10 @@ ${chapter.content.slice(0,5000)}
         // 修复前强制变蓝会与"结果保留"状态矛盾（按钮显示无冲突、面板却有旧冲突）
         const checkBtn = $('checkConflictBtn'); if(checkBtn) checkBtn.style.background = (chap.checkResult && chap.checkResult.length) ? "#C97A3A" : "#3A3A6A"; } }
     function saveCurChapter() {
+        // v7.3 修复：润色预览态（polishMode）下禁止保存——正文含 <mark> 红绿理由标签，
+        // getEditorText 剥标签会把"旧+新+📎理由"拼接污染正文。所有保存路径（30s自动保存/
+        // blur/切章/快捷键/导出）都走这里，源头一刀切；应用/取消直接操作 chap+saveAll 不受影响
+        if(polishMode) return true;
         let b = getCurrentBook(); if(!b || !b.currentChapterId) return false;
         let c = b.chapters.find(ch=>ch.id===b.currentChapterId);
         const el = $('novelContent'); if(!c || !el) return false;
@@ -3543,7 +3657,7 @@ ${chapter.content.slice(0,5000)}
         chaptersList.addEventListener('drop', (e) => {
             e.preventDefault(); const targetItem = e.target.closest('.chap-item');
             if(!targetItem || dragSrcIndex === null) return;
-            if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成进行中，请等待完成或点击停止后再排序"); dragSrcIndex = null; return; }
+            if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再排序"); dragSrcIndex = null; return; }
             const targetIndex = Array.from(chaptersList.children).indexOf(targetItem);
             if(dragSrcIndex === targetIndex) return;
             const book = getCurrentBook();
@@ -3561,12 +3675,12 @@ ${chapter.content.slice(0,5000)}
             div.setAttribute('draggable', 'true');
             const chapTitle = (ch.isInterlude ? '<i class="fas fa-feather-alt" style="margin-right:5px;color:#8A84A8;font-size:0.75rem;" title="间章"></i>' : '') + escapeHtml(ch.title||'未命名');
             div.innerHTML = `<span style="cursor:pointer;flex:1;">${chapTitle}</span><div class="chap-actions"><i class="fas fa-pen" data-action="rename" data-id="${ch.id}"></i><i class="fas fa-trash" data-action="delete" data-id="${ch.id}"></i><i class="fas fa-exchange-alt" data-action="toggleInterlude" data-id="${ch.id}" title="正章⇄间章"></i></div>`;
-            div.addEventListener('click', (e) => { if(e.target.tagName==='I') return; if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成进行中，请等待完成或点击停止后再切换章节"); return; } if(!ensureCurrentChapterSaved()) return; b.currentChapterId=ch.id; setRewriteMode(false, null); branchContinuePending = false; branchBookId = null; loadCurChapter(); renderChapters(); saveAll(); });
-            div.querySelector('[data-action="rename"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成进行中，请等待完成或点击停止后再重命名"); return; } let nt=prompt('新章节标题',ch.title); if(nt&&nt.trim()){ ch.title=nt.trim(); renderChapters(); if(!persistOrWarn()) return; if(b.currentChapterId===ch.id) { const curChapName = $('curChapName'); if(curChapName) curChapName.innerText = ch.title.substring(0,25); } } });
-            div.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成进行中，请等待完成或点击停止后再删除"); return; } const deletingCurrent = b.currentChapterId===ch.id; if(!deletingCurrent && !ensureCurrentChapterSaved()) { toast("当前章节保存失败，已取消删除操作"); return; } if(!confirm(`确认删除章节「${ch.title}」？`)) return; const idx=b.chapters.findIndex(c=>c.id===ch.id); if(idx!==-1) { const removed=b.chapters[idx]; const oldCurrentId=b.currentChapterId; const oldLen=b.chapters.length; b.chapters.splice(idx,1); if(b.chapters.length===0) { b.chapters.push({ id:uuid(), title:"新章节", content:"# 新章节\n\n在这里开始写作...", prompt:"", checkResult:[], isContinuation:false, isInterlude:false }); b.currentChapterId=b.chapters[0].id; toast("已清空所有章节，自动创建空白章节"); } else { if(b.currentChapterId===ch.id) b.currentChapterId=b.chapters[0]?.id||null; toast(`已删除「${ch.title}」`); } if(!persistOrWarn()) { if(oldLen===1) b.chapters.pop(); b.chapters.splice(idx,0,removed); b.currentChapterId=oldCurrentId; renderChapters(); loadCurChapter(); toast('保存失败，已恢复章节'); return; } removeChapterGrowthFromAll(b, ch.id); renderChapters(); loadCurChapter(); } });
+            div.addEventListener('click', (e) => { if(e.target.tagName==='I') return; if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再切换章节"); return; } if(!ensureCurrentChapterSaved()) return; b.currentChapterId=ch.id; setRewriteMode(false, null); branchContinuePending = false; branchBookId = null; loadCurChapter(); renderChapters(); saveAll(); });
+            div.querySelector('[data-action="rename"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再重命名"); return; } let nt=prompt('新章节标题',ch.title); if(nt&&nt.trim()){ ch.title=nt.trim(); renderChapters(); if(!persistOrWarn()) return; if(b.currentChapterId===ch.id) { const curChapName = $('curChapName'); if(curChapName) curChapName.innerText = ch.title.substring(0,25); } } });
+            div.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再删除"); return; } const deletingCurrent = b.currentChapterId===ch.id; if(!deletingCurrent && !ensureCurrentChapterSaved()) { toast("当前章节保存失败，已取消删除操作"); return; } if(!confirm(`确认删除章节「${ch.title}」？`)) return; const idx=b.chapters.findIndex(c=>c.id===ch.id); if(idx!==-1) { const removed=b.chapters[idx]; const oldCurrentId=b.currentChapterId; const oldLen=b.chapters.length; b.chapters.splice(idx,1); if(b.chapters.length===0) { b.chapters.push({ id:uuid(), title:"新章节", content:"# 新章节\n\n在这里开始写作...", prompt:"", checkResult:[], isContinuation:false, isInterlude:false }); b.currentChapterId=b.chapters[0].id; toast("已清空所有章节，自动创建空白章节"); } else { if(b.currentChapterId===ch.id) b.currentChapterId=b.chapters[0]?.id||null; toast(`已删除「${ch.title}」`); } if(!persistOrWarn()) { if(oldLen===1) b.chapters.pop(); b.chapters.splice(idx,0,removed); b.currentChapterId=oldCurrentId; renderChapters(); loadCurChapter(); toast('保存失败，已恢复章节'); return; } removeChapterGrowthFromAll(b, ch.id); renderChapters(); loadCurChapter(); } });
             div.querySelector('[data-action="toggleInterlude"]')?.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成进行中，请等待完成或点击停止后再切换间章"); return; }
+                if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再切换间章"); return; }
                 const book = getCurrentBook(); if(!book) return;
                 const chap = book.chapters.find(c=>c.id===ch.id);
                 if(chap) {
@@ -3605,7 +3719,7 @@ ${chapter.content.slice(0,5000)}
 
     function addNewChapter() {
         let b = getCurrentBook(); if(!b) return;
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成进行中，请等待完成或点击停止后再新增章节"); return; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再新增章节"); return; }
         if(!ensureCurrentChapterSaved()) return;
         // 默认创建普通正章（与"新增章节"文案语义一致）；需要间章可点击 ⬌ 切换
         b.chapters.push({ id:uuid(), title:'新章节', content:"# 新章节\n\n在这里书写...", prompt:"", checkResult:[], isContinuation:false, isInterlude:false });
@@ -3615,7 +3729,7 @@ ${chapter.content.slice(0,5000)}
     }
     function changeChap(delta) {
         let b = getCurrentBook(); if(!b || !b.chapters.length) return;
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成进行中，请等待完成或点击停止后再切换章节"); return; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再切换章节"); return; }
         let idx = b.chapters.findIndex(c=>c.id===b.currentChapterId);
         let nidx = idx+delta;
         if(nidx>=0 && nidx<b.chapters.length) { if(!ensureCurrentChapterSaved()) return; b.currentChapterId = b.chapters[nidx].id; setRewriteMode(false, null); branchContinuePending = false; branchBookId = null; loadCurChapter(); renderChapters(); saveAll(); }
@@ -3633,7 +3747,8 @@ ${chapter.content.slice(0,5000)}
     function sanitizeFilename(name) { let f = (name||'未命名').replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_').replace(/^\.+/, '').replace(/^_+$/, 'untitled').substring(0, 50); return f || 'untitled'; }
     function exportFull() {
         let b = getCurrentBook(); if(!b || !b.chapters.length) { toast("无内容"); return; }
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) toast("⚠️ 生成或双版选择进行中，导出内容不包含未完成结果");
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) toast("⚠️ 生成或双版选择进行中，导出内容不包含未完成结果");
+        if(polishMode) { toast("润色预览中，请先应用或取消后再导出"); return; }
         if(!ensureCurrentChapterSaved()) return; // 导出前先保存当前编辑（保存失败则取消，防导出缺最新内容）
         // 正文章号独立计数（间章不占号）：第一章→间章→第二章，而非 1→间章→3
         let regularNo = 0;
@@ -3644,7 +3759,8 @@ ${chapter.content.slice(0,5000)}
         let b = getCurrentBook(); if(!b || !b.currentChapterId) { toast("请先选择章节"); return; }
         let c = b.chapters.find(ch=>ch.id===b.currentChapterId);
         if(!c) { toast("未找到当前章节"); return; }
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) toast("⚠️ 生成或双版选择进行中，导出内容不包含未完成结果");
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) toast("⚠️ 生成或双版选择进行中，导出内容不包含未完成结果");
+        if(polishMode) { toast("润色预览中，请先应用或取消后再导出"); return; }
         if(!ensureCurrentChapterSaved()) return;
         let txt = `${c.title}\n\n${c.content}`;
         let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt],{type:"text/plain"}));
@@ -3660,26 +3776,28 @@ ${chapter.content.slice(0,5000)}
         }
     }
     function exportBackup() {
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) toast("⚠️ 生成或双版选择进行中，备份不包含未完成结果");
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) toast("⚠️ 生成或双版选择进行中，备份不包含未完成结果");
+        if(polishMode) { toast("润色预览中，请先应用或取消后再备份"); return; }
         if(!ensureCurrentChapterSaved()) return;
         const scratchpadModalEl = $('scratchpadModal'); const scratchpadEl = $('scratchpadContent');
         if(scratchpadEl && scratchpadModalEl && scratchpadModalEl.style.display === 'flex') {
-            scratchpadContent = scratchpadEl.value;
+            scratchpadPages[scratchpadCurPage] = scratchpadEl.value; // v7.4：同步当前页
+            scratchpadContent = scratchpadPages[0] || '';
         }
-        const backupData = { version:"7.3", timestamp:Date.now(), books, currentBookId, apiConfig:api, polishApiCfg:polishApi, imageApiCfg:imageApiCfg, globalCharacters, globalActions, globalCostumes, scratchpadContent, appLogs };
+        const backupData = { version:"7.4", timestamp:Date.now(), books, currentBookId, apiConfig:api, polishApiCfg:polishApi, imageApiCfg:imageApiCfg, globalCharacters, globalActions, globalCostumes, scratchpadPages, scratchpadContent: (scratchpadPages[0]||''), layoutPrefs: JSON.parse(JSON.stringify(layoutPrefs)), appLogs };
         const blob = new Blob([JSON.stringify(backupData,null,2)], {type:"application/json"});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `小说参数备份_${new Date().toISOString().slice(0,10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("备份已导出");
     }
     // 数组类型兜底：异常/手动修改的备份可能把数组字段写成对象，强制转回数组防初始化崩溃
     function ensureArray(v) { return Array.isArray(v) ? v : []; }
     function importBackup(file) {
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成进行中，请等待完成或点击停止后再导入"); return; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再导入"); return; }
         if(!confirm("导入备份将覆盖当前全部数据（所有小说、设定、API 配置、素材库、草稿本等），且不可恢复！\n\n建议先点击「备份」导出当前数据。\n\n是否继续导入？")) return;
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                if(!data.books || !Array.isArray(data.books)) throw new Error("备份文件格式无效：缺少 books 数组"); var compatVersions = ["2.6","2.7","2.8","2.9","3.0","3.1","3.2","3.3","3.4","3.6","3.7","3.8","3.9","4.0","4.1","4.2","4.3","4.4","4.5","4.6","4.7","4.8","4.9","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7","5.8","5.9","6.0","6.1","6.2","6.3","6.4","6.5","6.6","6.7","6.8","6.9","7.0","7.1","7.2","7.3"]; if(data.version && !compatVersions.includes(data.version)) { if(!confirm("备份版本("+data.version+")与当前版本(7.3)不匹配，可能存在兼容性问题。\n\n是否继续导入？")) { throw new Error("用户取消导入"); } }
+                if(!data.books || !Array.isArray(data.books)) throw new Error("备份文件格式无效：缺少 books 数组"); var compatVersions = ["2.6","2.7","2.8","2.9","3.0","3.1","3.2","3.3","3.4","3.6","3.7","3.8","3.9","4.0","4.1","4.2","4.3","4.4","4.5","4.6","4.7","4.8","4.9","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7","5.8","5.9","6.0","6.1","6.2","6.3","6.4","6.5","6.6","6.7","6.8","6.9","7.0","7.1","7.2","7.3","7.4"]; if(data.version && !compatVersions.includes(data.version)) { if(!confirm("备份版本("+data.version+")与当前版本(7.3)不匹配，可能存在兼容性问题。\n\n是否继续导入？")) { throw new Error("用户取消导入"); } }
                 books = data.books.filter(b => b && typeof b === 'object');
                 books.forEach(book => { book.characters = ensureArray(book.characters); book.chatHistory = ensureArray(book.chatHistory); book.chapters = ensureArray(book.chapters); book.forbiddenWords = ensureArray(book.forbiddenWords); book.chapters.forEach(ch => { if(!Array.isArray(ch.checkResult)) ch.checkResult=[]; }); migrateChapter(book); });
                 if(data.globalCharacters) globalCharacters = ensureArray(data.globalCharacters);
@@ -3688,10 +3806,36 @@ ${chapter.content.slice(0,5000)}
                 // v6.8：normalize 移到全局库载入后——此前在 books.forEach 内先于 globalActions/Costumes 赋值执行，
                 // 用旧的空库清空备份中的动作/服装精准选择（P0-2 数据破坏）
                 books.forEach(book => { normalizePrecisionSelections(book); });
-                if(data.scratchpadContent !== undefined) { scratchpadContent = data.scratchpadContent; try { localStorage.setItem('scratchpad_v1', scratchpadContent); } catch(e) {} }
+                if(data.scratchpadPages && Array.isArray(data.scratchpadPages) && data.scratchpadPages.length === 5) {
+                    scratchpadPages = data.scratchpadPages.map(x => typeof x === 'string' ? x : '');
+                } else if(data.scratchpadContent !== undefined) {
+                    scratchpadPages = ['','','','',''];
+                    scratchpadPages[0] = typeof data.scratchpadContent === 'string' ? data.scratchpadContent : '';
+                }
+                scratchpadContent = scratchpadPages[0] || '';
+                try { localStorage.setItem('scratchpad_pages_v1', JSON.stringify(scratchpadPages)); } catch(e) {}
                 if(data.apiConfig) Object.assign(api, data.apiConfig);
                 if(data.polishApiCfg) Object.assign(polishApi, data.polishApiCfg);
                 if(data.imageApiCfg) Object.assign(imageApiCfg, data.imageApiCfg);
+                if(data.layoutPrefs && data.layoutPrefs.libEditorW) {
+                    layoutPrefs = { libEditorW: { role: 0, globalRole: 0, action: 0, costume: 0 }, textarea: {} };
+                    for(const k of ['role','globalRole','action','costume']) {
+                        if(typeof data.layoutPrefs.libEditorW[k] === 'number' && data.layoutPrefs.libEditorW[k] > 240) {
+                            layoutPrefs.libEditorW[k] = data.layoutPrefs.libEditorW[k];
+                            try { localStorage.setItem('lib_editor_w_' + k, String(data.layoutPrefs.libEditorW[k])); } catch(e) {}
+                        }
+                    }
+                }
+                // v7.4：恢复 textarea 宽高（备份含 layoutPrefs.textarea 时）
+                if(data.layoutPrefs && data.layoutPrefs.textarea && typeof data.layoutPrefs.textarea === 'object') {
+                    layoutPrefs.textarea = {};
+                    for(const [tid, wh] of Object.entries(data.layoutPrefs.textarea)) {
+                        if(wh && typeof wh.w === 'number' && wh.w > 100 && typeof wh.h === 'number' && wh.h > 40) {
+                            layoutPrefs.textarea[tid] = { w: wh.w, h: wh.h };
+                            try { localStorage.setItem('lib_ta_w_' + tid, String(wh.w)); localStorage.setItem('lib_ta_h_' + tid, String(wh.h)); } catch(e) {}
+                        }
+                    }
+                }
                 currentBookId = data.currentBookId || (books[0]?.id||null);
                 const savedOk = saveAll(); renderBookshelf();
                 isImporting = true;
@@ -3728,7 +3872,7 @@ ${chapter.content.slice(0,5000)}
         }
     }
 
-    function initEditorBlurSnapshot() { const novelContent = $('novelContent'); if(!novelContent) return; novelContent.addEventListener('blur', () => { saveCurChapter(); }); novelContent.addEventListener('input', () => { markContentDirty(); updateWord(); }); novelContent.addEventListener('paste', (e) => { e.preventDefault(); const text = e.clipboardData.getData('text/plain'); if(text) { const sel = window.getSelection(); if(sel.rangeCount) { sel.deleteFromDocument(); sel.getRangeAt(0).insertNode(document.createTextNode(text)); sel.collapseToEnd(); markContentDirty(); updateWord(); } } }); }
+    function initEditorBlurSnapshot() { const novelContent = $('novelContent'); if(!novelContent) return; novelContent.addEventListener('blur', () => { if(polishMode) return; saveCurChapter(); }); novelContent.addEventListener('input', () => { markContentDirty(); updateWord(); }); novelContent.addEventListener('paste', (e) => { e.preventDefault(); const text = e.clipboardData.getData('text/plain'); if(text) { const sel = window.getSelection(); if(sel.rangeCount) { sel.deleteFromDocument(); sel.getRangeAt(0).insertNode(document.createTextNode(text)); sel.collapseToEnd(); markContentDirty(); updateWord(); } } }); }
 
     // ======================== 查找替换 ========================
     let findQuery = '', findIndex = 0, findTotal = 0;
@@ -3781,7 +3925,7 @@ ${chapter.content.slice(0,5000)}
         ['findPrevBtn','findNextBtn','replaceOneBtn','replaceAllBtn','closeFindBtn'].forEach(id => { const btn = $(id); if(!btn) return; const fn = { findPrevBtn: findPrev, findNextBtn: findNext, replaceOneBtn: replaceOne, replaceAllBtn: replaceAll, closeFindBtn: hideFindBar }[id]; if(fn) btn.onclick = fn; });
     }
 
-    function startAutoSave() { if(autoSaveInterval) clearInterval(autoSaveInterval); autoSaveInterval = setInterval(() => { if(!isGenerating && currentBookId) { saveCurChapter(); updateStorageIndicator(); } }, 30000); }
+    function startAutoSave() { if(autoSaveInterval) clearInterval(autoSaveInterval); autoSaveInterval = setInterval(() => { if(!isGenerating && !polishMode && currentBookId) { saveCurChapter(); updateStorageIndicator(); } }, 30000); }
 
     function initResize() {
         const leftStack = $('leftStack'), rightSide = $('rightSide'), chatContainer = $('chatContainer'), chatInpTA = $('chatInp');
@@ -3831,19 +3975,19 @@ ${chapter.content.slice(0,5000)}
         const backupImportBtn = $('backupImportBtn'); if(backupImportBtn) backupImportBtn.onclick = () => { const fileInput = $('backupFileInput'); if(fileInput) fileInput.click(); };
         const backupFileInput = $('backupFileInput'); if(backupFileInput) backupFileInput.onchange = (e) => { if(e.target.files.length) { importBackup(e.target.files[0]); e.target.value=''; } };
         const resetAllBtn = $('resetAllBtn'); if(resetAllBtn) resetAllBtn.onclick = resetAll;
-        const roleLibraryBtn = $('roleLibraryBtn'); if(roleLibraryBtn) roleLibraryBtn.onclick = () => { if(getCurrentBook()) { const roleBookName = $('roleBookName'); if(roleBookName) roleBookName.innerText=getCurrentBook().name; renderCharacterList(); clearCharForm(); const roleModal = $('roleModal'); if(roleModal) roleModal.style.display='flex'; } else toast("请先选择小说"); };
-        const actionLibraryBtn = $('actionLibraryBtn'); if(actionLibraryBtn) actionLibraryBtn.onclick = () => { renderActionList(); clearGlobalActionForm(); const actionModal = $('actionModal'); if(actionModal) actionModal.style.display='flex'; };
-        const costumeLibraryBtn = $('costumeLibraryBtn'); if(costumeLibraryBtn) costumeLibraryBtn.onclick = () => { renderCostumeList(); clearGlobalCostumeForm(); const costumeModal = $('costumeModal'); if(costumeModal) costumeModal.style.display='flex'; };
-        const globalRoleBtn = $('globalRoleBtn'); if(globalRoleBtn) globalRoleBtn.onclick = () => { renderGlobalCharList(); clearGlobalCharForm(); const globalRoleModal = $('globalRoleModal'); if(globalRoleModal) globalRoleModal.style.display='flex'; };
+        const roleLibraryBtn = $('roleLibraryBtn'); if(roleLibraryBtn) roleLibraryBtn.onclick = () => { if(getCurrentBook()) { const roleBookName = $('roleBookName'); if(roleBookName) roleBookName.innerText=getCurrentBook().name; renderCharacterList(); clearCharForm(); applyLibEditorWidth(); const roleModal = $('roleModal'); if(roleModal) roleModal.style.display='flex'; } else toast("请先选择小说"); };
+        const actionLibraryBtn = $('actionLibraryBtn'); if(actionLibraryBtn) actionLibraryBtn.onclick = () => { renderActionList(); clearGlobalActionForm(); applyLibEditorWidth(); const actionModal = $('actionModal'); if(actionModal) actionModal.style.display='flex'; };
+        const costumeLibraryBtn = $('costumeLibraryBtn'); if(costumeLibraryBtn) costumeLibraryBtn.onclick = () => { renderCostumeList(); clearGlobalCostumeForm(); applyLibEditorWidth(); const costumeModal = $('costumeModal'); if(costumeModal) costumeModal.style.display='flex'; };
+        const globalRoleBtn = $('globalRoleBtn'); if(globalRoleBtn) globalRoleBtn.onclick = () => { renderGlobalCharList(); clearGlobalCharForm(); applyLibEditorWidth(); const globalRoleModal = $('globalRoleModal'); if(globalRoleModal) globalRoleModal.style.display='flex'; };
         const scratchpadBtn = $('scratchpadBtn'); if(scratchpadBtn) scratchpadBtn.onclick = openScratchpadModal;
         const saveScratchpadBtn = $('saveScratchpadBtn'); if(saveScratchpadBtn) saveScratchpadBtn.onclick = saveScratchpad;
-        const closeScratchpadBtn = $('closeScratchpadBtn'); if(closeScratchpadBtn) closeScratchpadBtn.onclick = () => { $('scratchpadModal').style.display='none'; };
+        const closeScratchpadBtn = $('closeScratchpadBtn'); if(closeScratchpadBtn) closeScratchpadBtn.onclick = () => { saveScratchpad(false); $('scratchpadModal').style.display='none'; };
         const forbiddenWordsBtn = $('forbiddenWordsBtn'); if(forbiddenWordsBtn) forbiddenWordsBtn.onclick = openForbiddenWordsModal;
         const relationGraphBtn = $('relationGraphBtn'); if(relationGraphBtn) relationGraphBtn.onclick = openRelationGraph;
-        const closeRoleModal = $('closeRoleModal'); if(closeRoleModal) closeRoleModal.onclick = () => { const roleModal = $('roleModal'); if(roleModal) roleModal.style.display='none'; };
-        const closeActionModal = $('closeActionModal'); if(closeActionModal) closeActionModal.onclick = () => { const actionModal = $('actionModal'); if(actionModal) actionModal.style.display='none'; };
-        const closeCostumeModal = $('closeCostumeModal'); if(closeCostumeModal) closeCostumeModal.onclick = () => { const costumeModal = $('costumeModal'); if(costumeModal) costumeModal.style.display='none'; };
-        const closeGlobalRoleModal = $('closeGlobalRoleModal'); if(closeGlobalRoleModal) closeGlobalRoleModal.onclick = () => { const globalRoleModal = $('globalRoleModal'); if(globalRoleModal) globalRoleModal.style.display='none'; };
+        const closeRoleModal = $('closeRoleModal'); if(closeRoleModal) closeRoleModal.onclick = () => { saveLibEditorWidth(); const roleModal = $('roleModal'); if(roleModal) roleModal.style.display='none'; };
+        const closeActionModal = $('closeActionModal'); if(closeActionModal) closeActionModal.onclick = () => { saveLibEditorWidth(); const actionModal = $('actionModal'); if(actionModal) actionModal.style.display='none'; };
+        const closeCostumeModal = $('closeCostumeModal'); if(closeCostumeModal) closeCostumeModal.onclick = () => { saveLibEditorWidth(); const costumeModal = $('costumeModal'); if(costumeModal) costumeModal.style.display='none'; };
+        const closeGlobalRoleModal = $('closeGlobalRoleModal'); if(closeGlobalRoleModal) closeGlobalRoleModal.onclick = () => { saveLibEditorWidth(); const globalRoleModal = $('globalRoleModal'); if(globalRoleModal) globalRoleModal.style.display='none'; };
         const closeRelationModal = $('closeRelationModal'); if(closeRelationModal) closeRelationModal.onclick = () => { const relationGraphModal = $('relationGraphModal'); if(relationGraphModal) relationGraphModal.style.display='none'; };
         const addRelationBtn = $('addRelationBtn'); if(addRelationBtn) addRelationBtn.onclick = addRelationDirect;
         const relAddBtn = $('relAddBtn'); if(relAddBtn) relAddBtn.onclick = addRelationFromModal;
@@ -3851,6 +3995,7 @@ ${chapter.content.slice(0,5000)}
         const resetGraphLayoutBtn = $('resetGraphLayoutBtn'); if(resetGraphLayoutBtn) resetGraphLayoutBtn.onclick = resetGraphLayout;
         // v6.4：区域按钮绑定（创建/取消）
         const graphRegionBtn = $('graphRegionBtn'); if(graphRegionBtn) graphRegionBtn.onclick = openRegionModal;
+        const graphExportBtn = $('graphExportBtn'); if(graphExportBtn) graphExportBtn.onclick = exportRelationGraph;
         const saveRegionBtn = $('saveRegionBtn'); if(saveRegionBtn) saveRegionBtn.onclick = saveRegion;
         const closeRegionBtn = $('closeRegionBtn'); if(closeRegionBtn) closeRegionBtn.onclick = () => { const rm = $('regionModal'); if(rm) rm.style.display = 'none'; };
         const graphSnapBtn = $('graphSnapBtn'); if(graphSnapBtn) graphSnapBtn.onclick = toggleGraphSnap;
@@ -3897,7 +4042,8 @@ ${chapter.content.slice(0,5000)}
         // Ctrl+G 全局续写快捷键（即使焦点不在聊天框也生效）
         document.addEventListener('keydown', (e) => { const aeG = document.activeElement; const inInputG = aeG && (aeG.tagName==='INPUT' || aeG.tagName==='TEXTAREA' || aeG.isContentEditable); if((e.ctrlKey || e.metaKey) && e.key === 'g' && !inInputG) { const anyModalOpen = ['apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','precisionModal','scratchpadModal','branchModal'].some(id => { const m = $(id); return m && m.style.display === 'flex'; }); if(anyModalOpen) return; e.preventDefault(); onContinue(); } });
         document.addEventListener('keydown', (e) => { if((e.ctrlKey || e.metaKey) && e.key === 's' && document.activeElement?.id !== 'chatInp' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') { e.preventDefault(); const ok = saveCurChapter(); toast(ok ? '已保存' : '❌ 保存失败'); } });
-        document.addEventListener('keydown', (e) => { if(e.key === 'Escape') { const findBar = $('findBar'); if(findBar && findBar.style.display !== 'none') { hideFindBar(); return; } ['precisionModal','scratchpadModal','exportChoiceModal','regionModal','branchModal','apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal'].forEach(id => { let m = $(id); if(m && m.style.display === 'flex') { m.style.display = 'none'; if(id === 'apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } }); const relationEditModal = $('relationEditModal'); if(relationEditModal && relationEditModal.style.display === 'flex') closeRelationEdit(); } });
+        document.addEventListener('mouseup', () => { if(!isGenerating) saveLibEditorWidth(); });
+        document.addEventListener('keydown', (e) => { if(e.key === 'Escape') { saveLibEditorWidth(); const findBar = $('findBar'); if(findBar && findBar.style.display !== 'none') { hideFindBar(); return; } ['precisionModal','scratchpadModal','exportChoiceModal','regionModal','branchModal','apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal'].forEach(id => { let m = $(id); if(m && m.style.display === 'flex') { m.style.display = 'none'; if(id === 'apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } }); const relationEditModal = $('relationEditModal'); if(relationEditModal && relationEditModal.style.display === 'flex') closeRelationEdit(); } });
         const notifyBtn = $('notifyBtn'); if(notifyBtn) notifyBtn.onclick = () => {
             api.notify = !api.notify;
             if(api.notify) { notifyBtn.classList.add('guide-highlight'); toast('页签提醒已开启：生成完成时页签将闪烁 30 秒'); }
@@ -4215,19 +4361,186 @@ ${chapter.content.slice(0,5000)}
         else { btn.classList.remove('active'); btn.title = '并发双版（单次生效）'; }
     }
 
+    // ======================== v7.4 四库编辑栏宽度记忆 ========================
+    let layoutPrefs = { libEditorW: { role: 0, globalRole: 0, action: 0, costume: 0 }, textarea: {} }; // 0=默认比例；textarea 存各编辑框宽高
+    const LIB_EDITOR_MAP = { roleModal: 'role', globalRoleModal: 'globalRole', actionModal: 'action', costumeModal: 'costume' };
+    let libEditorResizeTimer = null;
+    // v7.4 修复：ResizeObserver 监听编辑栏宽度变化→防抖保存（CSS resize 手柄拖拽结束的 mouseup 浏览器常不派发，
+    // 原实现只靠 document mouseup 保存，用户拖完直接关软件会丢最后宽度——这是"重启后恢复默认"的根因）
+    function watchLibEditorResize(editor) {
+        if(!editor || editor.__libWatched) return;
+        editor.__libWatched = true;
+        try {
+            new ResizeObserver(() => {
+                if(libEditorResizeTimer) clearTimeout(libEditorResizeTimer);
+                libEditorResizeTimer = setTimeout(() => saveLibEditorWidth(), 200);
+            }).observe(editor);
+        } catch(e) {}
+    }
+    // v7.4 修复2：JS 拖拽分隔条 + 保存布局按钮（CSS resize 手柄在 flex 子项上不可靠——
+    // 很多浏览器手柄不显示/拖不动，ResizeObserver 永远不触发。改为自实现 mousedown/mousemove/mouseup，
+    // 拖完自动保存；另加每库「保存布局」按钮显式保存，双保险）
+    function initLibEditorLayout() {
+        for(const [modalId, key] of Object.entries(LIB_EDITOR_MAP)) {
+            const modal = $(modalId); if(!modal) continue;
+            const container = modal.querySelector('.lib-container'); if(!container || container.__libLayoutInit) continue;
+            container.__libLayoutInit = true;
+            const list = container.querySelector('.lib-list');
+            const editor = container.querySelector('.lib-editor');
+            if(!list || !editor) continue;
+            // ① 拖拽分隔条（插在 list 与 editor 之间）
+            const bar = document.createElement('div');
+            bar.className = 'lib-resizer';
+            bar.title = '拖动调整编辑栏宽度（自动保存）';
+            container.insertBefore(bar, editor);
+            bar.addEventListener('mousedown', (e) => {
+                e.preventDefault(); e.stopPropagation();
+                const startX = e.clientX;
+                const startW = editor.offsetWidth;
+                const maxW = Math.floor((container.clientWidth || 700) * 0.65);
+                const onMove = (ev) => {
+                    let w = startW + (ev.clientX - startX);
+                    w = Math.max(240, Math.min(maxW, w));
+                    editor.style.width = w + 'px';
+                };
+                const onUp = () => {
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onUp);
+                    saveLibEditorWidth(); // 拖完立即保存（mouseup 是我们自己监听的，可靠）
+                };
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+            });
+            // ② 保存布局按钮（h4 标题右侧）
+            const h4 = editor.querySelector('h4');
+            if(h4 && !h4.querySelector('.lib-save-layout-btn')) {
+                const btn = document.createElement('button');
+                btn.className = 'glass-btn lib-save-layout-btn';
+                btn.innerHTML = '<i class="fas fa-save"></i> 保存布局';
+                btn.title = '保存当前编辑栏宽度布局';
+                btn.addEventListener('click', (e) => { e.stopPropagation(); saveLibEditorWidth(); toast('布局已保存'); });
+                h4.appendChild(btn);
+            }
+            // ③ 应用已存宽度 + 挂 ResizeObserver（辅助）
+            let w = layoutPrefs.libEditorW[key];
+            if(!w || w <= 0) { const saved = localStorage.getItem('lib_editor_w_' + key); w = saved ? parseInt(saved) : 0; }
+            if(w > 240) editor.style.width = w + 'px';
+            watchLibEditorResize(editor);
+        }
+    }
+    function applyLibEditorWidth() {
+        for(const [modalId, key] of Object.entries(LIB_EDITOR_MAP)) {
+            const modal = $(modalId); if(!modal) continue;
+            const editor = modal.querySelector('.lib-editor'); if(!editor) continue;
+            let w = layoutPrefs.libEditorW[key];
+            if(!w || w <= 0) { const saved = localStorage.getItem('lib_editor_w_' + key); w = saved ? parseInt(saved) : 0; }
+            if(w > 240) editor.style.width = w + 'px';
+            watchLibEditorResize(editor);
+        }
+    }
+    function saveLibEditorWidth() {
+        for(const [modalId, key] of Object.entries(LIB_EDITOR_MAP)) {
+            const modal = $(modalId); if(!modal || modal.style.display !== 'flex') continue;
+            const editor = modal.querySelector('.lib-editor'); if(!editor) continue;
+            const w = editor.offsetWidth;
+            if(w > 240) { layoutPrefs.libEditorW[key] = w; try { localStorage.setItem('lib_editor_w_' + key, String(w)); } catch(e) {} }
+        }
+    }
+    let libTextareaTimer = null;
+    // v7.4 修复3：4 库编辑区 textarea 自身宽高记忆（用户需求：详细款式/描写建议等拖动右下角改变大小要长久保存）
+    // —— textarea 原生 resize:both 手柄一直可用（非 flex 面板问题），缺的是"变化→保存→重启恢复"链路。
+    // ResizeObserver 监听尺寸变化（含拖动手柄），防抖保存到 localStorage + layoutPrefs.textarea（EXE 文件层兜底）。
+    function initLibTextareaResize() {
+        for(const [modalId, key] of Object.entries(LIB_EDITOR_MAP)) {
+            const modal = $(modalId); if(!modal) continue;
+            const editor = modal.querySelector('.lib-editor'); if(!editor) continue;
+            editor.querySelectorAll('textarea').forEach(ta => {
+                if(!ta.id || ta.__taWatched) return;
+                ta.__taWatched = true;
+                // ① 恢复已存宽高（layoutPrefs 优先，localStorage 兜底兼容旧数据）
+                let w = 0, h = 0;
+                if(layoutPrefs.textarea && layoutPrefs.textarea[ta.id]) { w = layoutPrefs.textarea[ta.id].w || 0; h = layoutPrefs.textarea[ta.id].h || 0; }
+                if(!w) { const sw = localStorage.getItem('lib_ta_w_' + ta.id); w = sw ? parseInt(sw) : 0; }
+                if(!h) { const sh = localStorage.getItem('lib_ta_h_' + ta.id); h = sh ? parseInt(sh) : 0; }
+                if(w > 100) ta.style.width = w + 'px';
+                if(h > 40) ta.style.height = h + 'px';
+                // ② 监听尺寸变化→防抖保存
+                try {
+                    new ResizeObserver(() => {
+                        if(libTextareaTimer) clearTimeout(libTextareaTimer);
+                        libTextareaTimer = setTimeout(() => {
+                            try {
+                                if(!ta.isConnected) return;
+                                const ow = ta.offsetWidth, oh = ta.offsetHeight;
+                                if(ow > 100 && oh > 40) {
+                                    layoutPrefs.textarea = layoutPrefs.textarea || {};
+                                    layoutPrefs.textarea[ta.id] = { w: ow, h: oh };
+                                    localStorage.setItem('lib_ta_w_' + ta.id, String(ow));
+                                    localStorage.setItem('lib_ta_h_' + ta.id, String(oh));
+                                }
+                            } catch(e) {}
+                        }, 300);
+                    }).observe(ta);
+                } catch(e) {}
+            });
+        }
+    }
+
     // ======================== 草稿本 ========================
-    let scratchpadContent = '';
+    let scratchpadContent = ''; // v7.4：兼容旧字段（= 第 1 页内容）
+    let scratchpadPages = ['','','','','']; // v7.4：5 页签数据
+    let scratchpadCurPage = 0; // v7.4：当前页签 0-4
 
+    function renderScratchpadTabs() {
+        const wrap = $('scratchpadTabs'); if(!wrap) return;
+        wrap.innerHTML = '';
+        for(let i=0;i<5;i++){
+            const b = document.createElement('button');
+            const isAct = i === scratchpadCurPage;
+            b.className = 'scratchpad-tab' + (isAct ? ' active' : '');
+            b.title = '第 ' + (i+1) + ' 页';
+            b.textContent = i+1;
+            // v7.4：非空页显示小圆点指示（便于快速定位有内容的页）
+            if(scratchpadPages[i] && scratchpadPages[i].trim()) {
+                const dot = document.createElement('span');
+                dot.className = 'tab-dot';
+                b.appendChild(dot);
+            }
+            b.onclick = () => switchScratchpadPage(i);
+            wrap.appendChild(b);
+        }
+    }
+    function switchScratchpadPage(idx) {
+        if(idx === scratchpadCurPage) return;
+        saveScratchpad(false); // v7.4：切页自动保存当前页（静默）
+        scratchpadCurPage = idx;
+        const el = $('scratchpadContent'); if(el) el.value = scratchpadPages[idx] || '';
+        renderScratchpadTabs();
+    }
     function loadScratchpad() {
-        scratchpadContent = localStorage.getItem('scratchpad_v1') || '';
-        const el = $('scratchpadContent'); if(el) el.value = scratchpadContent;
+        // v7.4：优先 scratchpad_pages_v1（5 页数组）；旧 scratchpad_v1 字符串迁移到第 1 页
+        try {
+            const saved = localStorage.getItem('scratchpad_pages_v1');
+            if(saved) {
+                const arr = JSON.parse(saved);
+                if(Array.isArray(arr) && arr.length === 5) scratchpadPages = arr.map(x => typeof x === 'string' ? x : '');
+                else scratchpadPages = ['','','','',''];
+            } else {
+                scratchpadPages = ['','','','',''];
+                const old = localStorage.getItem('scratchpad_v1');
+                if(old) scratchpadPages[0] = old;
+            }
+        } catch(e) { scratchpadPages = ['','','','','']; }
+        scratchpadContent = scratchpadPages[0] || '';
+        const el = $('scratchpadContent'); if(el) el.value = scratchpadPages[scratchpadCurPage] || '';
+        renderScratchpadTabs();
     }
-
-    function saveScratchpad() {
-        scratchpadContent = $('scratchpadContent')?.value || '';
-        try { localStorage.setItem('scratchpad_v1', scratchpadContent); toast("草稿已保存"); } catch(e) { toast("保存失败，可能存储空间不足"); }
+    function saveScratchpad(showToast = true) {
+        const el = $('scratchpadContent'); if(!el) return;
+        scratchpadPages[scratchpadCurPage] = el.value;
+        scratchpadContent = scratchpadPages[0] || '';
+        try { localStorage.setItem('scratchpad_pages_v1', JSON.stringify(scratchpadPages)); if(showToast) toast("草稿已保存"); } catch(e) { if(showToast) toast("保存失败，可能存储空间不足"); }
     }
-
     function openScratchpadModal() {
         loadScratchpad();
         const modal = $('scratchpadModal'); if(modal) modal.style.display = 'flex';
@@ -4235,20 +4548,27 @@ ${chapter.content.slice(0,5000)}
     }
 
     function resetAll() {
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish) { toast("生成进行中，请等待完成或点击停止后再初始化"); return; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再初始化"); return; }
         if(!confirm('⚠️ 此操作将清空所有数据（包括所有小说、角色、动作库、API配置、草稿本等），且不可恢复！\n\n建议先点击「备份」导出数据。\n\n确定要继续吗？')) return;
         
         // 清空所有 localStorage 数据
         const coreKeys = ['books_v2', 'currentBookId_v2', 'api_config_v2', 'api_config_v3', 'global_characters_v2', 'global_actions_v2', 'global_costumes_v2', 'scratchpad_v1'];
         coreKeys.forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
         ['left_width','right_width','chat_width','chat_input_height','editor_font_size'].forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
+        try { localStorage.removeItem('scratchpad_pages_v1'); } catch(e) {}
+        ['role','globalRole','action','costume'].forEach(k => { try { localStorage.removeItem('lib_editor_w_' + k); } catch(e) {} });
+        ['charAppearance','charPersonality','charSpecial','charRelation','globalCharAppearance','globalCharPersonality','globalCharSpecial','globalCharRelation','globalActionKeyPoints','globalActionLines','globalActionDescriptionTips','globalCostumeStyle','globalCostumeDescTips'].forEach(tid => { try { localStorage.removeItem('lib_ta_w_' + tid); localStorage.removeItem('lib_ta_h_' + tid); } catch(e) {} });
         ['worldview','plotSet','termSet','globalPrompt','writingStyle'].forEach(id => { try { localStorage.removeItem('textarea_'+id); } catch(e) {} });
         
         // 重置内存变量
         books = []; currentBookId = null;
         globalCharacters = []; globalActions = []; globalCostumes = [];
-        api = { url:'https://api.deepseek.com/chat/completions', key:'', model:'deepseek-v4-flash', temp:0.95, top_p:0.95, repetition_penalty:1.0, maxTokens:2200, freqPenalty:0.25, presPenalty:0.2, ctxChapters:3, stopWords:'', thinking: false, reasoningEffort: 'high', notify: false, dualMode: false };
-        scratchpadContent = '';
+        api = { url:'https://api.deepseek.com/chat/completions', key:'', model:'deepseek-v4-flash', temp:0.95, top_p:0.95, repetition_penalty:1.0, maxTokens:2200, freqPenalty:0.25, presPenalty:0.2, ctxChapters:3, stopWords:'', thinking: false, reasoningEffort: 'high', notify: false, dualMode: false, branchAutoSend: false, rewriteAutoSend: false };
+        // v7.3 修复：重置时一并清空审稿/生图配置（与"清空所有数据"语义一致，防残留 key/url）
+        polishApi = { url:'https://api.deepseek.com/chat/completions', key:'', model:'deepseek-v4-flash', maxTokens:50000, reasoning:'max', ratio:50 };
+        imageApiCfg = { url:'', key:'', model:'', size:'1:1', style:'二次元插画风' };
+        scratchpadContent = ''; scratchpadPages = ['','','','','']; scratchpadCurPage = 0;
+        layoutPrefs = { libEditorW: { role: 0, globalRole: 0, action: 0, costume: 0 }, textarea: {} };
         rollbackSnapshot = null;
         currentEditingCharId = null; currentEditingGlobalCharId = null; currentEditingGlobalActionId = null; currentEditingGlobalCostumeId = null; currentEditingForbiddenId = null;
         relationNodePositions = {}; relationColorMap = {};
@@ -4341,7 +4661,7 @@ ${chapter.content.slice(0,5000)}
         if(currentBookId && books.find(b=>b.id===currentBookId)) switchBook(currentBookId);
         else if(books.length) switchBook(books[0].id);
         else { const curBookName = $('curBookName'); if(curBookName) curBookName.innerText='未选择'; const novelContent = $('novelContent'); if(novelContent) novelContent.innerText='✨ 点击「新建小说」开始创作'; }
-        bindEvents(); bindPrecisionSearch(); bindLibSearch(); initResize(); initDragSort(); initEditorBlurSnapshot(); initFindKeys(); startAutoSave();
+        bindEvents(); bindPrecisionSearch(); bindLibSearch(); initResize(); initDragSort(); initEditorBlurSnapshot(); initFindKeys(); startAutoSave(); initLibEditorLayout(); initLibTextareaResize();
         updateStorageIndicator(); updatePrecisionButton(); initialized = true;
     }
     init();
