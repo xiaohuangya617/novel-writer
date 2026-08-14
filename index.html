@@ -251,6 +251,10 @@
         .guide-content li{margin:0.25em 0;}
         .guide-content hr{margin:1em 0;}
         .badge-guide{background:#2A253F;display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.7rem;margin-right:6px;}
+        .guide-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+        .guide-card{background:#1A1825;border:1px solid #2D2A3A;border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;min-height:112px;}
+        .guide-card h4{color:#6EC6F8;margin:0 0 8px 0;font-size:0.9rem;font-weight:600;letter-spacing:0.5px;}
+        .guide-card p{margin:0;font-size:0.78rem;line-height:1.7;color:#A8A4C0;}
         .full-guide{max-height:70vh;overflow-y:auto;padding-right:8px;}
         .full-guide h4{margin-top:1.2em;}
         .graph-node-text{font-size:12px;fill:#EDEAF2;text-anchor:middle;pointer-events:none;}
@@ -566,57 +570,46 @@
 
 <!-- 使用指南模态框 -->
 <div id="guideModal" class="modal">
-    <div class="modal-card" style="max-width:600px;">
+    <div class="modal-card" style="max-width:1300px;max-height:none;overflow:visible;">
         <h3><i class="fas fa-question-circle"></i> 快速指南</h3>
         <div class="guide-content">
-            <p><span class="badge-guide">✨ 快速开始</span> 1. 新建小说 → 2. 点击⚙配置API Key → 3. 输入指令 → Ctrl+Enter 生成</p>
-            <hr>
-            <h4>⌨️ 全局快捷键</h4>
-            <p><b>Ctrl+Enter</b> 发送指令生成 · <b>Ctrl+G</b> 续写下一章 · <b>Ctrl+F</b> 查找 · <b>Ctrl+H</b> 替换 · <b>Ctrl+Z/Y</b> 撤销/重做 · <b>Ctrl+S</b> 保存章节</p>
-            <hr>
-            <h4>🎯 精准模式</h4>
-            <p>点击聊天区 <b>🎯</b> 按钮打开面板，勾选本章出场的<b>角色、动作、服装</b>。未勾选的设定不会注入 AI，大幅减少无关信息干扰。</p>
-            <hr>
-            <h4>💭 思考模式</h4>
-            <p>API 调参面板可开启思考模式，AI 先内部规划再写正文，更严格遵循角色/动作/服装规范与禁用词。强度分 low / high / max 三档。注意：开启后温度等创意参数失效。</p>
-            <hr>
-            <h4>🔀 并发双版</h4>
-            <p>点击聊天框旁的 <b>⧉ 并发双版</b> 按钮开启（高亮），<b>首次生成</b>会同时产出 <b>A/B 两个版本</b>供对比，点击任一版本保留，另一版本自动丢弃。仅适用于全新生成（续写/重写不生效），单次生效——生成结束自动关闭。费用×2。</p>
-            <hr>
-            <h4>📝 单章摘要（v5.8）</h4>
-            <p>每章生成时<b>同请求</b>附带 <b>150 字摘要</b>（时间/地点/事件/关键细节，正文末尾【摘要】标记），显示在编辑器正文下方，<b>可手动编辑</b>。若同请求摘要缺失/截断，可点「🔄 重新生成」用<b>独立请求</b>补（已加虚构文学声明，敏感内容也会如实总结）。生成新章时，前文<b>只注入各章摘要</b>（成本大幅降低），无摘要的章节回退注入全文。</p>
-            <hr>
-            <h4>🚀 v7 新增功能</h4>
-            <p><b>📈 角色成长（v7.1）</b>：AI 生成时自动提取角色成长经历，⭐当前状态优先注入，前后章成长衔接。</p>
-            <p><b>✍️ 续写三走向（v7.2）</b>：点续写先弹 3 张走向卡片（主动攻略/被动转折/女主视角），选中填入消息栏再发送。</p>
-            <p><b>🔄 重写回填（v7.2）</b>：点重写把原始指令回填消息栏 + 还原精准勾选，发送按钮变重写态，可回滚。</p>
-            <p><b>✨ 润色（v7.3）</b>：AI 审查润色本章——红（原句）/绿（新句）高亮，低幅度修改带<b>黄色理由</b>；应用=直接保存解锁，取消=还原润色前正文。冲突检测改为仅手动。</p>
-            <p><b>📔 草稿本 5 页签（v7.4）</b>：草稿本升级为 5 个独立页签，各自保存互不干扰，支持自定义页签高度记忆。</p>
-            <p><b>📐 四库编辑体验（v7.5）</b>：四库编辑栏尺寸记忆 + 复制书籍（副本独立编辑，自动回到码字中）。</p>
-            <p><b>📊 写作统计看板（v7.6）</b>：字数/时间/金额看板 + TOP 排行；设置面板合并世界观名词与主线大纲。</p>
-            <p><b>🏷️ 四库标签系统（v7.7）</b>：角色/动作/服装/禁用词支持预设+自定义标签，名称+标签联合查重。</p>
-            <p><b>💬 吐槽点评（v7.8）</b>：模拟读者/编辑/粉丝等角色点评本章；生文链路摘要与成长三段分离。</p>
-            <p><b>🎭 角色试演（v7.9）</b>：A/B 双角色 AI 对话扮演——场景设定、10 轮对话、括号神情/动作、设定改写延续、结束追加互动摘要。</p>
-            <hr>
-            <h4>🎯 创作逻辑链</h4>
-            <p><strong>系统提示</strong>：全局提示词 → 行文规范 → 角色关系图 → 角色设定 → 动作设定 → 服装设定 → 禁用词 → 世界观名词 → 主线大纲 → 输出</p>
-            <p>AI 严格遵循角色设定与动作规范，避免禁用词，保持前后文连贯。角色关系图全量注入，不受精准模式影响。</p>
-            <button id="openFullGuideBtn" class="glass-btn" style="margin-top:12px;background:#3B8ED4;color:#fff;"><i class="fas fa-book-open"></i> 📖 完整版说明书</button>
+            <div class="guide-grid">
+                <div class="guide-card"><h4>⚡ 一键起书</h4><p>点绿色「一键起书」，AI 从零生成书名、世界观、大纲、第一章正文与摘要。</p></div>
+                <div class="guide-card"><h4>⌨️ 快捷键</h4><p><b>Ctrl+Enter</b> 生成 · <b>Ctrl+G</b> 续写 · <b>Ctrl+F</b> 查找 · <b>Ctrl+H</b> 替换 · <b>Ctrl+Z/Y</b> 撤销</p></div>
+                <div class="guide-card"><h4>🎯 精准模式</h4><p>点 🎯 勾选本章角色、动作、服装，未勾选不注入。</p></div>
+                <div class="guide-card"><h4>💭 思考模式</h4><p>API 调参可开启，AI 先规划再写正文，low/high/max 三档。</p></div>
+                <div class="guide-card"><h4>🔀 并发双版</h4><p>首次生成同时出 A/B 两版对比，选一保留，费用×2。</p></div>
+                <div class="guide-card"><h4>📝 单章摘要</h4><p>每章附 150 字摘要可编辑，前文只注入摘要省成本。</p></div>
+                <div class="guide-card"><h4>📐 网文排版</h4><p>叙述顶格、对话缩进 2 格、段间空行、每段≤120 字。</p></div>
+                <div class="guide-card"><h4>🔁 失败重试</h4><p>起书失败或字数不足自动重试（0/1/2 次可调）。</p></div>
+                <div class="guide-card"><h4>🧼 去 AI 味</h4><p>口语化 + 废话动作 + 错位描写 + 禁词清单。</p></div>
+                <div class="guide-card"><h4>🎭 更多功能</h4><p>角色成长 · 续写三走向 · 润色 · 吐槽 · 角色试演。</p></div>
+                <div class="guide-card"><h4>🎯 创作逻辑链</h4><p>全局提示词 → 行文规范 → 角色 → 动作 → 服装 → 禁用词 → 世界观 → 大纲。</p></div>
+            </div>
+            <button id="openFullGuideBtn" class="glass-btn" style="margin-top:16px;background:#3B8ED4;color:#fff;"><i class="fas fa-book-open"></i> 📖 完整版说明书</button>
         </div>
         <div class="modal-buttons" style="margin-top:20px;"><button id="closeGuideBtn" class="glass-btn">关闭</button></div>
     </div>
 </div>
 
 <div id="fullGuideModal" class="modal">
-    <div class="modal-card" style="max-width:800px;">
+    <div class="modal-card" style="max-width:1100px;">
         <h3><i class="fas fa-file-alt"></i> AI小说生成器 v8.0 完整说明</h3>
         <div class="full-guide">
-            <h4>一、快速上手（3步）</h4>
-            <p>1. 左侧面板点击「+ 新建小说」，输入书名创建</p>
-            <p>2. 点击聊天区右侧 <b>⚙</b> 按钮或顶部按钮，填入 DeepSeek API Key（需自行注册获取），点「测试连接」确认可用后「保存」</p>
-            <p>3. 在聊天框输入创作指令，按 <b>Ctrl+Enter</b> 或点击 ✈ 发送按钮，AI 自动生成章节</p>
+            <h4>一、快速上手</h4>
+            <p><b>方式 A · 一键起书（新手向）</b>：左侧面板点绿色「⚡ 一键起书」→ 填 API Key → 选模板（玄幻升级/异界规则/都市逆袭/日式轻文）与目标平台（起点/番茄/刺猬猫/飞卢/七猫）→ 点「开始起书」，AI 从零生成书名、世界观·专有名词、主线大纲、第一章完整正文（3500~5000 字）与本章摘要。</p>
+            <p><b>方式 B · 新建小说</b>：左侧面板点「+ 新建小说」，输入书名创建空书 → 点 ⚙ 填 API Key → 聊天框输入指令 → Ctrl+Enter 生成章节。</p>
             <hr>
             
+            <h4>⚡ 一键起书详解（v8.0）</h4>
+            <p><b>流程</b>：填 API Key → 选模板与平台 → 填主角设定/核心卖点/创作指令（均可留空）→ 点「开始起书」→ 进度条流动展示 → 成功后自动建书并注入第一章。</p>
+            <p><b>4 套预设模板</b>：玄幻升级（升级即代价）/ 异界规则（试错即剧情）/ 都市逆袭（逆袭即清算）/ 日式轻文（吐槽即叙事），每套含全局提示词 + 行文规范，可在起书面板内编辑。</p>
+            <p><b>5 平台文风</b>：起点中文网（男频爽文）/ 番茄小说（免费流量）/ 刺猬猫（二次元轻文）/ 飞卢中文网（脑洞设定）/ 七猫小说（下沉市场），选中后自动注入对应风格。</p>
+            <p><b>去 AI 味</b>：口语语气词 + 废话动作 + 错位描写 + AI 高频禁词清单（出现即替换为具体动作或白描）。</p>
+            <p><b>网文排版</b>：叙述段落顶格、对话段落首行缩进 2 格、段间空行、每段 ≤120 字。</p>
+            <p><b>失败自动重试</b>：「开始起书」左侧下拉选重试次数（0/1/2 次，选中高亮）；起书失败或正文 <3500 字自动重试，重试时带字数反馈。</p>
+            <p><b>伪阶段进度窗口</b>：起书/续写/生文/重写/润色/续写走向统一进度条（独立居中 + 流动特效）；一键起书额外显示「已失败 N 次，正在起书第 N+1 次」。</p>
+            <hr>
             <h4>二、⌨️ 全部快捷键一览</h4>
             <table style="width:100%;font-size:0.7rem;border-collapse:collapse;">
             <tr><td style="padding:3px 8px;background:#1A1825;"><b>Ctrl+Enter</b></td><td style="padding:3px 8px;">发送聊天指令，AI 开始生成新章节</td></tr>
@@ -629,7 +622,7 @@
             </table>
             <hr>
             
-            <h4>三、🎯 精准模式（v1.5 新增，v1.7 优化，v2.9 支持服装）</h4>
+            <h4>三、🎯 精准模式</h4>
             <p>点击聊天区右侧 <b>🎯</b> 按钮打开精准设定面板，控制 AI 生文时注入哪些角色、动作和服装设定。</p>
             <p><b>背景</b>：默认全量注入角色库、动作库和服装库，大量无关设定稀释 AI 注意力。精准模式通过勾选，仅注入选中的条目。</p>
             <p><b>操作</b>：点击🎯→三列面板：左列勾选本章出场角色、中列勾选本章用到的动作、右列勾选本章出场的服装→保存。按钮变绿表示精准模式开启。</p>
@@ -704,7 +697,7 @@
             <p>跨小说通用的角色模板库。可新增、编辑、删除素材角色，支持 <b>JSON 导入/导出</b>。在本书角色库中可一键批量导入素材角色。</p>
             <hr>
             
-            <h4>十一、📝 草稿本（v1.8 新增）</h4>
+            <h4>十一、📝 草稿本</h4>
             <p>顶部「草稿本」按钮打开独立文本编辑器，用于临时记录灵感、随笔、情节构思。内容存储在浏览器本地，点击「保存」生效。备份时会一并导出。</p>
             <hr>
             
@@ -716,8 +709,8 @@
             <p>添加不希望 AI 使用的词语或短语（如某些现代词汇、人名、俗语）。AI 在生成时会收到警告，尽力避免使用这些词汇。</p>
             <hr>
             
-            <h4>十四、⚙️ API 调参（v7.1 起三页签）</h4>
-            <p>点击聊天区右侧 ⚙ 按钮打开设置，含三个页签：</p>
+            <h4>十四、⚙️ API 调参（四页签）</h4>
+            <p>点击聊天区右侧 ⚙ 按钮打开设置，含四个页签：</p>
             <ul><li><b>✍️ 正文 API</b>：正文生成配置——API 地址/Key/模型（默认 DeepSeek deepseek-v4-flash）、温度、Top-p、重复惩罚、Maxtokens、频率/存在惩罚、前文摘要、思考模式开关、推理强度（low/high/max），以及两个自动发送开关（见下）</li><li><b>🔍 审稿 API（v7.1，v7.3 完善）</b>：润色审查配置——地址/Key/模型（默认 DeepSeek 审稿，同人内容宽松）、🧠 推理强度（low/high/max，默认 max）、✂️ 低幅度理由线（20%~90%，默认 50%：字符变动比例低于此线的修改会标注黄色理由）、最大长度（默认 50000）；DeepSeek 默认思考模式，无温度参数</li><li><b>🎨 生图 API</b>：规划中（仅 EXE 版实装），灰显占位</li></ul>
             <p><b>💭 思考模式</b>：AI 在写正文前先内部"打草稿"——回顾前文、对照角色库/动作库/服装库/禁用词检查一致性，再落笔。推理强度三档 low/high/max，越高思考越深入、token 越大速度越慢；开启后温度等创意参数失效。</p>
             <p><b>🧭 续写自动（v7.2）</b>：开启后选中续写走向卡片即自动续写；关闭（默认）则填入消息栏待手动 Ctrl+Enter 发送。</p>
@@ -741,6 +734,9 @@
             <p><b>容量上限</b>：约 5MB，顶部实时显示使用量。超过 80% 时会变橙色警告，建议及时导出备份。</p>
             <p><b>自动保存</b>：每 30 秒自动保存一次；切换章节、切换小说、关闭页面时也会自动保存。</p>
             <p><b>API Key 安全</b>：仅存储在本地浏览器，仅用于调用 DeepSeek API，不会发送到其他地方。</p>
+            <hr>
+            <h4>十八、📜 日志与统计</h4>
+            <p>侧栏「📜 日志」页签记录全部提示历史（HH:MM:SS 时间戳），最多 50 条，固定高度可滚动。下方为<b>实时统计小面板</b>：当前日期时间、计费时段（高峰/空闲）、本次消费金额、本次使用时长、本次输入字数、本次生成字数（1 秒自动刷新）。完整备份/恢复包含日志。</p>
             <hr>
             <p style="text-align:center;color:#3B8ED4;">祝创作愉快，文思泉涌！</p>
         </div>
