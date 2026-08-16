@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AI小说生成器 | v8.0</title>
+    <title>AI小说生成器 | v8.3</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📖%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
     <style>
@@ -14,7 +14,11 @@
         ::-webkit-scrollbar-thumb:hover{background:#6A5A8E;}
         html{scrollbar-width:thin;scrollbar-color:#4A3F6E #1A1822;}
         .app{display:flex;flex-direction:column;height:100vh;background:#0A0A0F;}
-        .top-bar{background:rgba(10,10,15,0.95);backdrop-filter:blur(16px);border-bottom:1px solid #3A3452;padding:8px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+        .top-bar{background:rgba(10,10,15,0.95);backdrop-filter:blur(16px);border-bottom:1px solid #3A3452;padding:8px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:relative;z-index:2001;} /* v8.1：隐藏模式时菜单栏始终可见 */
+        /* v8.1：隐藏模式遮罩——覆盖整个主界面，仅保留最上方菜单栏（top-bar z-index 更高） */
+        #privacyOverlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,10,20,0.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:2000;align-items:center;justify-content:center;}
+        /* v8.1.5：字符画整体屏幕居中（flex 居中容器 + pre 静态布局） */
+        #privacyOverlay .privacy-art{margin:0;padding:2vh 2vw;box-sizing:border-box;font-family:'Consolas','Courier New','Microsoft YaHei',monospace;font-size:0.72rem;line-height:1.4;text-align:center;white-space:pre;overflow:auto;user-select:none;letter-spacing:0.5px;max-width:100vw;max-height:100vh;}
         .logo{display:flex;align-items:center;gap:12px;}
         .logo h2{font-size:1.3rem;background:linear-gradient(135deg,#6EC6F8,#3B8ED4);background-clip:text;-webkit-background-clip:text;color:transparent;}
         .version-badge{background:#1A3A5A;padding:2px 8px;border-radius:20px;font-size:0.55rem;color:#80B8E0;}
@@ -53,7 +57,7 @@
         .book-title{display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;}
         .book-title i{opacity:0.6;cursor:pointer;font-size:0.65rem;padding:4px;}
         .book-title i:hover{opacity:1;color:#6EC6F8;}
-        .book-meta{font-size:0.6rem;color:#7A728F;margin-top:4px;}
+        .book-meta{font-size:0.6rem;color:#8A84A8;margin-top:4px;}
         .add-book{margin:8px;background:#1A1825;border:1px dashed #4A4066;border-radius:30px;text-align:center;padding:6px;font-size:0.7rem;cursor:pointer;}
         .start-book-btn{margin:8px;background:linear-gradient(135deg,#2A6EA4,#3B8ED4);color:#fff;border-radius:30px;text-align:center;padding:8px;font-size:0.75rem;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,0.25);box-shadow:0 2px 12px rgba(59,142,212,0.45);transition:0.2s;display:flex;align-items:center;justify-content:center;gap:6px;}
         .start-book-btn:hover{transform:translateY(-1px);filter:brightness(1.1);}
@@ -73,7 +77,7 @@
         .sb-api-row input[type=text]{flex:1;}
         .sb-api-row select{flex:1;background:#0E0D14;border:1px solid #3A3452;border-radius:20px;padding:8px;color:white;font-size:0.8rem;}
         .sb-tabs{display:flex;gap:6px;margin-bottom:8px;}
-        .sb-tab{flex:1;padding:6px 0;border-radius:8px;background:#1A1825;border:1px solid #2D2A3A;color:#9B92B0;cursor:pointer;font-size:0.85rem;transition:0.15s;text-align:center;}
+        .sb-tab{flex:1;padding:6px 0;border-radius:8px;background:#1A1825;border:1px solid #2D2A3A;color:#8A84A8;cursor:pointer;font-size:0.85rem;transition:0.15s;text-align:center;}
         .sb-tab.active{background:linear-gradient(135deg,#2A6EA4,#3B8ED4);color:#fff;border-color:rgba(255,255,255,0.25);font-weight:500;}
         .sb-tab:active,.sb-plat:active{filter:brightness(0.9);}
         .sb-tab:disabled,.sb-plat:disabled,.sb-start-btn:disabled{opacity:0.5;cursor:not-allowed;}
@@ -81,7 +85,7 @@
         .sb-core-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
         .sb-core-left{display:flex;flex-direction:column;gap:8px;}
         .sb-plat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
-        .sb-plat{padding:6px 0;border-radius:8px;background:#1A1825;border:1px solid #2D2A3A;color:#9B92B0;cursor:pointer;font-size:0.85rem;transition:0.15s;text-align:center;}
+        .sb-plat{padding:6px 0;border-radius:8px;background:#1A1825;border:1px solid #2D2A3A;color:#8A84A8;cursor:pointer;font-size:0.85rem;transition:0.15s;text-align:center;}
         .sb-plat.active{background:linear-gradient(135deg,#2A6EA4,#3B8ED4);color:#fff;border-color:rgba(255,255,255,0.25);font-weight:500;}
         .sb-progress{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;max-width:90vw;background:#1A1825;border:1px solid #4A3F6E;border-radius:18px;padding:22px 26px;z-index:1600;box-shadow:0 8px 40px rgba(0,0,0,0.6);}
         .sb-progress-bar{height:14px;background:#0E0D14;border-radius:20px;overflow:hidden;border:1px solid #2D2A3A;}
@@ -90,8 +94,9 @@
         @keyframes sbFlow{0%{left:-60%;}100%{left:100%;}}
         .sb-progress-text{font-size:0.82rem;color:#6EC6F8;margin-top:8px;text-align:center;}
         .sb-progress-warn{font-size:0.68rem;color:#FFA070;margin-top:5px;text-align:center;}
+        .sb-progress-multi{font-size:0.68rem;color:#7AC0A8;margin-top:3px;text-align:center;}
         .sb-progress-close{margin-top:10px;text-align:center;}
-        .sb-progress-retry{font-size:0.68rem;color:#9B92B0;margin-top:5px;text-align:center;}
+        .sb-progress-retry{font-size:0.68rem;color:#8A84A8;margin-top:5px;text-align:center;}
         .sb-footer{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:12px;}
         .sb-hint{font-size:0.65rem;color:#6A627A;flex:1;}
         .sb-retry-wrap{position:relative;}
@@ -144,7 +149,7 @@
         .summary-area textarea{width:100%;box-sizing:border-box;background:#13121C;border:1px solid #2D2A3A;border-radius:10px;padding:8px 10px;color:#DBD4E8;font-size:16px;resize:vertical;min-height:60px;line-height:1.6;}
         .settings-box{background:#0E0D14;border-radius:20px;border:1px solid #22202C;overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0;} /* v7.9m：撑满右侧栏，pane-log 才能贴底 */
         .tabs{display:flex;border-bottom:1px solid #22202C;}
-        .tab{flex:1;background:none;border:none;padding:8px;color:#9B92B0;cursor:pointer;font-size:0.7rem;}
+        .tab{flex:1;background:none;border:none;padding:8px;color:#8A84A8;cursor:pointer;font-size:0.7rem;}
         .tab.active{color:#6EC6F8;border-bottom:2px solid #3B8ED4;}
         .tab-pane{padding:10px;display:none;flex-direction:column;gap:10px;}
         .tab-pane.active{display:flex;}
@@ -159,7 +164,7 @@
         .sys-k{color:#8A84A8;flex:none;text-align:left;white-space:nowrap;}
         .sys-v{color:#EDEAF2;font-family:monospace;flex:1;text-align:right;}
         .section-label{font-size:0.6rem;color:#B8AECF;margin-bottom:4px;}
-        .status-bar{background:#0A0A0F;border-top:1px solid #1A1825;padding:4px 20px;display:flex;justify-content:space-between;font-size:0.6rem;color:#7A728F;}
+        .status-bar{background:#0A0A0F;border-top:1px solid #1A1825;padding:4px 20px;display:flex;justify-content:space-between;font-size:0.6rem;color:#8A84A8;}
         .toast{position:fixed;bottom:20px;right:20px;background:#1E1C2C;border:1px solid #4A3F6E;border-radius:30px;padding:6px 16px;font-size:0.7rem;z-index:2000;animation:fadeInOut 2.5s ease forwards;pointer-events:none;}
         @keyframes fadeInOut{0%{opacity:0;transform:translateY(10px);}12%{opacity:1;}88%{opacity:1;}100%{opacity:0;transform:translateY(10px);}}
         .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;justify-content:center;align-items:center;}
@@ -185,7 +190,7 @@
         .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
         .stats-card{background:linear-gradient(160deg,#17152A 0%,#131121 60%,#0E1A2B 100%);border:1px solid #3A3452;border-radius:16px;padding:10px 14px;min-height:72px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;}
         .stats-card::after{content:'';position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle,rgba(110,198,248,0.10),transparent 70%);}
-        .stats-card .sc-label{font-size:0.62rem;color:#8B84A6;letter-spacing:0.05em;margin-bottom:4px;}
+        .stats-card .sc-label{font-size:0.62rem;color:#8A84A8;letter-spacing:0.05em;margin-bottom:4px;}
         .stats-card .sc-value{font-size:1.5rem;font-weight:700;color:#6EC6F8;line-height:1.1;font-variant-numeric:tabular-nums;}
         .stats-card .sc-sub{font-size:0.6rem;color:#5A5475;margin-top:3px;}
         .stats-ranks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;} /* v7.6：取消高频词后 3 排行 3 列 */
@@ -198,7 +203,7 @@
         .stats-rank li.rank-empty{color:#3A3452;font-size:0.66rem;} /* v7.6：TOP10 空位占位符 */
         .stats-empty{color:#6A627A;font-size:0.7rem;padding:6px 2px;}
         .stats-hint{font-size:0.6rem;color:#5A5475;margin-top:10px;text-align:center;}
-        .stats-close{background:transparent;border:none;color:#8B84A6;font-size:0.9rem;padding:4px 8px;border-radius:8px;cursor:pointer;transition:0.2s;line-height:1;}
+        .stats-close{background:transparent;border:none;color:#8A84A8;font-size:0.9rem;padding:4px 8px;border-radius:8px;cursor:pointer;transition:0.2s;line-height:1;}
         .stats-close:hover{color:#fff;background:rgba(110,198,248,0.15);}
         .modal-card h3{margin-bottom:12px;color:#6EC6F8;}
         .modal-card input,.modal-card textarea{width:100%;margin-bottom:10px;background:#0E0D14;border:1px solid #3A3452;border-radius:20px;padding:8px;color:white;}
@@ -223,7 +228,7 @@
         .item-card{background:#13121C;border-radius:16px;padding:8px;margin-bottom:8px;border-left:3px solid #3B8ED4;cursor:pointer;}
         .item-card.active{border-left-color:#6EC6F8;background:#1C1A28;}
         .item-name{font-weight:bold;color:#6EC6F8;}
-        .item-preview{font-size:0.65rem;color:#9B92B0;margin-top:4px;}
+        .item-preview{font-size:0.65rem;color:#8A84A8;margin-top:4px;}
         .item-actions{display:flex;gap:6px;margin-top:6px;justify-content:flex-end;}
         .small-btn{background:#2A253F;border:none;color:#DBD4E8;padding:4px 10px;border-radius:30px;font-size:0.6rem;cursor:pointer;}
         .small-btn:hover{background:#4A3F6E;}
@@ -241,7 +246,7 @@
         .conflict-item:hover{background:#2A253F;}
         .conflict-type{font-size:0.6rem;color:#3B8ED4;margin-bottom:4px;}
         .conflict-desc{font-size:0.7rem;color:#EDEAF2;}
-        .conflict-loc{font-size:0.6rem;color:#9B92B0;margin-top:4px;}
+        .conflict-loc{font-size:0.6rem;color:#8A84A8;margin-top:4px;}
         .close-conflict{float:right;cursor:pointer;opacity:0.6;}
         .chap-item.dragging{opacity:0.4;}
         .guide-content{line-height:1.6;}
@@ -258,29 +263,32 @@
         .full-guide{max-height:70vh;overflow-y:auto;padding-right:8px;}
         .full-guide h4{margin-top:1.2em;}
         .graph-node-text{font-size:12px;fill:#EDEAF2;text-anchor:middle;pointer-events:none;}
-        .graph-node-sub{font-size:9px;fill:#7A728F;text-anchor:middle;pointer-events:none;}
+        .graph-node-sub{font-size:9px;fill:#8A84A8;text-anchor:middle;pointer-events:none;}
         .graph-line-label{font-size:12px;fill:#3B8ED4;text-anchor:middle;font-weight:500;}
         .find-bar{display:none;padding:6px 10px;background:#13121C;border-bottom:1px solid #22202C;gap:6px;align-items:center;flex-wrap:wrap;}
         .find-bar input{background:#0E0D14;border:1px solid #3A3452;border-radius:14px;padding:3px 10px;color:#EDEAF2;font-size:0.7rem;width:160px;}
         .find-bar input:focus{outline:none;border-color:#3B8ED4;}
-        .find-bar .find-nav{font-size:0.6rem;color:#7A728F;}
+        .find-bar .find-nav{font-size:0.6rem;color:#8A84A8;}
         .find-highlight{background:#2A6EA4;color:#EDEAF2;border-radius:2px;}
         .find-highlight.active{background:#3B8ED4;color:#fff;}
         .font-size-row{display:flex;gap:6px;align-items:center;margin-right:12px;}
         .font-size-row button{width:24px;height:24px;border-radius:12px;border:none;background:#2A253F;color:#DBD4E8;cursor:pointer;font-size:0.65rem;}
         .font-size-row button:hover{background:#3B8ED4;}
-        .font-size-val{font-size:0.6rem;color:#7A728F;min-width:30px;text-align:center;}
+        .font-size-val{font-size:0.6rem;color:#8A84A8;min-width:30px;text-align:center;}
         /* 精准模式 */
         .precision-btn{background:#1A1825;border:1px solid #3A3452;color:#DBD4E8;}
         .precision-btn.active{background:#2A5A3A;border-color:#4AE06A;color:#4AE06A;box-shadow:0 0 8px rgba(74,224,106,0.3);}
         .dual-mode-btn{background:#1A1825;border:1px solid #3A3452;color:#DBD4E8;}
         .dual-mode-btn.active{background:#2A3A5A;border-color:#4A9AE0;color:#4A9AE0;box-shadow:0 0 8px rgba(74,154,224,0.3);}
+        .gen-mode-item:hover{background:#2A2840;}
+        .gen-mode-item.active{background:linear-gradient(135deg,#2A6EA4,#3B8ED4);color:#fff;}
+        .glass-btn.gen-mode-btn.selected{background:linear-gradient(135deg,#2A6EA4,#3B8ED4);color:#fff;border-color:rgba(255,255,255,0.25);box-shadow:0 2px 12px rgba(59,142,212,0.4);}
         .graph-snap-btn.active{background:#2A3A5A;border-color:#4A9AE0;color:#4A9AE0;box-shadow:0 0 8px rgba(74,154,224,0.3);}
         .precision-modal-card{width:1300px;max-width:98%;max-height:90vh;}
         .precision-split{display:flex;gap:20px;margin-top:16px;flex:1;min-height:0;}
         .precision-col{flex:1;display:flex;flex-direction:column;min-width:0;}
         .precision-col h4{margin-bottom:10px;font-size:0.8rem;display:flex;align-items:center;gap:8px;}
-        .precision-col h4 span{font-size:0.6rem;color:#7A728F;font-weight:normal;}
+        .precision-col h4 span{font-size:0.6rem;color:#8A84A8;font-weight:normal;}
         #graphContainer{user-select:none;-webkit-user-select:none;} /* v6.3：关系图文字禁选，拖拽不再出现蓝色选中阴影 */
         .region-tab{width:54px;height:26px;min-height:26px;border:1px solid #3A3452;border-radius:8px;background:#1C1A28;color:#EDEAF2;font-size:0.6rem;display:flex;flex-direction:row;align-items:center;justify-content:center;cursor:pointer;gap:2px;flex-shrink:0;padding:0 4px;box-sizing:border-box;}
         .region-tab.active{background:#2A3A5A;border-color:#4A9AE0;box-shadow:0 0 6px rgba(74,154,224,0.3);}
@@ -290,11 +298,11 @@
         .region-tab-del{cursor:pointer;color:#FF6B6B;font-size:0.55rem;line-height:1;padding:1px 2px;border-radius:3px;margin-left:1px;flex-shrink:0;}
         .region-tab-del:hover{background:#4A2A2A;}
         .precision-search{position:relative;display:flex;align-items:center;margin-bottom:8px;}
-        .precision-search .fa-search{position:absolute;left:10px;font-size:0.7rem;color:#7A728F;pointer-events:none;}
+        .precision-search .fa-search{position:absolute;left:10px;font-size:0.7rem;color:#8A84A8;pointer-events:none;}
         .precision-search input{width:100%;background:#13121C;border:1px solid #3A3452;border-radius:10px;padding:7px 26px 7px 28px;color:#EDEAF2;font-size:0.72rem;outline:none;transition:border 0.15s;}
         .precision-search input:focus{border-color:#6EC6F8;}
         .precision-search input::placeholder{color:#5A5470;}
-        .precision-clear{position:absolute;right:9px;font-size:0.7rem;color:#7A728F;cursor:pointer;padding:4px;display:none;}
+        .precision-clear{position:absolute;right:9px;font-size:0.7rem;color:#8A84A8;cursor:pointer;padding:4px;display:none;}
         .precision-clear:hover{color:#FF8A8A;}
         .precision-empty{text-align:center;color:#5A5470;font-size:0.7rem;padding:16px 0;}
         .precision-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-right:4px;max-height:65vh;}
@@ -306,12 +314,12 @@
         .precision-card input[type="checkbox"]{width:18px;height:18px;cursor:pointer;accent-color:#4AE06A;flex-shrink:0;}
         .precision-card .pc-info{flex:1;min-width:0;}
         .precision-card .pc-name{font-size:0.75rem;font-weight:600;color:#EDEAF2;}
-        .precision-card .pc-desc{font-size:0.6rem;color:#7A728F;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .precision-card .pc-desc{font-size:0.6rem;color:#8A84A8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .precision-card .pc-badge{font-size:0.55rem;padding:2px 6px;border-radius:10px;flex-shrink:0;}
         .precision-card .pc-badge.char{background:#2A3A5A;color:#80B8E0;}
         .precision-card .pc-badge.action{background:#3A2A3A;color:#E0A0C0;}
         .precision-card .pc-badge.costume{background:#2A3A3A;color:#80E0C0;}
-        .precision-stats{display:flex;gap:12px;font-size:0.65rem;color:#7A728F;margin:8px 0;}
+        .precision-stats{display:flex;gap:12px;font-size:0.65rem;color:#8A84A8;margin:8px 0;}
         .precision-stats b{color:#4AE06A;}
     /* v7.1 优化：API 页签居中与美化 */
     .api-tab { display:inline-flex; align-items:center; justify-content:center; gap:5px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); cursor:pointer; transition: all 0.2s ease; }
@@ -339,7 +347,7 @@
     mark.polish-ins { background:#4ECB7133; color:#7CE8A5; border-radius:3px; padding:0 1px; }
     /* v7.3：低幅度修改的理由标记（黄色，显示在绿标之后）——用户据此判断是否采纳 */
     mark.polish-reason { background:#FFD7002E; color:#FFD700; border-radius:3px; padding:0 2px; font-size:0.72rem; }
-    #polishActionBar { display:none; position:sticky; bottom:10px; left:0; right:0; margin-top:10px; background:#2A2A4A; border:1px solid #5A4A8A; border-radius:12px; padding:10px 14px; align-items:center; gap:12px; z-index:30; box-shadow:0 4px 20px rgba(0,0,0,0.4); }
+    #polishActionBar { display:none; position:sticky; bottom:10px; left:0; right:0; margin-top:10px; background:#2A2A3A; border:1px solid #5A4A8A; border-radius:12px; padding:10px 14px; align-items:center; gap:12px; z-index:30; box-shadow:0 4px 20px rgba(0,0,0,0.4); }
     #polishActionBar .polish-count { color:#B48AFF; font-size:0.75rem; flex:1; }
     #polishActionBar button { padding:6px 16px; border-radius:8px; border:none; cursor:pointer; font-size:0.75rem; font-weight:bold; }
     #polishApplyBtn { background:#2A8A4A; color:#fff; }
@@ -347,14 +355,103 @@
     #polishDiscardBtn { background:#4A3A5A; color:#C8C0E0; }
     #polishDiscardBtn:hover { background:#5A4A6A; }
     #polishBtn:hover { filter:brightness(1.15); }
+    /* ================= v8.2 UI 统一覆盖层（限定清单，不影响功能） ================= */
+    /* —— ① 设计令牌 —— */
+    :root{
+        --c-bg:#0A0A0F; --c-bg-panel:#0E0D14; --c-bg-card:#13121C; --c-bg-elev:#1A1825;
+        --c-border:#3A3452; --c-border-soft:#2D2A3A;
+        --c-accent:#3B8ED4; --c-accent-hi:#6EC6F8; --c-accent-deep:#2A6EA4;
+        --c-text:#EDEAF2; --c-text-dim:#DBD4E8; --c-text-mute:#8A84A8;
+        --r-lg:20px; --r-md:14px; --r-sm:10px; --r-xs:8px; --r-pill:30px;
+        --shadow-panel:0 4px 24px rgba(0,0,0,0.45);
+        --shadow-card:0 2px 12px rgba(0,0,0,0.35);
+    }
+    /* —— ② 主蓝渐变统一（7 变体收敛为 #2A6EA4→#3B8ED4 / hover #4B9EE4→#3B7EB4） —— */
+    .guide-highlight,.start-book-btn,.sb-tab.active,.sb-plat.active,.sb-retry-btn.active,.api-tab.active,.scratchpad-tab.active,
+    .glass-btn.gen-mode-btn.selected{
+        background:linear-gradient(135deg,#2A6EA4,#3B8ED4)!important;
+        border-color:rgba(255,255,255,0.25)!important;
+    }
+    .guide-highlight:hover,.start-book-btn:hover,.sb-tab.active:hover,.sb-plat.active:hover,.api-tab.active:hover,.scratchpad-tab.active:hover{
+        background:linear-gradient(135deg,#4B9EE4,#3B7EB4)!important;
+    }
+    /* —— ③ 圆角收敛（弹窗24 / 面板20 / 卡片12 / 气泡16 / 小按钮20 / 页签10） —— */
+    .modal-card{border-radius:24px;box-shadow:0 16px 48px rgba(0,0,0,0.6),0 0 0 1px rgba(110,198,248,0.05);}
+    .chat-container,.editor,.shelf-box{border-radius:20px;box-shadow:var(--shadow-panel);border-color:#232030;}
+    .sb-progress{border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,0.6);}
+    .book-card,.chap-item{border-radius:12px;}
+    .msg-bubble{border-radius:16px;}
+    .sb-tab,.sb-plat{border-radius:10px;}
+    .small-btn,.tag-preset-btn{border-radius:20px;}
+    /* —— ④ 顶栏毛玻璃（blur 20px + 饱和度 + 底部微光投影） —— */
+    .top-bar{background:rgba(10,10,15,0.82);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);box-shadow:0 1px 0 rgba(110,198,248,0.06) inset,0 4px 20px rgba(0,0,0,0.3);}
+    /* —— ⑤ 弹窗开合动效 + 阴影加深 —— */
+    .modal{animation:uiFadeIn 0.16s ease-out;}
+    .modal-card{animation:uiPopIn 0.22s cubic-bezier(0.16,1,0.3,1);}
+    @keyframes uiFadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes uiPopIn{from{opacity:0;transform:scale(0.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    .glass-btn,.icon-btn,.nav-btn,.sb-retry-btn,.sb-tab,.sb-plat,.api-tab,.scratchpad-tab,.tab{transition:background 0.18s,border-color 0.18s,color 0.18s,transform 0.12s,box-shadow 0.18s;}
+    .glass-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,0.35);}
+    .glass-btn:active{transform:translateY(0) scale(0.97);}
+    .icon-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,0.4);}
+    .icon-btn:active{transform:scale(0.95);}
+    .book-card:hover,.chap-item:hover{background:#1E1B2E;transform:translateX(2px);}
+    /* —— ⑥ 左侧功能按钮列：保持圆形 icon-btn（用户指定不动形状） —— */
+    .button-stack .icon-btn:not(.send-btn):not(.stop-btn):hover{transform:translateY(-1px) scale(1.04);box-shadow:0 4px 14px rgba(0,0,0,0.4);}
+    .button-stack .icon-btn:not(.send-btn):not(.stop-btn):active{transform:scale(0.95);}
+    /* —— ⑦ 徽章/状态条（渐变 + 微光边框） —— */
+    .storage-indicator,.current-book-badge{border:1px solid rgba(110,198,248,0.12);}
+    .version-badge{background:linear-gradient(135deg,#1A3A5A,#234A6E);box-shadow:0 1px 4px rgba(0,0,0,0.3);}
+    /* —— ⑧ 滚动条 / 聚焦 / 禁用态 —— */
+    ::-webkit-scrollbar{width:7px;height:7px;}
+    ::-webkit-scrollbar-thumb{background:#4A3F6E;border-radius:10px;}
+    ::-webkit-scrollbar-thumb:hover{background:#6A5A8E;}
+    ::-webkit-scrollbar-corner{background:transparent;}
+    input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,input[type=url]:focus,textarea:focus,select:focus{outline:none;border-color:var(--c-accent);box-shadow:0 0 0 2px rgba(59,142,212,0.25);}
+    button:disabled,.glass-btn:disabled,.icon-btn:disabled{opacity:0.45;cursor:not-allowed;filter:grayscale(0.4);}
+    /* —— ⑨ 页签 active 底部蓝色渐变指示条 —— */
+    .tab{position:relative;}
+    .tab.active::after{content:'';position:absolute;left:20%;right:20%;bottom:-2px;height:2px;border-radius:2px;background:linear-gradient(90deg,#3B8ED4,#6EC6F8);box-shadow:0 0 6px rgba(110,198,248,0.6);}
+    .sb-tab:not(.active):hover,.sb-plat:not(.active):hover{background:#241F38;border-color:#4A3F6E;transform:translateY(-1px);}
+    .sb-tab.active,.sb-plat.active{box-shadow:0 2px 10px rgba(59,142,212,0.35);}
+    /* —— ⑩ 统计面板背景：去玻璃质感，改纯色 —— */
+    #statsModal .modal-card{background:#13121C;box-shadow:0 16px 48px rgba(0,0,0,0.6);}
+    .stats-card{background:#1A1825;border-color:#2D2A3A;box-shadow:none;}
+    .stats-card::after{display:none;}
+    /* —— ⑪ 统一收尾：nav-btn 边框、textarea 圆角、标题字号、徽章圆角、弹窗宽度、零散圆角 —— */
+    /* nav-btn 与 glass-btn 视觉统一（补边框；特色按钮颜色保留不动——内联 style 优先级更高天然保留） */
+    .nav-btn{border:1px solid #3A3452;background:#1A1825;border-radius:30px;font-size:0.7rem;transition:background 0.18s,border-color 0.18s,transform 0.12s,box-shadow 0.18s;}
+    .nav-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,0.35);}
+    /* 语义色 nav-btn：内联 style 优先级高于 .nav-btn 背景，天然保留原色；hover 仅动效不改色 */
+    /* textarea 圆角统一 14px（覆盖 10px 变体；主输入框 20px 保留） */
+    textarea{border-radius:14px;}
+    .chat-input-wrapper textarea{border-radius:20px;}
+    .start-book-card textarea{border-radius:14px;}
+    /* 区域标题字号统一 0.75rem */
+    .shelf-header,.chapters-header,.stats-head h3,.sb-title{font-size:0.75rem;}
+    .sb-title{font-size:0.75rem;}
+    /* 徽章/状态条圆角统一（40px → 20px 胶囊系） */
+    .version-badge,.storage-indicator,.current-book-badge{border-radius:20px;}
+    /* 弹窗宽度规范：中档 720 / 小档 400（大档 900/960/1240 与全屏 96vw 保留） */
+    #apiModal .modal-card{width:720px!important;max-width:720px!important;}
+    #scratchpadModal .modal-card{width:720px!important;max-width:720px!important;}
+    #batchTagModal .modal-card{width:720px!important;max-width:720px!important;}
+    #regionModal .modal-card,#genModeModal .modal-card,#exportChoiceModal .modal-card{width:400px!important;max-width:400px!important;}
+    /* 零散圆角收敛：40/28/18/9 → 20/24/20/10 */
+    .stats-close{border-radius:20px;}
+    .sb-progress{border-radius:20px;}
+    .modal-card{border-radius:24px;}
+    .branch-card{border-radius:20px;}
+    /* 提示条统一（保留语义色背景） */
+    div[style*="border-radius:12px"][style*="padding:6px 10px"]{border-radius:14px;}
     </style>
 </head>
 <body>
 <div class="app">
     <div class="top-bar">
         <div class="logo">
-            <h2><i class="fas fa-pen-fancy"></i> AI小说生成器</h2>
-            <span class="version-badge">v8.0</span>
+            <h2 style="user-select:none;cursor:default;" title="双击隐藏正文（防窥屏），再双击或按 Esc 恢复"><i class="fas fa-pen-fancy"></i> AI小说生成器</h2>
+            <span class="version-badge">v8.3</span>
             <div class="current-book-badge"><i class="fas fa-book"></i> <span id="curBookName">未选择</span></div>
             <span id="storageIndicator" class="storage-indicator">💾 0MB / 5MB</span>
         </div>
@@ -380,7 +477,7 @@
         <div class="left-stack" id="leftStack">
             <div class="resize-left" id="resizeLeft"></div>
             <div class="shelf-box"><div class="shelf-header"><span>📚 书架</span><i class="fas fa-plus" id="newBookIcon" style="cursor:pointer"></i></div><div class="book-list" id="bookList"></div><div class="start-book-btn glow" id="newBookBtn"><i class="fas fa-bolt"></i> 一键起书（新手向）</div></div>
-            <div class="chapters-box"><div class="chapters-header"><span><i class="fas fa-list"></i> 章节列表</span><i class="fas fa-arrows-alt" id="sortChaptersIcon" style="cursor:pointer;margin-left:8px;" title="拖拽排序已启用"></i><i class="fas fa-plus" id="addChapIcon" style="cursor:pointer;margin-left:8px;"></i></div><div class="chapters-list" id="chaptersList" draggable="false"></div></div>
+            <div class="chapters-box"><div class="chapters-header"><span><i class="fas fa-list"></i> 章节列表</span><i class="fas fa-plus" id="addChapIcon" style="cursor:pointer;margin-left:8px;"></i></div><div class="chapters-list" id="chaptersList" draggable="false"></div></div>
         </div>
         <div class="chat-container" id="chatContainer">
             <div class="resize-chat" id="resizeChat"></div>
@@ -394,18 +491,21 @@
                         <button id="stopGenBtn" class="icon-btn stop-btn" disabled title="停止生成"><i class="fas fa-stop"></i></button>
                         <button id="apiBtnSidebar" class="icon-btn api-btn" title="API 调参"><i class="fas fa-sliders-h"></i></button>
                         <button id="precisionBtn" class="icon-btn precision-btn" title="精准模式（单次生效）"><i class="fas fa-crosshairs"></i></button>
-                        <button id="dualModeBtn" class="icon-btn dual-mode-btn" title="并发双版（单次生效）"><i class="fas fa-layer-group"></i></button>
+                        <div style="position:relative;">
+                        <button id="dualModeBtn" class="icon-btn dual-mode-btn" title="生成模式（单次生效）"><i class="fas fa-layer-group"></i></button>
+                        
+                    </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="editor">
             <div class="editor-header">
-                <span><i class="fas fa-edit"></i> <span id="curChapName">未选择</span></span>
+                <span><i class="fas fa-edit" id="chapRenameIcon" title="点击修改章节标题" style="cursor:pointer;"></i> <span id="curChapName">未选择</span></span>
                 <div class="font-size-row">
-                    <button id="fontSizeDown" title="缩小字号">A-</button>
+                    <button id="fontSizeDown" class="glass-btn" title="缩小字号">A-</button>
                     <span class="font-size-val" id="fontSizeVal">16px</span>
-                    <button id="fontSizeUp" title="放大字号">A+</button>
+                    <button id="fontSizeUp" class="glass-btn" title="放大字号">A+</button>
                 </div>
                 <div>
                     <button id="prevChap" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
@@ -431,7 +531,7 @@
                 <button class="small-btn" id="replaceAllBtn">全部替换</button>
                 <button class="small-btn" id="closeFindBtn" style="background:#4A2A2A;">✕</button>
             </div>
-            <div class="editable-area"><div id="writingLockTip" style="display:none;background:#2A2A4A;color:#8A84FF;border:1px solid #4A4A8A;border-radius:8px;padding:6px 10px;margin-bottom:6px;font-size:0.65rem;"><i class="fas fa-lock"></i> ✍️ AI 正在生成中，当前章节已锁定，避免生成结果覆盖你输入的内容</div><div id="novelContent" contenteditable="true" style="white-space:pre-wrap;">✨ 左侧按钮，一键起书，创作你的第一本小说吧！</div><div class="summary-area" id="summaryAreaWrap"><div class="summary-header"><span>📝 本章摘要</span><button id="genSummaryBtn" class="small-btn" style="font-size:0.6rem;">🔄 重新生成摘要和经历</button></div><textarea id="summaryArea" rows="3" maxlength="300" placeholder="本章摘要（150字左右，含时间/地点/事件/关键细节）。AI 生成后自动填充，也可手动填写；用于上下文注入"></textarea></div></div>
+            <div class="editable-area"><div id="writingLockTip" style="display:none;background:#2A2A3A;color:#8A84FF;border:1px solid #4A4A8A;border-radius:8px;padding:6px 10px;margin-bottom:6px;font-size:0.65rem;"><i class="fas fa-lock"></i> ✍️ AI 正在生成中，当前章节已锁定，避免生成结果覆盖你输入的内容</div><div id="novelContent" contenteditable="true" style="white-space:pre-wrap;">✨ 左侧按钮，一键起书，创作你的第一本小说吧！</div><div class="summary-area" id="summaryAreaWrap"><div class="summary-header"><span>📝 本章摘要</span><button id="genSummaryBtn" class="small-btn" style="font-size:0.6rem;">🔄 重新生成摘要和经历</button></div><textarea id="summaryArea" rows="3" maxlength="300" placeholder="本章摘要（150字左右，含时间/地点/事件/关键细节）。AI 生成后自动填充，也可手动填写；用于上下文注入"></textarea></div></div>
         </div>
         <div class="right-side" id="rightSide">
             <div class="resize-right" id="resizeRight"></div>
@@ -454,10 +554,10 @@
 </div>
 
 <!-- 模态框 -->
-<div id="branchModal" class="modal"><div class="modal-card" style="width:1240px;max-width:96vw;max-height:none;overflow:visible;"><h3><i class="fas fa-code-branch"></i> 续写走向 · 选择一条继续</h3><div id="branchCardWrap"></div><div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;"><button id="closeBranchBtn">取消</button></div></div></div>
-<div id="apiModal" class="modal"><div class="modal-card" style="max-width:680px;"><h3>⚙️ API 调参</h3><div style="background:#3A2A2A;border-radius:12px;padding:8px 12px;margin-bottom:10px;font-size:0.65rem;color:#FFA070;"><i class="fas fa-shield-alt"></i> ⚠️ API Key 仅存储在浏览器本地，不会上传到任何服务器。请妥善保管，勿分享给他人。</div><div class="api-tabs" style="display:flex;gap:6px;margin-bottom:12px;"><button class="api-tab glass-btn active" data-apitab="main" style="flex:1;padding:8px 0;">✍️ 正文 API</button><button class="api-tab glass-btn" data-apitab="polish" style="flex:1;padding:8px 0;">🔍 审稿 API</button><button class="api-tab glass-btn" data-apitab="image" style="flex:1;padding:8px 0;opacity:0.45;cursor:not-allowed;" title="生图功能规划中（仅 EXE 版实装）">🎨 生图 API</button><button class="api-tab glass-btn" data-apitab="act" style="flex:1;padding:8px 0;">🎭 扮演 API</button></div><div id="apiPane-main"><input type="text" id="apiUrlInp" placeholder="API地址"><input type="password" id="apiKeyInp" placeholder="API Key"><input type="text" id="modelInp" placeholder="模型"><div class="range-grid"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="tempRange" min="0.1" max="2" step="0.1" value="1.0"></div><div class="range-item"><span class="range-label">核采样 Top-p (0.75~1.25)</span><input type="number" id="topPRange" min="0.75" max="1.25" step="0.01" value="0.92"></div><div class="range-item"><span class="range-label">存在惩罚 (0.0~1.5)</span><input type="number" id="presRange" min="0" max="1.5" step="0.1" value="0.5"></div><div class="range-item"><span class="range-label">频率惩罚 (0.0~1.0)</span><input type="number" id="freqRange" min="0" max="1" step="0.1" value="0.4"></div><div class="range-item"><span class="range-label">重复惩罚 (1.00~1.25)</span><input type="number" id="repPenaltyRange" min="1" max="1.25" step="0.05" value="1.15"></div><div class="range-item"><span class="range-label">前文摘要 (1-50)</span><input type="number" id="ctxRange" min="1" max="50" step="1" value="5"></div></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="maxTokensInp" min="3000" max="90000" value="60000" style="width:390px;margin-left:auto;margin-bottom:0;"></div><div class="range-row"><span style="width:auto;white-space:nowrap;">推理强度（思考模式）</span><input type="range" id="reasoningRange" min="0" max="2" step="1" value="1"><span id="reasoningVal">high</span></div><div class="range-row" style="align-items:center;"><span>💭 思考模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="thinkingCheck" style="width:auto;margin:0;"> 开启后创意参数失效，且增加耗时，请谨慎开启</label></div><div class="range-row" style="align-items:center;"><span>🧭 续写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="branchAutoSendCheck" style="width:auto;margin:0;"> 开启后自动续写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>🔄 重写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="rewriteAutoSendCheck" style="width:auto;margin:0;"> 开启后自动重写生文（默认关，自动回填消息栏）</label></div></div><div id="apiPane-polish" style="display:none;"><div style="background:#2A3A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#7AC0A8;"><i class="fas fa-search"></i> 审稿 API 用于润色审查（DeepSeek：默认开启思考模式，仅推理强度可调，对同人内容宽松）</div><input type="text" id="polishUrlInp" placeholder="审稿 API 地址"><input type="password" id="polishKeyInp" placeholder="审稿 API Key"><input type="text" id="polishModelInp" placeholder="模型（如 deepseek-v4-flash）"><div class="range-row"><span>🧠 推理强度</span><input type="range" id="polishReasoningRange" min="0" max="2" step="1" value="2"><span id="polishReasoningVal">max</span></div><div class="range-row"><span>✂️ 微调原因</span><input type="range" id="polishRatioRange" min="20" max="90" step="1" value="50" title="字符变动比例低于此线的修改，前端会标注黄色理由供你判断是否采纳"><span id="polishRatioVal">50%</span></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="polishMaxTokensInp" min="3000" max="90000" value="50000" style="width:390px;margin-left:auto;margin-bottom:0;"></div></div><div id="apiPane-image" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:24px;text-align:center;color:#8A84A8;font-size:0.8rem;"><i class="fas fa-palette" style="font-size:1.4rem;display:block;margin-bottom:8px;"></i>🎨 生图功能规划中（仅 EXE 版实装），敬请期待</div></div><div id="apiPane-act" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#A8A0E0;"><i class="fas fa-masks-theater"></i> 🎭 扮演 API 用于角色试演（默认 deepseek-v4-flash；对话 10 轮上限防 token 失控；摘要请求复用本 API）</div><input type="text" id="actUrlInp" placeholder="扮演 API 地址"><input type="password" id="actKeyInp" placeholder="扮演 API Key"><input type="text" id="actModelInp" placeholder="模型（默认 deepseek-v4-flash）"><div class="range-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="actTempRange" min="0.1" max="2" step="0.1" value="0.7"></div><div class="range-item"><span class="range-label">台词长度 (500~1500)</span><input type="number" id="actMaxTokensInp" min="500" max="1500" step="1" value="800" title="单轮回复输出上限（token）"></div><div class="range-item"><span class="range-label">对话轮数 (5~30)</span><input type="number" id="actRoundsInp" min="5" max="30" step="1" value="10" title="一来一回算一轮，达上限自动结束试演"></div></div><div class="range-row" style="align-items:center;"><span>🧬 人设注入</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actPersonaCheck" style="width:auto;margin:0;" checked> 注入本书背景与 A/B 精准人设</label></div><div class="range-row" style="align-items:center;"><span>🎭 口吻约束</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actToneCheck" style="width:auto;margin:0;" checked> 强制纯台词+人设口吻（关闭可带少量旁白）</label></div></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="testApiBtn" class="glass-btn">测试连接</button><button id="saveApiBtn" class="glass-btn">保存</button><button id="closeApiBtn" class="glass-btn">取消</button></div></div></div>
+<div id="branchModal" class="modal"><div class="modal-card" style="width:1240px;max-width:96vw;max-height:none;overflow:visible;"><h3><i class="fas fa-code-branch"></i> 续写走向 · 选择一条继续</h3><div id="branchCardWrap"></div><div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;"><button id="closeBranchBtn" class="glass-btn">取消</button></div></div></div>
+<div id="apiModal" class="modal"><div class="modal-card" style="max-width:680px;"><h3>⚙️ API 调参</h3><div style="background:#3A2A2A;border-radius:12px;padding:8px 12px;margin-bottom:10px;font-size:0.65rem;color:#FFA070;"><i class="fas fa-shield-alt"></i> ⚠️ API Key 仅存储在浏览器本地，不会上传到任何服务器。请妥善保管，勿分享给他人。</div><div class="api-tabs" style="display:flex;gap:6px;margin-bottom:12px;"><button class="api-tab glass-btn active" data-apitab="main" style="flex:1;padding:8px 0;">✍️ 正文 API</button><button class="api-tab glass-btn" data-apitab="polish" style="flex:1;padding:8px 0;">🔍 审稿 API</button><button class="api-tab glass-btn" data-apitab="image" style="flex:1;padding:8px 0;opacity:0.45;cursor:not-allowed;" title="生图功能规划中（仅 EXE 版实装）">🎨 生图 API</button><button class="api-tab glass-btn" data-apitab="act" style="flex:1;padding:8px 0;">🎭 扮演 API</button></div><div id="apiPane-main"><input type="text" id="apiUrlInp" placeholder="API地址"><input type="password" id="apiKeyInp" placeholder="API Key"><input type="text" id="modelInp" placeholder="模型"><div class="range-grid"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="tempRange" min="0.1" max="2" step="0.1" value="1.0"></div><div class="range-item"><span class="range-label">核采样 Top-p (0.75~1.25)</span><input type="number" id="topPRange" min="0.75" max="1.25" step="0.01" value="0.92"></div><div class="range-item"><span class="range-label">存在惩罚 (0.0~1.5)</span><input type="number" id="presRange" min="0" max="1.5" step="0.1" value="0.5"></div><div class="range-item"><span class="range-label">频率惩罚 (0.0~1.0)</span><input type="number" id="freqRange" min="0" max="1" step="0.1" value="0.4"></div><div class="range-item"><span class="range-label">重复惩罚 (1.00~1.25)</span><input type="number" id="repPenaltyRange" min="1" max="1.25" step="0.05" value="1.15"></div><div class="range-item"><span class="range-label">前文摘要 (1-50)</span><input type="number" id="ctxRange" min="1" max="50" step="1" value="5"></div></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="maxTokensInp" min="3000" max="90000" value="60000" style="width:390px;margin-left:auto;margin-bottom:0;"></div><div class="range-row"><span style="width:auto;white-space:nowrap;">推理强度（思考模式）</span><input type="range" id="reasoningRange" min="0" max="2" step="1" value="1"><span id="reasoningVal">high</span></div><div class="range-row" style="align-items:center;"><span>💭 思考模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="thinkingCheck" style="width:auto;margin:0;"> 开启后创意参数失效，且增加耗时，请谨慎开启</label></div><div class="range-row" style="align-items:center;"><span>🧭 续写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="branchAutoSendCheck" style="width:auto;margin:0;"> 开启后自动续写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>🔄 重写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="rewriteAutoSendCheck" style="width:auto;margin:0;"> 开启后自动重写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>📚 连发章数</span><label style="display:flex;align-items:center;gap:6px;"> 一次性连续生成多个章节的数目（2~10）<input type="number" id="multiChapCountInp" min="2" max="10" step="1" value="3" style="width:70px;margin:0;"></label></div></div><div id="apiPane-polish" style="display:none;"><div style="background:#2A3A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#7AC0A8;"><i class="fas fa-search"></i> 审稿 API 用于润色审查（DeepSeek：默认开启思考模式，仅推理强度可调，对同人内容宽松）</div><input type="text" id="polishUrlInp" placeholder="审稿 API 地址"><input type="password" id="polishKeyInp" placeholder="审稿 API Key"><input type="text" id="polishModelInp" placeholder="模型（如 deepseek-v4-flash）"><div class="range-row"><span>🧠 推理强度</span><input type="range" id="polishReasoningRange" min="0" max="2" step="1" value="2"><span id="polishReasoningVal">max</span></div><div class="range-row"><span>✂️ 微调原因</span><input type="range" id="polishRatioRange" min="20" max="90" step="1" value="50" title="字符变动比例低于此线的修改，前端会标注黄色理由供你判断是否采纳"><span id="polishRatioVal">50%</span></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="polishMaxTokensInp" min="3000" max="90000" value="50000" style="width:390px;margin-left:auto;margin-bottom:0;"></div></div><div id="apiPane-image" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:24px;text-align:center;color:#8A84A8;font-size:0.8rem;"><i class="fas fa-palette" style="font-size:1.4rem;display:block;margin-bottom:8px;"></i>🎨 生图功能规划中（仅 EXE 版实装），敬请期待</div></div><div id="apiPane-act" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#B8B4D0;"><i class="fas fa-masks-theater"></i> 🎭 扮演 API 用于角色试演（默认 deepseek-v4-flash；对话 10 轮上限防 token 失控；摘要请求复用本 API）</div><input type="text" id="actUrlInp" placeholder="扮演 API 地址"><input type="password" id="actKeyInp" placeholder="扮演 API Key"><input type="text" id="actModelInp" placeholder="模型（默认 deepseek-v4-flash）"><div class="range-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="actTempRange" min="0.1" max="2" step="0.1" value="0.7"></div><div class="range-item"><span class="range-label">台词长度 (500~1500)</span><input type="number" id="actMaxTokensInp" min="500" max="1500" step="1" value="800" title="单轮回复输出上限（token）"></div><div class="range-item"><span class="range-label">对话轮数 (5~30)</span><input type="number" id="actRoundsInp" min="5" max="30" step="1" value="10" title="一来一回算一轮，达上限自动结束试演"></div></div><div class="range-row" style="align-items:center;"><span>🧬 人设注入</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actPersonaCheck" style="width:auto;margin:0;" checked> 注入本书背景与 A/B 精准人设</label></div><div class="range-row" style="align-items:center;"><span>🎭 口吻约束</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actToneCheck" style="width:auto;margin:0;" checked> 强制纯台词+人设口吻（关闭可带少量旁白）</label></div></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="testApiBtn" class="glass-btn">测试连接</button><button id="saveApiBtn" class="glass-btn">保存</button><button id="closeApiBtn" class="glass-btn">取消</button></div></div></div>
 <div id="sbOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:1500;"></div>
-<div class="sb-progress" id="sbProgressWrap" style="display:none;"><div class="sb-progress-bar"><div class="sb-progress-fill" id="sbProgressFill"></div></div><div class="sb-progress-text" id="sbProgressText"></div><div class="sb-progress-warn" id="sbProgressWarn">⚠️ 请勿关闭网页，等待起书完成…</div><div class="sb-progress-retry" id="sbProgressRetry"></div><div class="sb-progress-close" id="sbProgressClose" style="display:none;"><button class="glass-btn" id="sbProgressCloseBtn">关闭</button></div></div>
+<div class="sb-progress" id="sbProgressWrap" style="display:none;"><div class="sb-progress-bar"><div class="sb-progress-fill" id="sbProgressFill"></div></div><div class="sb-progress-text" id="sbProgressText"></div><div class="sb-progress-warn" id="sbProgressWarn">⚠️ 请勿关闭网页，等待AI生成中...</div><div class="sb-progress-retry" id="sbProgressRetry"></div><div class="sb-progress-multi" id="sbProgressMulti"></div><div class="sb-progress-close" id="sbProgressClose" style="display:none;"><button class="glass-btn" id="sbProgressCloseBtn">关闭</button></div></div>
 <div id="startBookModal" class="modal"><div class="modal-card start-book-card">
     <h3><i class="fas fa-bolt"></i> 一键起书（新手向）</h3>
     <div class="sb-section">
@@ -521,17 +621,17 @@
     <div style="display:flex;flex:1;min-height:0;gap:12px;padding:0 14px 12px;">
         <div style="width:320px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;background:#14121F;border-radius:12px;padding:10px;min-height:0;">
             <div>
-                <div style="font-size:0.72rem;color:#A8A0E0;margin-bottom:4px;">🎭 你扮演（A）<span id="roleplayCountA" style="color:#6A627A;margin-left:4px;font-size:0.65rem;"></span><span id="roleplayLockA" style="display:none;color:#8A84A8;margin-left:4px;font-size:0.65rem;">🔒 已锁定</span></div>
+                <div style="font-size:0.72rem;color:#B8B4D0;margin-bottom:4px;">🎭 你扮演（A）<span id="roleplayCountA" style="color:#6A627A;margin-left:4px;font-size:0.65rem;"></span><span id="roleplayLockA" style="display:none;color:#8A84A8;margin-left:4px;font-size:0.65rem;">🔒 已锁定</span></div>
                 <input type="text" id="roleplaySearchA" placeholder="搜索角色…" style="width:100%;box-sizing:border-box;background:#0E0D14;border:1px solid #3A3452;border-radius:8px;padding:5px 8px;color:#EDEAF2;font-size:0.75rem;margin-bottom:4px;">
                 <div id="roleplayListA" style="max-height:132px;overflow-y:auto;background:#0E0D14;border:1px solid #3A3452;border-radius:8px;padding:4px;transition:opacity 0.2s;"></div>
             </div>
             <div>
-                <div style="font-size:0.72rem;color:#A8A0E0;margin-bottom:4px;">🤖 AI 扮演（B）<span id="roleplayCountB" style="color:#6A627A;margin-left:4px;font-size:0.65rem;"></span><span id="roleplayLockB" style="display:none;color:#8A84A8;margin-left:4px;font-size:0.65rem;">🔒 已锁定</span></div>
+                <div style="font-size:0.72rem;color:#B8B4D0;margin-bottom:4px;">🤖 AI 扮演（B）<span id="roleplayCountB" style="color:#6A627A;margin-left:4px;font-size:0.65rem;"></span><span id="roleplayLockB" style="display:none;color:#8A84A8;margin-left:4px;font-size:0.65rem;">🔒 已锁定</span></div>
                 <input type="text" id="roleplaySearchB" placeholder="搜索角色…" style="width:100%;box-sizing:border-box;background:#0E0D14;border:1px solid #3A3452;border-radius:8px;padding:5px 8px;color:#EDEAF2;font-size:0.75rem;margin-bottom:4px;">
                 <div id="roleplayListB" style="max-height:132px;overflow-y:auto;background:#0E0D14;border:1px solid #3A3452;border-radius:8px;padding:4px;transition:opacity 0.2s;"></div>
             </div>
             <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
-                <div style="font-size:0.72rem;color:#A8A0E0;margin-bottom:4px;">📝 当前对话场景及设定</div>
+                <div style="font-size:0.72rem;color:#B8B4D0;margin-bottom:4px;">📝 当前对话场景及设定</div>
                 <textarea id="roleplayScene" rows="5" placeholder="如：马路上，向 B 搭话。可补充世界观设定或特殊名词…（首轮发送后锁定）" style="flex:1;width:100%;box-sizing:border-box;background:#0E0D14;border:1px solid #3A3452;border-radius:8px;padding:8px;color:#EDEAF2;font-size:0.8rem;resize:none;"></textarea>
                 <div id="roleplaySceneLockTip" style="display:none;font-size:0.65rem;color:#8A84A8;margin-top:4px;">🔒 已随首轮对话生效，锁定</div>
             </div>
@@ -553,9 +653,9 @@
 <!-- 本书关系图模态框 -->
 <div id="relationGraphModal" class="modal"><div class="modal-card" style="width:96vw;max-width:96vw;height:94vh;max-height:94vh;overflow:hidden;display:flex;flex-direction:column;">
 <h3><i class="fas fa-project-diagram"></i> 本书关系图 · <span id="relationBookName"></span></h3>
-<div style="font-size:0.6rem;color:#7A728F;margin:4px 0;">拖拽节点调整布局 · 点击角色添加关系 · 关系名称自由填写 · 左侧页签切换可拖对象（0=人物 / N=区域N）</div>
+<div style="font-size:0.6rem;color:#8A84A8;margin:4px 0;">拖拽节点调整布局 · 点击角色添加关系 · 关系名称自由填写 · 左侧页签切换可拖对象（0=人物 / N=区域N）</div>
 <div id="graphContainer" style="width:100%;flex:1;background:#0E0D14;border-radius:16px;border:1px solid #22202C;overflow:hidden;position:relative;min-height:300px;display:flex;">
-<div id="graphRegionTabs" style="width:66px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;padding:6px;overflow-y:auto;background:rgba(14,13,20,0.55);border-right:1px solid rgba(255,255,255,0.08);"></div>
+<div id="graphRegionTabs" style="width:80px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;padding:6px;overflow-y:auto;background:rgba(14,13,20,0.55);border-right:1px solid rgba(255,255,255,0.08);"></div>
 <svg id="graphSvg" style="display:block;flex:1;min-width:0;"></svg>
 </div>
 <div style="display:flex;gap:10px;margin-top:10px;flex-shrink:0;">
@@ -566,7 +666,7 @@
 <button id="resetGraphLayoutBtn" class="glass-btn"><i class="fas fa-sync-alt"></i> 重置布局</button>
 <button id="closeRelationModal" class="glass-btn">关闭</button>
 </div></div></div>
-<div id="regionModal" class="modal"><div class="modal-card" style="width:400px;"><h3><i class="fas fa-shapes"></i> 创建区域</h3><div style="margin:10px 0;font-size:0.65rem;color:#7A728F;">区域为视觉参考分组，不参与创作逻辑。大小=可容纳的角色数量（1~50，自动最优排布）。</div><div class="range-row"><span>形状</span><select id="regionShapeSel" style="flex:1;background:#13121C;border:1px solid #3A3452;border-radius:8px;padding:6px;color:#EDEAF2;"><option value="rect">矩形</option><option value="ellipse">椭圆</option><option value="hex">六边形</option></select></div><div class="range-row"><span>大小</span><input type="number" id="regionSizeInp" min="1" max="50" value="3" style="flex:1;background:#13121C;border:1px solid #3A3452;border-radius:8px;padding:6px;color:#EDEAF2;"></div><div class="range-row"><span>名称</span><input type="text" id="regionNameInp" maxlength="20" placeholder="区域名称（≤20字）" style="flex:1;background:#13121C;border:1px solid #3A3452;border-radius:8px;padding:6px;color:#EDEAF2;"></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="saveRegionBtn" style="background:#2A6EA4;">创建</button><button id="closeRegionBtn">取消</button></div></div></div>
+<div id="regionModal" class="modal"><div class="modal-card" style="width:400px;"><h3><i class="fas fa-shapes"></i> 创建区域</h3><div style="margin:10px 0;font-size:0.65rem;color:#8A84A8;">区域为视觉参考分组，不参与创作逻辑。大小=可容纳的角色数量（1~50，自动最优排布）。</div><div class="range-row"><span>形状</span><select id="regionShapeSel" style="flex:1;background:#13121C;border:1px solid #3A3452;border-radius:8px;padding:6px;color:#EDEAF2;"><option value="rect">矩形</option><option value="ellipse">椭圆</option><option value="hex">六边形</option></select></div><div class="range-row"><span>大小</span><input type="number" id="regionSizeInp" min="1" max="50" value="3" style="flex:1;background:#13121C;border:1px solid #3A3452;border-radius:8px;padding:6px;color:#EDEAF2;"></div><div class="range-row"><span>名称</span><input type="text" id="regionNameInp" maxlength="20" placeholder="区域名称（≤20字）" style="flex:1;background:#13121C;border:1px solid #3A3452;border-radius:8px;padding:6px;color:#EDEAF2;"></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="saveRegionBtn" style="background:#2A6EA4;">创建</button><button id="closeRegionBtn" class="glass-btn">取消</button></div></div></div>
 
 <!-- 使用指南模态框 -->
 <div id="guideModal" class="modal">
@@ -575,14 +675,15 @@
         <div class="guide-content">
             <div class="guide-grid">
                 <div class="guide-card"><h4>⚡ 一键起书</h4><p>点绿色「一键起书」，AI 从零生成书名、世界观、大纲、第一章正文与摘要。</p></div>
+                <div class="guide-card"><h4>🔁 失败重试</h4><p>起书失败或字数不足自动重试（0/1/2 次可调）。</p></div>
+                <div class="guide-card"><h4>📝 单章摘要</h4><p>每章附 150 字摘要可编辑，前文只注入摘要省成本。</p></div>
+                <div class="guide-card"><h4>🔀 并发双版</h4><p>首次生成同时出 A/B 两版对比，选一保留，费用×2。</p></div>
                 <div class="guide-card"><h4>⌨️ 快捷键</h4><p><b>Ctrl+Enter</b> 生成 · <b>Ctrl+G</b> 续写 · <b>Ctrl+F</b> 查找 · <b>Ctrl+H</b> 替换 · <b>Ctrl+Z/Y</b> 撤销</p></div>
                 <div class="guide-card"><h4>🎯 精准模式</h4><p>点 🎯 勾选本章角色、动作、服装，未勾选不注入。</p></div>
-                <div class="guide-card"><h4>💭 思考模式</h4><p>API 调参可开启，AI 先规划再写正文，low/high/max 三档。</p></div>
-                <div class="guide-card"><h4>🔀 并发双版</h4><p>首次生成同时出 A/B 两版对比，选一保留，费用×2。</p></div>
-                <div class="guide-card"><h4>📝 单章摘要</h4><p>每章附 150 字摘要可编辑，前文只注入摘要省成本。</p></div>
                 <div class="guide-card"><h4>📐 网文排版</h4><p>叙述顶格、对话缩进 2 格、段间空行、每段≤120 字。</p></div>
-                <div class="guide-card"><h4>🔁 失败重试</h4><p>起书失败或字数不足自动重试（0/1/2 次可调）。</p></div>
                 <div class="guide-card"><h4>🧼 去 AI 味</h4><p>口语化 + 废话动作 + 错位描写 + 禁词清单。</p></div>
+                <div class="guide-card"><h4>📚 连发多章</h4><p>一次连续生成 2~10 章：第 1 章按指令创作，之后逐章自动续写，方向目标贯穿全程。</p></div>
+                <div class="guide-card"><h4>💭 思考模式</h4><p>API 调参可开启，AI 先规划再写正文，low/high/max 三档。</p></div>
                 <div class="guide-card"><h4>🎭 更多功能</h4><p>角色成长 · 续写三走向 · 润色 · 吐槽 · 角色试演。</p></div>
                 <div class="guide-card"><h4>🎯 创作逻辑链</h4><p>全局提示词 → 行文规范 → 角色 → 动作 → 服装 → 禁用词 → 世界观 → 大纲。</p></div>
             </div>
@@ -594,7 +695,7 @@
 
 <div id="fullGuideModal" class="modal">
     <div class="modal-card" style="max-width:1100px;">
-        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v8.0 完整说明</h3>
+        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v8.3 完整说明</h3>
         <div class="full-guide">
             <h4>一、快速上手</h4>
             <p><b>方式 A · 一键起书（新手向）</b>：左侧面板点绿色「⚡ 一键起书」→ 填 API Key → 选模板（玄幻升级/异界规则/都市逆袭/日式轻文）与目标平台（起点/番茄/刺猬猫/飞卢/七猫）→ 点「开始起书」，AI 从零生成书名、世界观·专有名词、主线大纲、第一章完整正文（3500~5000 字）与本章摘要。</p>
@@ -779,7 +880,7 @@
 </div></div></div>
 
 <!-- 草稿本模态框 -->
-<div id="exportChoiceModal" class="modal"><div class="modal-card" style="width:380px;"><h3><i class="fas fa-download"></i> 导出</h3><div style="display:flex;gap:12px;margin-top:16px;"><button id="exportFullChoiceBtn" class="glass-btn" style="flex:1;padding:14px 10px;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fas fa-book"></i> 导出全书</button><button id="exportChapterChoiceBtn" class="glass-btn" style="flex:1;padding:14px 10px;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fas fa-file-alt"></i> 导出本章</button></div><div style="display:flex;justify-content:flex-end;margin-top:16px;"><button id="closeExportChoiceBtn" class="glass-btn">取消</button></div></div></div>
+<div id="genModeModal" class="modal"><div class="modal-card" style="width:420px;"><h3><i class="fas fa-layer-group"></i> 生成模式</h3><div style="display:flex;gap:12px;margin-top:16px;"><button id="genModeDualBtn" class="glass-btn gen-mode-btn" style="flex:1;padding:16px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:0.8rem;"><i class="fas fa-columns" style="font-size:1.1rem;"></i>并发双版<span style="font-size:0.6rem;color:#8A84A8;">仅主动生文</span></button><button id="genModeMultiBtn" class="glass-btn gen-mode-btn" style="flex:1;padding:16px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:0.8rem;"><i class="fas fa-book" style="font-size:1.1rem;"></i>连发多章<span style="font-size:0.6rem;color:#8A84A8;">仅主动生文</span></button></div><div style="display:flex;justify-content:flex-end;margin-top:16px;gap:10px;"><button id="genModeSaveBtn" class="glass-btn" style="background:linear-gradient(135deg,#2A6EA4,#3B8ED4);color:#fff;">保存</button><button id="genModeCloseBtn" class="glass-btn">关闭</button></div></div></div><div id="exportChoiceModal" class="modal"><div class="modal-card" style="width:380px;"><h3><i class="fas fa-download"></i> 导出</h3><div style="display:flex;gap:12px;margin-top:16px;"><button id="exportFullChoiceBtn" class="glass-btn" style="flex:1;padding:14px 10px;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fas fa-book"></i> 导出全书</button><button id="exportChapterChoiceBtn" class="glass-btn" style="flex:1;padding:14px 10px;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="fas fa-file-alt"></i> 导出本章</button></div><div style="display:flex;justify-content:flex-end;margin-top:16px;"><button id="closeExportChoiceBtn" class="glass-btn">取消</button></div></div></div>
 <div id="scratchpadModal" class="modal"><div class="modal-card" style="width:700px;">
 <h3><i class="fas fa-sticky-note"></i> 草稿本</h3>
 <div id="scratchpadTabs" class="scratchpad-tabs"></div>
@@ -799,7 +900,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 全局数据
     let books = [], currentBookId = null;
     let globalCharacters = [], globalActions = [], globalCostumes = [];
-    let api = { url:'https://api.deepseek.com/chat/completions', key:'', model:'deepseek-v4-flash', temp:1.0, top_p:0.92, repetition_penalty:1.15, maxTokens:60000, freqPenalty:0.4, presPenalty:0.5, ctxChapters:5, stopWords:'', thinking: false, reasoningEffort: 'high', notify: false, dualMode: false, branchAutoSend: false, rewriteAutoSend: false };
+    let api = { url:'https://api.deepseek.com/chat/completions', key:'', model:'deepseek-v4-flash', temp:1.0, top_p:0.92, repetition_penalty:1.15, maxTokens:60000, freqPenalty:0.4, presPenalty:0.5, ctxChapters:5, stopWords:'', thinking: false, reasoningEffort: 'high', notify: false, dualMode: false, multiChap: false, multiChapCount: 3, branchAutoSend: false, rewriteAutoSend: false };
     let polishApi = { url:'https://api.deepseek.com/chat/completions', key:'', model:'deepseek-v4-flash', maxTokens:50000, reasoning:'max', ratio:50 }; // v7.3 审稿 API（DeepSeek：默认思考模式，推理强度 low/high/max 默认 max，修改幅度阈值 20-90% 默认 50%）
     let actApi = { url:'https://api.deepseek.com/chat/completions', key:'', model:'deepseek-v4-flash', temp:0.7, maxTokens:800, rounds:10, persona:true, tone:true }; // v7.9 扮演 API（默认 deepseek-v4-flash；maxTokens 800 防长台词截断；摘要请求复用同 API 800/0.4）
     let imageApiCfg = { url:'', key:'', model:'', size:'1:1', style:'二次元插画风' }; // v7.1 生图占位（仅 EXE 实装）
@@ -863,6 +964,16 @@ document.addEventListener('DOMContentLoaded', function() {
     let sessionStartTime = Date.now();
     let sessionCost = 0;
     let sessionInputChars = 0;
+    // v8.1：每日输入字数独立存储（清空聊天不影响统计）——key: daily_input_stats_v1 = {YYYY-MM-DD: n}
+    function addDailyInputStats(n) {
+        if(!n) return;
+        try {
+            const key = new Date().toISOString().slice(0,10);
+            const map = JSON.parse(localStorage.getItem('daily_input_stats_v1') || '{}');
+            map[key] = (map[key] || 0) + n;
+            localStorage.setItem('daily_input_stats_v1', JSON.stringify(map));
+        } catch(e) {}
+    }
     let sessionGenChars = 0;
     // v7.9m：日志小面板实时统计
     function sysSet(id, txt) { const el = $(id); if(el) el.textContent = txt; }
@@ -951,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const aName = (a && a.name) || 'A', bName = (b && b.name) || 'B';
         chatEl.innerHTML = roleplayState.rounds.map(r => {
             const aBubble = '<div style="margin-bottom:14px;"><div style="display:flex;flex-direction:column;align-items:flex-end;"><div style="display:inline-flex;align-items:center;gap:6px;font-size:0.68rem;color:#9EC6EA;margin-bottom:4px;margin-right:4px;"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#2A6EA4,#1E4E78);align-items:center;justify-content:center;font-size:0.6rem;color:#EDEAF2;flex-shrink:0;">' + escapeHtml(aName.slice(0,1)) + '</span>' + escapeHtml(aName) + '</div><div style="background:linear-gradient(135deg,#2F7CC0,#25619E);border-radius:14px 14px 4px 14px;padding:9px 13px;max-width:78%;text-align:left;box-shadow:0 4px 14px rgba(47,124,192,0.25);"><div style="font-size:14px;color:#F2F7FC;white-space:pre-wrap;line-height:1.55;">' + escapeHtml(r.a) + '</div></div></div></div>';
-            const bBubble = '<div style="margin-bottom:14px;"><div style="display:flex;flex-direction:column;align-items:flex-start;"><div style="display:inline-flex;align-items:center;gap:6px;font-size:0.68rem;color:#A8A0E0;margin-bottom:4px;margin-left:4px;"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#4A3A8A,#2E2458);align-items:center;justify-content:center;font-size:0.6rem;color:#EDEAF2;flex-shrink:0;">' + escapeHtml(bName.slice(0,1)) + '</span>' + escapeHtml(bName) + '</div><div style="background:linear-gradient(160deg,#221F33,#191725);border:1px solid rgba(168,160,224,0.25);border-radius:14px 14px 14px 4px;padding:9px 13px;max-width:78%;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,0.28);"><div style="font-size:14px;color:#EDEAF2;white-space:pre-wrap;line-height:1.55;">' + escapeHtml(r.b || '…') + '</div></div></div></div>';
+            const bBubble = '<div style="margin-bottom:14px;"><div style="display:flex;flex-direction:column;align-items:flex-start;"><div style="display:inline-flex;align-items:center;gap:6px;font-size:0.68rem;color:#B8B4D0;margin-bottom:4px;margin-left:4px;"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#4A3A8A,#2E2458);align-items:center;justify-content:center;font-size:0.6rem;color:#EDEAF2;flex-shrink:0;">' + escapeHtml(bName.slice(0,1)) + '</span>' + escapeHtml(bName) + '</div><div style="background:linear-gradient(160deg,#221F33,#191725);border:1px solid rgba(168,160,224,0.25);border-radius:14px 14px 14px 4px;padding:9px 13px;max-width:78%;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,0.28);"><div style="font-size:14px;color:#EDEAF2;white-space:pre-wrap;line-height:1.55;">' + escapeHtml(r.b || '…') + '</div></div></div></div>';
             return aBubble + bBubble;
         }).join('');
         chatEl.scrollTop = chatEl.scrollHeight;
@@ -997,6 +1108,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const inp = $('roleplayInput'); const msg = ((inp && inp.value) || '').trim();
         if(!msg) { toast('请输入内容'); return; }
         sessionInputChars += msg.length; // v7.9m：本次输入字数累计（扮演台词）
+        addDailyInputStats(msg.length); // v8.1：独立存储每日输入字数
         if(inp) inp.value = '';
         const dialogs = roleplayState.rounds.length ? '【对话记录】\n' + roleplayDialogsText(book, a, b) + '\n\n' : '';
         let user = '【本轮】（' + (roleplayState.roundNo + 1) + '）' + a.name + '：' + msg + '\n请延续「' + b.name + '」此前已确立的情绪、状态与设定变化，以其身份回复：';
@@ -1075,7 +1187,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(chatEl && !$('roleplaySumPh')) {
             const ph = document.createElement('div');
             ph.id = 'roleplaySumPh';
-            ph.style.cssText = 'text-align:center;color:#A8A0E0;font-size:0.85rem;padding:14px 0;';
+            ph.style.cssText = 'text-align:center;color:#B8B4D0;font-size:0.85rem;padding:14px 0;';
             ph.innerHTML = '⏳ 正在生成互动摘要…';
             chatEl.appendChild(ph);
             chatEl.scrollTop = chatEl.scrollHeight;
@@ -1461,6 +1573,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if(!api.reasoningEffort) api.reasoningEffort='high';
         if(api.notify===undefined) api.notify=false;
         if(api.dualMode===undefined) api.dualMode=false;
+        if(api.multiChap===undefined) api.multiChap=false; // v8.0.34 连发多章
+        if(!api.multiChapCount) api.multiChapCount=3; // v8.0.34 连发章数默认 3
         if(api.branchAutoSend===undefined) api.branchAutoSend=false; // v7.2 走向自动发送
         if(api.rewriteAutoSend===undefined) api.rewriteAutoSend=false; // v7.2 重写自动发送
         // 数值范围兜底（防异常备份/旧配置越界）
@@ -1510,6 +1624,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const thinkingEl = $('thinkingCheck'); if(thinkingEl) thinkingEl.checked = api.thinking !== false;
         const branchAuto = $('branchAutoSendCheck'); if(branchAuto) branchAuto.checked = !!api.branchAutoSend; // v7.2
         const rewriteAuto = $('rewriteAutoSendCheck'); if(rewriteAuto) rewriteAuto.checked = !!api.rewriteAutoSend; // v7.2
+        const mcc = $('multiChapCountInp'); if(mcc) mcc.value = api.multiChapCount || 3; // v8.0.34
         // v7.9 扮演 API 兜底与控件填充
         if(!actApi.url || !/^https?:\/\//i.test(actApi.url.trim())) actApi.url='https://api.deepseek.com/chat/completions';
         if(!actApi.model || !actApi.model.trim()) actApi.model='deepseek-v4-flash';
@@ -1666,6 +1781,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const thinkingEl2 = $('thinkingCheck'); if(thinkingEl2) api.thinking = thinkingEl2.checked;
         const branchAuto2 = $('branchAutoSendCheck'); if(branchAuto2) api.branchAutoSend = branchAuto2.checked; // v7.2
         const rewriteAuto2 = $('rewriteAutoSendCheck'); if(rewriteAuto2) api.rewriteAutoSend = rewriteAuto2.checked; // v7.2
+        const mcc2 = $('multiChapCountInp'); if(mcc2) { let n = parseInt(mcc2.value); if(n >= 2 && n <= 10) api.multiChapCount = n; } // v8.0.34
         // v7.3 审稿 API 字段读取（Gemini 3.x：无温度，读推理强度）
         const polMap2 = { polishUrlInp: 'url', polishKeyInp: 'key', polishModelInp: 'model',
             polishMaxTokensInp: 'maxTokens' };
@@ -2143,10 +2259,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const dailyAvg = dayKeys.length ? Math.round(dayKeys.reduce((s,d)=>s+dayChars[d],0) / dayKeys.length) : 0;
         // 2 每章平均字数
         const perChapAvg = Math.round(totalChars / chapterCount);
-        // 3 每日用户输入消息字数（按有输入的天数平均）
+        // 3 每日用户输入消息字数（v8.1：独立存储 daily_input_stats_v1 优先 + chatHistory 回退兜底）
         const dayMsg = {};
         let msgTotal = 0;
-        effMsgs.forEach(m => { const d = new Date(m.ts).toDateString(); dayMsg[d] = (dayMsg[d] || 0) + m.content.length; msgTotal += m.content.length; });
+        let dailyStatsUsed = false;
+        try {
+            const dsMap = JSON.parse(localStorage.getItem('daily_input_stats_v1') || '{}');
+            const dsKeys = Object.keys(dsMap);
+            if(dsKeys.length) {
+                dsKeys.forEach(k => { if(!resetTs || new Date(k + 'T00:00:00').getTime() >= resetTs) { dayMsg[new Date(k + 'T00:00:00').toDateString()] = (dayMsg[new Date(k + 'T00:00:00').toDateString()] || 0) + (dsMap[k] || 0); msgTotal += (dsMap[k] || 0); } });
+                dailyStatsUsed = true;
+            }
+        } catch(e) {}
+        if(!dailyStatsUsed) { effMsgs.forEach(m => { const d = new Date(m.ts).toDateString(); dayMsg[d] = (dayMsg[d] || 0) + m.content.length; msgTotal += m.content.length; }); }
         const msgDayKeys = Object.keys(dayMsg);
         const dailyMsgAvg = msgDayKeys.length ? Math.round(msgDayKeys.reduce((s,d)=>s+dayMsg[d],0) / msgDayKeys.length) : 0;
         // 4 每章用户输入消息字数
@@ -2600,7 +2725,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const pairPerp = {};
         seenPairs.forEach(key=>{ const ids = key.split('|'); const refFrom = relationNodePositions[ids[0]], refTo = relationNodePositions[ids[1]]; if(!refFrom || !refTo) return; const rdx = refTo.x - refFrom.x, rdy = refTo.y - refFrom.y; const rlen = Math.sqrt(rdx*rdx+rdy*rdy) || 1; pairPerp[key] = { px: -rdy/rlen*14, py: rdx/rlen*14 }; });
         edgeMeta.forEach(e=>{ const from = relationNodePositions[e.from], to = relationNodePositions[e.to]; if(!from||!to) return; const color = getRelationColor(e.type); let fx = from.x, fy = from.y, tx = to.x, ty = to.y; if(e.offsetSide && e.isBidirectional) { const pairKey = [e.from, e.to].sort().join('|'); const pp = pairPerp[pairKey]; if(pp) { fx += pp.px * e.offsetSide; fy += pp.py * e.offsetSide; tx += pp.px * e.offsetSide; ty += pp.py * e.offsetSide; } } const ep1 = edgeIntersect(fx, fy, tx, ty); const ep2 = edgeIntersect(tx, ty, fx, fy); const g = document.createElementNS('http://www.w3.org/2000/svg','g'); const line = document.createElementNS('http://www.w3.org/2000/svg','line'); line.setAttribute('x1',ep1.x); line.setAttribute('y1',ep1.y); line.setAttribute('x2',ep2.x); line.setAttribute('y2',ep2.y); line.setAttribute('stroke',color); line.setAttribute('stroke-width','3'); line.setAttribute('stroke-linecap','round'); line.setAttribute('marker-end','url(#arr-'+color.replace('#','')+')'); g.appendChild(line); const label = document.createElementNS('http://www.w3.org/2000/svg','text'); const midX = (fx+tx)/2, midY = (fy+ty)/2; label.setAttribute('x',midX); label.setAttribute('y',midY-10); label.setAttribute('class','graph-line-label'); label.setAttribute('fill',color); label.setAttribute('font-size','12'); label.setAttribute('text-anchor','middle'); label.setAttribute('font-weight','500'); label.textContent = e.type; g.appendChild(label); lineGroup.appendChild(g); });
-        chars.forEach(c=>{ const pos = relationNodePositions[c.id]; if(!pos) return; const x = pos.x - NODE_W/2, y = pos.y - NODE_H/2; const g = document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('data-id',c.id); g.style.cursor = 'pointer'; g.addEventListener('click',()=>{ graphNodeClick(c.id); }); g.addEventListener('mousedown',(ev)=>{ graphNodeDragStart(ev,c.id); }); const rect = document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',NODE_W); rect.setAttribute('height',NODE_H); rect.setAttribute('rx','10'); rect.setAttribute('ry','10'); rect.setAttribute('fill','#1C1A28'); rect.setAttribute('stroke','#3B8ED4'); rect.setAttribute('stroke-width','1.5'); g.appendChild(rect); const name = document.createElementNS('http://www.w3.org/2000/svg','text'); name.setAttribute('x',pos.x); name.setAttribute('y',pos.y-4); name.setAttribute('class','graph-node-text'); name.setAttribute('fill','#EDEAF2'); name.setAttribute('font-size','12'); name.setAttribute('text-anchor','middle'); name.setAttribute('pointer-events','none'); name.textContent = (c.name||'?').substring(0, 5); g.appendChild(name); const relCount = (c.relationships||[]).length; const sub = document.createElementNS('http://www.w3.org/2000/svg','text'); sub.setAttribute('x',pos.x); sub.setAttribute('y',pos.y+16); sub.setAttribute('class','graph-node-sub'); sub.setAttribute('fill','#7A728F'); sub.setAttribute('font-size','9'); sub.setAttribute('text-anchor','middle'); sub.setAttribute('pointer-events','none'); sub.textContent = relCount ? relCount+'个关系' : '无关系'; g.appendChild(sub); nodeGroup.appendChild(g); });
+        chars.forEach(c=>{ const pos = relationNodePositions[c.id]; if(!pos) return; const x = pos.x - NODE_W/2, y = pos.y - NODE_H/2; const g = document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('data-id',c.id); g.style.cursor = 'pointer'; g.addEventListener('click',()=>{ graphNodeClick(c.id); }); g.addEventListener('mousedown',(ev)=>{ graphNodeDragStart(ev,c.id); }); const rect = document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',NODE_W); rect.setAttribute('height',NODE_H); rect.setAttribute('rx','10'); rect.setAttribute('ry','10'); rect.setAttribute('fill','#1C1A28'); rect.setAttribute('stroke','#3B8ED4'); rect.setAttribute('stroke-width','1.5'); g.appendChild(rect); const name = document.createElementNS('http://www.w3.org/2000/svg','text'); name.setAttribute('x',pos.x); name.setAttribute('y',pos.y-4); name.setAttribute('class','graph-node-text'); name.setAttribute('fill','#EDEAF2'); name.setAttribute('font-size','12'); name.setAttribute('text-anchor','middle'); name.setAttribute('pointer-events','none'); name.textContent = (c.name||'?').substring(0, 5); g.appendChild(name); const relCount = (c.relationships||[]).length; const sub = document.createElementNS('http://www.w3.org/2000/svg','text'); sub.setAttribute('x',pos.x); sub.setAttribute('y',pos.y+16); sub.setAttribute('class','graph-node-sub'); sub.setAttribute('fill','#8A84A8'); sub.setAttribute('font-size','9'); sub.setAttribute('text-anchor','middle'); sub.setAttribute('pointer-events','none'); sub.textContent = relCount ? relCount+'个关系' : '无关系'; g.appendChild(sub); nodeGroup.appendChild(g); });
         // v6.4：区域底层绘制（先于人物/关系，置于最底层；半透明底色 + 框线 + 名称双线框居中）
         if(graphRegions.length) {
             const regionGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
@@ -3036,6 +3161,13 @@ ${chapter.content}
         chap.checkRequestVersion = (chap.checkRequestVersion || 0) + 1;
         const requestVersion = chap.checkRequestVersion;
         setConflictChecking(true);
+        // v8.0.35：冲突检查接入伪阶段进度窗口（20s 一格）
+        startSbStages([
+            { pct: 15, text: '正在读取本章与上下文…' },
+            { pct: 45, text: '正在扫描设定冲突…' },
+            { pct: 75, text: '正在核对前后文一致性…' },
+            { pct: 90, text: '正在汇总结果…' }
+        ], 20000, '⚠️ 请勿关闭网页，等待AI检查中...');
         try {
             // v7.4 H1 修复：冲突检测前文加预算（20000 字符，超限截断防撑爆上下文）——从最近章节向前取，保留最近的
             let prevContent = ''; { let budget = 20000; const pcs = book.chapters.slice(Math.max(0, idx - api.ctxChapters), idx); for(let pi = pcs.length - 1; pi >= 0; pi--) { const seg = (pcs[pi].content || ''); if(prevContent.length + seg.length + 2 > budget && prevContent) break; if(!prevContent && seg.length > budget) { prevContent = seg.slice(0, budget); break; } prevContent = (prevContent ? seg + '\n\n' + prevContent : seg); } }
@@ -3053,13 +3185,15 @@ ${chapter.content}
                 const cCostTxt = result.cost ? `（消费 ¥${result.cost.toFixed(2)} 元）` : '';
                 if(current.checkResult.length) toast(`检查发现 ${current.checkResult.length} 处潜在冲突${cCostTxt}`);
                 else toast(`未检测到明显冲突${cCostTxt}`);
+                startTabBlink(current.checkResult.length ? `✅ 检查发现 ${current.checkResult.length} 处冲突` : '✅ 未检测到明显冲突');
             } else {
                 current.checkResult = []; current.checkState = 'error';
                 if(checkBtn) checkBtn.style.background = "#3A3A6A";
                 toast(result.error || "冲突检测失败");
+                startTabBlink('❌ 冲突检测失败');
             }
             saveAll();
-        } finally { setConflictChecking(false); }
+        } finally { setConflictChecking(false); stopSbStages(); resetSbProgress(); } // v8.0.35：清理检查进度窗口
     }
 
     // ===== v7.1 角色成长：解析 / 写入 / 清理 / 注入 =====
@@ -3297,11 +3431,11 @@ ${chapter.content}
         // v8.0.14：伪阶段进度窗口——续写 20s/生文重写 40s 一格，最后一格卡住等真实完成
         if(!isDual) {
             if(isCont) {
-                startSbStages([{pct:15,text:'正在回顾前文…'},{pct:45,text:'正在构思续写走向…'},{pct:75,text:'正在撰写正文…'},{pct:90,text:'正在收尾…'}], 20000);
+                startSbStages([{pct:15,text:'正在回顾前文…'},{pct:45,text:'正在构思续写走向…'},{pct:75,text:'正在撰写正文…'},{pct:90,text:'正在收尾…'}], 20000, '⚠️ 请勿关闭网页，等待AI续写中...');
             } else if(isRegen) {
-                startSbStages([{pct:15,text:'正在理解原文…'},{pct:45,text:'正在重新构思本章…'},{pct:75,text:'正在重写正文…'},{pct:90,text:'正在收尾…'}], 40000);
+                startSbStages([{pct:15,text:'正在理解原文…'},{pct:45,text:'正在重新构思本章…'},{pct:75,text:'正在重写正文…'},{pct:90,text:'正在收尾…'}], 40000, '⚠️ 请勿关闭网页，等待AI重写中...');
             } else {
-                startSbStages([{pct:15,text:'正在构思本章内容…'},{pct:45,text:'正在撰写正文…'},{pct:75,text:'正在润饰行文…'},{pct:90,text:'正在收尾…'}], 40000);
+                startSbStages([{pct:15,text:'正在构思本章内容…'},{pct:45,text:'正在撰写正文…'},{pct:75,text:'正在润饰行文…'},{pct:90,text:'正在收尾…'}], 40000, '⚠️ 请勿关闭网页，等待AI生文中...');
             }
         }
         let idx = isRegen ? book.chapters.findIndex(c=>c.id===targetId) : book.chapters.length;
@@ -3551,6 +3685,7 @@ ${chapter.content}
         if(pendingBranch) { toast("走向生成中，请稍候"); return; } // v7.3 C3 修复：走向请求期间禁止并发生成
         if(!ensureCurrentChapterSaved()) return;
         sessionInputChars += instr.length; // v7.9m：本次输入字数累计（正文指令/续写/重写指令均计）
+        addDailyInputStats(instr.length); // v8.1：独立存储每日输入字数（清空聊天不影响）
         // v7.2：重写态——发送 = 重写本章（pendingRewrite 由 onRegenerate 设置，切章节/完成/新生成时清除）
         if(pendingRewrite) {
             const pr = pendingRewrite;
@@ -3587,6 +3722,12 @@ ${chapter.content}
         // 若在 await 之后才关闭，旧任务异步收尾会把用户停止后重新打开的双版开关误关
         const useDualMode = api.dualMode;
         if(useDualMode) { api.dualMode = false; saveAll(); updateDualModeButton(); }
+        // v8.0.34：连发多章同样在任务启动时单次消费
+        const useMultiChap = api.multiChap;
+        if(useMultiChap) { api.multiChap = false; saveAll(); updateDualModeButton(); }
+        
+        // v8.0.34：连发多章模式
+        if(useMultiChap) { await runMultiChap(instr, book); return; }
         
         // Non-dual or continue/regen: original flow
         if(!useDualMode) {
@@ -3623,6 +3764,63 @@ ${chapter.content}
         // 双版开关已在任务启动时消费（v5.8），此处不再关闭——防旧任务收尾误关用户新开关
     }
 
+    // v8.0.34：连发多章——第1章按指令生成，之后每章自动续写，直到 N 章
+    async function runMultiChap(instr, book) {
+        const count = Math.max(2, Math.min(10, api.multiChapCount || 3));
+        // v8.3：连发目标记忆——用户指令转「连发目标」贯穿每章（第2章起不再丢失方向）
+        const goal = (instr && instr.trim()) ? '【连发目标】' + instr + '\n请沿此方向持续推进，每章要有独立进展，避免一章内仓促完成全部目标。' : '';
+        addChat('user', instr);
+        if($('chatInp')) $('chatInp').value = '';
+        let lid = addChat('assistant', '📚 连发多章：共 ' + count + ' 章，正在生成第 1/' + count + ' 章...', true);
+        const startTime = Date.now();
+        // v8.0.35：连发多章状态行（startSbStages 不清空它）
+        sbMultiRunning = true;
+        const multiStages = [
+            { pct: 15, text: '正在回顾前文…' },
+            { pct: 45, text: '正在构思续写走向…' },
+            { pct: 75, text: '正在撰写正文…' },
+            { pct: 90, text: '正在收尾…' }
+        ];
+        startSbStages(multiStages, 20000, '⚠️ 请勿关闭网页，等待AI续写中...');
+        setSbMultiStatus(0, count);
+        let stopped = false, failedAt = 0;
+        for(let i = 1; i <= count; i++) {
+            if(stopped) break;
+            replaceChatMessage(lid, '📚 连发多章：正在生成第 ' + i + '/' + count + ' 章...', book);
+            const isFirst = (i === 1);
+            // v8.0.35：每章启动进度窗口（第1章按生文节奏 40s/生文中，后续续写 20s/续写中）+ 更新状态行
+            startSbStages(
+                isFirst ? [{pct:15,text:'正在构思本章内容…'},{pct:45,text:'正在撰写正文…'},{pct:75,text:'正在润饰行文…'},{pct:90,text:'正在收尾…'}] : multiStages,
+                isFirst ? 40000 : 20000,
+                isFirst ? '⚠️ 请勿关闭网页，等待AI生文中...' : '⚠️ 请勿关闭网页，等待AI续写中...'
+            );
+            setSbMultiStatus(i - 1, count);
+            await executeGeneration(
+                isFirst ? instr : goal,     // v8.3：第1章用指令，之后注入连发目标
+                false, null, !isFirst, lid, // isCont=true 走续写链路（getPrev 注入前文）
+                (chap, cost, aborted, saveFailed) => {
+                    if(aborted) { stopped = true; return; }
+                    if(!chap) { stopped = true; failedAt = i; }
+                },
+                false, null, book ? book.id : null
+            );
+        }
+        sbMultiRunning = false;
+        const mEl = $('sbProgressMulti'); if(mEl) mEl.innerText = '';
+        const elapsed = formatTime(Date.now() - startTime);
+        if(failedAt) {
+            replaceChatMessage(lid, '❌ 连发多章中断：第 ' + failedAt + '/' + count + ' 章生成失败（已生成 ' + (failedAt - 1) + ' 章，耗时 ' + elapsed + '）', book);
+            startTabBlink('❌ 连发多章中断');
+        } else if(stopped) {
+            replaceChatMessage(lid, '⏹ 连发多章已停止', book);
+            startTabBlink('⏹ 连发多章已停止');
+        } else {
+            replaceChatMessage(lid, '✅ 连发多章完成：共生成 ' + count + ' 章（耗时 ' + elapsed + '）', book);
+            startTabBlink('✅ 连发多章完成：' + count + ' 章');
+        }
+        stopSbStages(); resetSbProgress();
+    }
+
     async function runDualGeneration(instr, book, dualLid) {
         // v5.8：双版启动前先检查 API Key——无 Key 时提前挂起单条待生成任务并提示，
         // 避免两个并行 executeGeneration 各自创建 pendingGeneration（重复覆盖）+ 先显示"并发生成中"
@@ -3652,7 +3850,7 @@ ${chapter.content}
         const split = document.createElement('div');
         split.id = 'editorSplit';
         split.className = 'editor-split';
-        split.innerHTML = '<div class="split-pane" id="splitPaneA" style="cursor:pointer;" title="点击选择保留此版本" onclick="window._selectDualVersion(\'A\')"><div class="split-pane-header"><span>📗 版本 A</span><span style="font-size:0.6rem;color:#7A728F;" id="splitStatusA">⏳ 生成中...</span></div><div class="split-pane-content" id="splitContentA">⏳ 生成中...</div></div><div class="split-pane" id="splitPaneB" style="cursor:pointer;" title="点击选择保留此版本" onclick="window._selectDualVersion(\'B\')"><div class="split-pane-header"><span>📘 版本 B</span><span style="font-size:0.6rem;color:#7A728F;" id="splitStatusB">⏳ 生成中...</span></div><div class="split-pane-content" id="splitContentB">⏳ 生成中...</div></div>';
+        split.innerHTML = '<div class="split-pane" id="splitPaneA" style="cursor:pointer;" title="点击选择保留此版本" onclick="window._selectDualVersion(\'A\')"><div class="split-pane-header"><span>📗 版本 A</span><span style="font-size:0.6rem;color:#8A84A8;" id="splitStatusA">⏳ 生成中...</span></div><div class="split-pane-content" id="splitContentA">⏳ 生成中...</div></div><div class="split-pane" id="splitPaneB" style="cursor:pointer;" title="点击选择保留此版本" onclick="window._selectDualVersion(\'B\')"><div class="split-pane-header"><span>📘 版本 B</span><span style="font-size:0.6rem;color:#8A84A8;" id="splitStatusB">⏳ 生成中...</span></div><div class="split-pane-content" id="splitContentB">⏳ 生成中...</div></div>';
         editorArea.appendChild(split);
         
         // Launch both in parallel
@@ -3703,8 +3901,8 @@ ${chapter.content}
         
         if(aOk && bOk) {
             // Both ok - show both for selection
-            document.getElementById('splitStatusA').innerHTML = '<span style="color:#4AE06A;">✅ 完成</span> <span style="font-size:0.55rem;color:#7A728F;">预估 ¥'+aCost.toFixed(2)+'</span>';
-            document.getElementById('splitStatusB').innerHTML = '<span style="color:#4AE06A;">✅ 完成</span> <span style="font-size:0.55rem;color:#7A728F;">预估 ¥'+bCost.toFixed(2)+'</span>';
+            document.getElementById('splitStatusA').innerHTML = '<span style="color:#4AE06A;">✅ 完成</span> <span style="font-size:0.55rem;color:#8A84A8;">预估 ¥'+aCost.toFixed(2)+'</span>';
+            document.getElementById('splitStatusB').innerHTML = '<span style="color:#4AE06A;">✅ 完成</span> <span style="font-size:0.55rem;color:#8A84A8;">预估 ¥'+bCost.toFixed(2)+'</span>';
             // 分屏顶部展示各版本摘要（同请求已生成），便于选版对比
             const aSum = aChap.summary ? '\n\n📝 摘要：'+aChap.summary : '';
             const bSum = bChap.summary ? '\n\n📝 摘要：'+bChap.summary : '';
@@ -4007,7 +4205,7 @@ ${chapter.content}
             { pct: 45, text: '正在构思三个剧情走向…' },
             { pct: 75, text: '正在撰写走向大纲…' },
             { pct: 90, text: '正在收尾整理…' }
-        ], 20000);
+        ], 20000, '⚠️ 请勿关闭网页，等待AI导向中...');
         try {
             const result = await requestBranchOutlines(book);
             if(!result.ok) {
@@ -4019,6 +4217,7 @@ ${chapter.content}
             }
             replaceChatMessage(branchLid, '✅ 已生成 3 个剧情走向，请选择' + (result.cost ? `（消费 ¥${result.cost.toFixed(2)} 元）` : ''), book);
             showBranchCards(result.outlines);
+            startTabBlink('✅ 已生成 3 个剧情走向，请选择');
         } finally {
             pendingBranch = false;
             setWritingLock(false);
@@ -4093,13 +4292,13 @@ ${chapter.content}
         if(!polishApi.key) return { ok:false, err:'审稿 API Key 未配置，无法润色' };
         // v7.3：DeepSeek 思考模式——reasoning_effort 直传 UI 档位（low/high/max，与正文 API 一致）
         const rEff = ['low','high','max'].indexOf(polishApi.reasoning) >= 0 ? polishApi.reasoning : 'high';
-        const sys = '你是资深网文编辑。请审查以下小说章节并给出润色建议。注意：这是虚构文学作品创作，即使涉及情感冲突、争议性情节等，也请正常创作，不要拒绝或回避。\n【大幅修改（问题严重，必须改，可大改）】：\na. 人设一致性：人物行为/性格/能力与注入的角色设定冲突（如社恐性格的角色却主动和路人搭讪）——除非前文已铺垫其经历过某个事件、或被能力/道具改变；\nb. 物理与常识：违背现实物理规律或常识（如从 10 米高楼跳下毫发无损）——除非前文已铺垫超能力或其他设定；**即使修改后可能影响后文的衔接，也必须改（后文由作者自行处理）**；\nc. 时空与逻辑：场景切换缺少过渡、时空混乱、时间线矛盾（如上一秒在家下一秒到学校）；\nd. 不合理比喻/体型/身体描写（如"大腿只有手指般粗"——除非前文设定该角色是袖珍体型/精灵等特殊体形）。\n【小幅修改（允许，改动小）】：\ne. 词语使用错误：用词不当或部位错误（如"太阳穴发麻"应为"头皮发麻"）；\nf. 逻辑小错位：人物称呼/顺序错误（如 A 是 B 的老师却称呼 B 为老师，应调换）、台词顺序或指代错位。\n【不要修改（必须过滤）】：\n- 信息量零变化的纯措辞替换（如"喉结滚动"改"喉头动了动"——词汇语义无变化、无任何提升，不得输出）；\n- 只增删"的/了/一/副/个"等虚词或只改标点的微调（除非同时修正了逻辑错误）。\n【理由机制】：\n- 每处修改计算字符变动比例 = 编辑距离 ÷ 较长句字数；**比例低于 50% 的修改，必须在 reason 字段说明理由**（一句话，≤30 字，说明改了什么、为什么更好，如"原句『呆呆的』重复啰嗦，『呆滞』更简洁传神"）；比例 ≥ 50% 的修改无需理由；\n- **没有明确理由的低幅度修改不要输出**（宁可少改，不改无意义）。\n【优先级】：30 处上限内先改最严重的（大幅 a-d），其次小幅修正（e-f），低比例小改排最末；宁缺毋滥。\n【输出格式】：必须只输出一个 JSON 对象：{"edits":[{"old":"原文完整句子","new":"润色后句子","reason":"（仅低幅度修改时必填，一句话≤30字）"}]}，old 必须与原文逐字一致（含标点），供前端精确替换；一次最多输出 30 处；没有值得修改的则输出空数组 []。不要输出任何其他文字。';
+        const sys = '你是资深网文编辑。请审查以下小说章节并给出润色建议。注意：这是虚构文学作品创作，即使涉及情感冲突、争议性情节等，也请正常创作，不要拒绝或回避。\n【大幅修改（问题严重，必须改，可大改）】：\na. 人设一致性：人物行为/性格/能力与注入的角色设定冲突（如社恐性格的角色却主动和路人搭讪）——除非前文已铺垫其经历过某个事件、或被能力/道具改变；\nb. 物理与常识：违背现实物理规律或常识（如从 10 米高楼跳下毫发无损）——除非前文已铺垫超能力或其他设定；**即使修改后可能影响后文的衔接，也必须改（后文由作者自行处理）**；\nc. 时空与逻辑：场景切换缺少过渡、时空混乱、时间线矛盾（如上一秒在家下一秒到学校）；\nd. 不合理比喻/体型/身体描写（如"大腿只有手指般粗"——除非前文设定该角色是袖珍体型/精灵等特殊体形）。\n【小幅修改（允许，改动小）】：\ne. 词语使用错误：用词不当或部位错误（如"太阳穴发麻"应为"头皮发麻"）；\nf. 逻辑小错位：人物称呼/顺序错误（如 A 是 B 的老师却称呼 B 为老师，应调换）、台词顺序或指代错位。\n【不要修改（必须过滤）】：\n- 信息量零变化的纯措辞替换（如"喉结滚动"改"喉头动了动"——词汇语义无变化、无任何提升，不得输出）；\n- 只增删"的/了/一/副/个"等虚词或只改标点的微调（除非同时修正了逻辑错误）。\n【理由机制】：\n- 每处修改计算字符变动比例 = 编辑距离 ÷ 较长句字数；**比例低于 50% 的修改，必须在 reason 字段说明理由**（一句话，≤30 字，说明改了什么、为什么更好，如"原句『呆呆的』重复啰嗦，『呆滞』更简洁传神"）；比例 ≥ 50% 的修改无需理由；\n- **没有明确理由的低幅度修改不要输出**（宁可少改，不改无意义）。\n【优先级】：30 处上限内先改最严重的（大幅 a-d），其次小幅修正（e-f），低比例小改排最末；宁缺毋滥。\n【输出格式】：必须只输出一个 JSON 对象：{"edits":[{"old":"原文完整句子","new":"润色后句子","reason":"（仅低幅度修改时必填，一句话≤30字）"}]}，old 必须与原文逐字一致（含标点），供前端精确替换；一次最多输出 30 处；没有值得修改的则输出空数组 []。不要输出任何其他文字。\n\n【去AI味要求】\n1. 增加口语与语气词，让人物多说人话（如“啧”“得了吧”“行行行”“算了算了”），避免通篇书面腔。\n2. 加入“废话”动作细节：刻意穿插日常无意义小动作（中途擦桌子、翻白眼、蹲下系鞋带、把笔帽咬得坑坑洼洼），增强真实感。\n3. 善用错位描写：表达情绪时不直接写“他很难过”，改写成具体动作（“他盯着外卖，筷子夹了好几次只夹起一粒米”），让读者从动作细节中自行体会。\n4. 避免以下 AI 高频词/短语（出现即替换为具体动作或白描）：\n炸开、就像是、嘴角勾起、顿时、霎时、立刻、连忙、显然、似乎、虽然、大概、确实、几乎、可能、注定、接下来、渐渐、更是、一定、或许、十分、沉重、看不出、淡淡、郑重、此刻、恐怕、清凉、不知道、心中一凛、眼中闪过一丝惊诧、行云流水、心下了然、话锋一转、眼神深邃、显著、至关重要、微微挑眉、波涛汹涌、绝对、不可估量、仿佛、随时、无法想象、无法用言语形容、脸上带着笑意、平静地、显得有些兴奋、心中了然、激动地、眼神热切、目光显著不遮掩、淡淡地、不卑不亢、如同、显得异常清晰、暂时、不知是、瞬间、不经意、这一刻、嘴角勾起一抹、一时之间、这一次、看似、沉吟、隐晦有了猜测、谈吐间、一刻、她不言、目光泛过、心中一片平静、一丝、坚定、深吸一口气、缓缓地说、锐利的眼睛、他的嘴角微微上扬、他的表情变暗、他的心一跳、他的脸变了、不容置疑、嘴角、脸色、不易察觉的、的目光、心中、觉得、意识到、感到、认为、一抹、一般、些许、有点、略微、口气、纯粹、冰冷、电弧、闪烁、挣扎、清冷、沸腾、扭曲、撕裂、漆黑、窒息、刺眼、一点、不动声色、小小翼翼、沉吟片刻、心里隐隐有了猜测、果然、脸上堆满了笑、像喝了的毒药、嘴角勾起一个弧度、嘴巴张得能塞下一个鸡蛋、还要冰冷、透露的寒意、让空气的温度都下降了几度、声音不大、微微发颤、发白、不是…而是…句式、攥得泛白\n5. 以上去AI味要求为最高优先级：当与模板文风/行文规范冲突时，一律以去AI味要求为准，宁可牺牲文采也要保证人味与口语感。';
         const context = buildPolishContext(book, chap);
         const user = '待润色内容：\n' + context + '\n\n请输出润色 diff 的 JSON。';
         const t0 = Date.now();
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 180000);
-        startSbStages([{pct:15,text:'正在分析原文…'},{pct:45,text:'正在生成润色建议…'},{pct:75,text:'正在整理修改项…'},{pct:90,text:'正在收尾…'}], 20000); // v8.0.14：润色进度 20s 一格
+        startSbStages([{pct:15,text:'正在分析原文…'},{pct:45,text:'正在生成润色建议…'},{pct:75,text:'正在整理修改项…'},{pct:90,text:'正在收尾…'}], 20000, '⚠️ 请勿关闭网页，等待AI润色中...'); // v8.0.14：润色进度 20s 一格
         try {
             const res = await fetch(polishApi.url, {
                 method:'POST',
@@ -4195,6 +4394,7 @@ ${chapter.content}
             }
             if(!result.edits.length) {
                 toast('未发现需要修改的内容');
+                startTabBlink('✅ 润色完成（无需修改）');
                 // v7.3 诊断：注入量/耗时/AI 原始响应/格式异常标记——定位"无需修改"是模型行为还是解析吞错
                 const diag = `［诊断：注入 ${result.ctxLen || 0} 字，耗时 ${((result.ms||0)/1000).toFixed(1)}s${result.parseFail ? '，⚠️ AI 返回的 edits 格式异常' : ''}，AI 响应：${(result.raw || '(空)').slice(0, 120)}］`;
                 if(polishLid) replaceChatMessage(polishLid, '✨ 润色完成（无需修改）' + diag + (result.cost ? `（消费 ¥${result.cost.toFixed(2)} 元）` : ''), book);
@@ -4204,6 +4404,7 @@ ${chapter.content}
             const failed = renderPolishDiff(book, chap, result.edits);
             if(polishLid) replaceChatMessage(polishLid, `✨ 润色完成（${result.edits.length - failed} 处修改${failed ? `，${failed} 处无法匹配跳过` : ''}，黄色标注为低幅度修改的理由）${result.cost ? `（消费 ¥${result.cost.toFixed(2)} 元）` : ''}`, book);
             toast(`润色完成：${result.edits.length - failed} 处修改${failed ? `（${failed} 处跳过）` : ''}，请预览后应用或取消${result.cost ? `（消费 ¥${result.cost.toFixed(2)} 元）` : ''}`);
+            startTabBlink('✅ 润色完成，请预览后应用');
         } finally {
             pendingPolish = false;
             setWritingLock(false);
@@ -4551,7 +4752,7 @@ ${chapter.content}
                     const BOOK_TPL = {
         xh:{ name:'玄幻升级', mood:'热血燃向', prompt:"你是一位在起点中文网拥有三部万订作品的玄幻作家，笔名“乱石穿空”。你的文字风格被读者评价为“拳拳到肉，境界有血”——你写的不是等级数字，而是角色在突破边缘时喉咙里的铁锈味、经脉里逆流的灼烧感，以及每次变强后失去的东西。\n\n你的核心信条只有一条：升级不是为了变强，是为了解决一个“不变强就活不过今晚”的具体问题。\n\n【角色与视角】\n\n你必须是主角本人，而不是旁观者。使用第三人称限知视角，但镜头必须紧贴主角的毛孔——读者只能看到主角视线内的事物，只能听到主角耳膜震动的声响，只能感受主角皮肤上的刺痛或麻木。\n\n禁止任何“此时此刻，整个大陆为之震动”式的上帝视角装逼。如果主角不知道，就不写。\n\n【核心叙事逻辑：升级即代价】\n\n玄幻升级的本质不是“获得”，而是“置换”。每一次境界突破，主角必须用一样东西去换：\n\n力量型突破：折寿五年 / 失去一段记忆 / 某个重要的人因你突破时的异象受伤\n速度型突破：献祭一只眼睛的视力 / 双脚经脉永久损伤（换取短暂爆发）\n防御型突破：皮肤失去触觉 / 情绪感知变得迟钝（换来钢铁之躯）\n神识/灵魂型突破：分裂一缕灵魂碎片（永远留在突破地，成为另一个“你”）\n\n原则：代价必须具体、不可逆、且让读者感到“可惜”。禁止写“付出巨大代价”这种空话。\n\n【反降智铁律】\n\n1. 反派的智商不得低于主角的60%。反派犯的错误必须是有理由的——要么信息不全，要么被第三方掣肘，要么在赌一个更大的局。禁止写“哈哈你太弱了然后被秒杀”的纸片人反派。\n\n2. 围观者不得集体失智。如果你要写路人震惊，必须写出不同人的不同反应（有人握紧了剑柄，有人悄悄后退半步，有人嘴角抽了一下又压下去），禁止“全场鸦雀无声然后齐刷刷跪下”。\n\n3. 金手指必须有使用记录。主角的每一次外挂使用，必须在章内留下可追溯的痕迹——消耗了什么资源、透支了什么状态、暴露了什么信息。禁止“凭空变出”任何东西。", styleText:"【五感强制锚点】\n\n每章正文中，必须在以下至少三个感官维度里插入一个“生理性细节”，不允许使用抽象形容词：\n\n痛觉：“突破时锁骨下方三寸像被烧红的铁钎从内向外捅穿，每次呼吸都带出带血丝的泡沫”\n视觉：“他低头看见自己手臂上的青筋不再是青色——它们在缓缓变成黑色，像墨汁倒灌进了血管”\n听觉：“识海深处传来一声极细的碎裂声，像是瓷碗从桌沿掉到地上，但那个声音只响了一半就停了”\n触觉：“他摸到那柄剑时，掌心没有被割伤，但指尖的指纹被磨平了——光滑得像婴儿的皮肤”\n嗅觉/味觉：“丹药入口没有药香，他只尝到一股暴雨后泥土被翻开的腥味，混着铁锈——那是他上次杀的那个人血里的味道”\n\n禁止出现的感官写法：“他感到剧痛”“他看见天地变色”“他听到一声巨响”——这些都是无效感官，删掉重写。\n\n【结构：三幕流动式节奏】\n\n第一幕：困局（前30%）\n核心任务：展示主角此刻面临的一个具体到能说出口的危机（不是“要死了”，而是“三个时辰后若没突破到筑基，师妹体内的寒毒会冻结心脉”）\n禁止行为：禁止写抽象危机，禁止用旁白交代背景\n\n第二幕：破壁（中间45%）\n核心任务：主角为解决危机而主动冲击瓶颈。这段必须包含：一次失败（冲击时炸裂经脉/走火入魔/被外力打断）、一次取舍（用某样东西换一次重来的机会）、一次肉身变化（突破时身体出现了预期的/意外的变异）\n禁止行为：禁止一次成功，禁止没有代价的升级\n\n第三幕：余波与钩子（最后25%）\n核心任务：突破完成后的即时后果（敌人被吓退/天地异象引来关注/代价立刻显现）。章末钩子必须是一个具体的人或物出现在主角视线里，而不是“更大的危机在酝酿”这种空话\n禁止行为：禁止用“然而”“与此同时”引出钩子，必须用画面\n\n【对话与动作的铁血规则】\n\n对话：\n强制规则：每句对话必须带有一个隐藏目的（套话、激怒、试探、拖延时间）。禁止纯粹交代信息的对话。\n反面教材：“你来了。”“是的我来了。”“你知道为什么叫你吗？”“不知道。”\n\n动作：\n强制规则：每个动作必须是一镜到底的连续画面，禁止分镜跳切。动作的后果必须在下两句内显示。\n反面教材：他挥剑。（然后写天气）\n正确范例：他挥剑，剑锋划过石柱时擦出一串火星，其中一颗溅到他手背上，烫出一个黑点。\n\n内心：\n强制规则：内心独白只允许在决策时刻出现，不超过20字。禁止大段心理分析。\n反面教材：“他到底要不要救？救的话可能会死，不救的话良心过不去，但……”\n正确范例：他握紧剑柄，指节发白。救。一个字就够了。\n\n【章末钩子强制规格】\n\n每章最后一段（不超过150字）必须满足以下三个条件：\n\n1. 出现一个新的视觉画面（不是新的概念或设定）\n2. 这个画面里有一个具体的“动的东西”（移动的影子、飞来的暗器、远处升起的烟、忽然睁开的一只眼）\n3. 主角对这个画面的反应必须是一个动作（停步、屏住呼吸、手指按上剑柄、瞳孔缩了一下）\n\n范例方向（非模板内容，仅示例）：\n他拔出剑的同时，眼角余光扫到崖壁上——那个被他亲手封死的裂缝里，不知何时伸出了半截手指。指甲是黑的，但指腹上有一道他认识的疤。\n\n【篇幅与清洗指令】\n\n单章正文：3500-5000字\n\n输出前执行“除锈”操作：\n- 删除所有“仿佛”“似乎”“好像”“大概”“也许”\n- 删除所有“此时此刻”“就在这个时候”“说时迟那时快”\n- 删除所有“空气凝固了”“时间静止了”“全场一片死寂”\n- 把任何超过25个汉字的句子拦腰砍断，换成句号或破折号\n- 检查是否有“代价”——如果没有，退回重写\n\n【网文排版格式】\n\n1. 叙述段落默认顶格写，不首行缩进。\n2. 每个段落尽量不超过120字，尽量多拆段落，短段落快节奏。\n3. 台词（人物对话）单独起一段，对话段落首行缩进2个全角空格（　　）。\n4. 每个段落之间空一行。", charPh:'身份：被逐出宗门的杂役弟子\n处境：丹田破碎、遭人轻视\n性格：坚韧隐忍', sellPh:'金手指：升级即代价——每突破一层需献祭一段记忆（有限制）' },
         yj:{ name:'异界规则', mood:'暗黑压抑', prompt:"你是一位兼具游戏策划与副本设计师身份的异界流王牌写手，笔名“门缝里的光”。你的代表作被读者称为“每一章都在逼我拿本子记规则”——你写的不是主角有多强，而是“读者和主角在同一条起跑线上，靠脑子活下来”。\n\n你的核心信条是：异界规则流的本质不是“数值碾压”，而是“认知套利”——主角的强大必须源于对规则的理解深度、组合方式与时机把控，而非面板数字。\n\n【角色与认知边界】\n\n你必须进入主角的身体，且主角的认知水平必须与读者齐平——他知道的，读者刚知道；他没发现的，读者也没发现。镜头必须紧贴主角的推理过程，禁止“主角突然想通了”式的跳步。\n\n禁止在正文中出现任何规则说明文。规则只能通过以下方式呈现：\n- 主角的试探（做了一件事，看到了结果）\n- 主角的失败（做了一件事，付出了代价）\n- 主角的观察（看到别人做了一件事，看到了结果）\n- 环境异变（无需人触发，规则自己“动”了）\n- 系统中浮现的残缺文本（且文本本身带有叙事张力）\n\n如果主角没有亲眼验证过一条规则，这条规则在正文中就不存在。\n\n【核心叙事逻辑：试错即剧情】\n\n异界规则流的引擎不是战斗，是“试探—反馈—修正—再试探”的循环。每一次试探必须同时满足：\n\n1. 主角有一个明确的假设（“我猜这扇门会在倒计时结束时锁死”）\n2. 主角为验证假设采取了具体行动（他故意在倒计时最后一秒把脚卡进门缝）\n3. 行动产生了可观察的后果（门确实锁了，但他的脚被夹住了——损失了移动速度，且获得了“这扇门确实会在倒计时结束后锁死”的确认）\n\n禁止“边走边想”式的推理。每一层规则认知都必须由一次“有成本的行动”换来的。\n\n【规则三层结构】\n\n任何世界观必须包含以下三个层次，主角每章至少解锁一层或发现旧层的新组合：\n\n表层规则（所有人知道的常识）：\n“入夜后不要离开安全区。”\n“交易必须用灵币结算。”\n“每七天会刷新一次副本入口。”\n\n隐藏规则（需要试探或代价才能发现）：\n“安全区的边缘，其实每三小时向外扩展零点五米——如果你站在边缘不动，会在不知不觉中被推出安全区。”\n“灵币的材质可以被某种酸溶解，溶解后的液体是另一种更稀缺的资源。”\n“副本入口的刷新位置，实际上是由上一次副本中死掉的人数决定的。”\n\n元规则（支配前两层的底层逻辑）：\n“整个世界的运行逻辑是‘守恒’——没有凭空获得，只有置换。”\n“规则文本本身可以被‘阅读者’修改，但修改的人必须承受等量的反噬。”\n\n【试错成本铁律】\n\n主角验证规则的每一次尝试，都必须付出至少一项可感知的损失：\n\n| 损失类型 | 具体示例 |\n| :--- | :--- |\n| 生命值/体力 | “他踩上那块石板，左脚踝以下的皮肤瞬间变成了灰白色——血条掉了一截，而且那截灰色的部分没有随着时间恢复” |\n| 稀缺资源 | “为了确认那根绳子到底能不能承重，他把最后一瓶止血药粉撒在了绳结上——药粉没反应，但绳子断了，药粉也浪费了” |\n| 时间窗口 | “他在这个房间耗了太多时间。走廊尽头的门已经关到只剩一道缝——他听见门锁咬合的声音，知道接下来的路只能走另一条了” |\n| NPC关系 | “他对那个守卫说了那句话。守卫愣住了，然后收起了之前那副‘你可以过去’的表情——‘你怎么知道这个的？’他问。这条路线，废了” |\n\n禁止无风险的“随便试一试”。没有成本的试探是作弊。\n\n【反降智铁律】\n\n1. 世界规则不针对主角。规则是公平的——反派也知道表层规则，甚至可能知道部分隐藏规则。主角的优势只在于“他比反派多发现了一条”或“他把两条已知规则做了别人没做过的组合”。\n\n2. 规则不允许出现“无法解”的死局。任何规则都必须在读者读完本章后，回头复盘时觉得“合理”——这意味着主角的每一次破局手段，必须在探索阶段埋过线索引。\n\n3. 规则文本本身可以骗人。如果主角在石碑上读到“不要回头”，那么这句话可能是警告、可能是诅咒触发词、也可能是某个人故意刻上去的谎言。主角必须自己验证。", styleText:"【五感即规则的物质化证据】\n\n每章至少覆盖三个感官维度，但感官描写必须与“规则交互”绑定——读者通过主角的感官来“摸到规则”：\n\n视觉（规则可视化）：\n“他抬头时看见天花板上刻着一行字，笔画很浅，像是有人用指甲反复划出来的。不是警告。是计数。‘17’——上次有人来这里，是十七天前。但规则上说这个副本每七天刷新一次。”\n\n听觉（规则的非人质感）：\n“倒计时归零的那一刻，他没听见钟声。他听见的是某种极细的、像是沙粒在玻璃管里流动的声音——那不是计时器，那是沙漏。他猜错了机制类型。”\n\n触觉（规则边界的物理反馈）：\n“他伸手穿过那道淡金色光幕时，指尖传来一股钝痛，像是被什么东西从皮肤表面向下压了一毫米。没有伤口，但他的食指指甲盖变成了半透明——他看到了自己的骨头。”\n\n嗅觉（规则的环境锚点）：\n“踏入那条走廊的瞬间，他闻到了一股熟悉的味道——腐木混着铁锈。上次闻到这个味道，是在他触发‘真假门’规则之前。现在又来了，这意味着他又进入了一个‘二选一’的判定区间。”\n\n体感（规则惩罚的生理化）：\n“他说了那句话。话刚出口，喉咙深处突然收紧，像是有人从他体内捏住了气管——规则允许他说谎，但谎言必须以‘声音受损’为代价。他接下来三分钟说话都是哑的。”\n\n禁止出现的写法：“系统提示了他一条规则”——系统提示必须是“异常”，不能是“说明书”。\n\n【结构：探索—验证—破局—代价—新规则】\n\n每章遵循以下五步流动节奏：\n\n第一步：异常（前15%）\n主角在日常或当前任务中，注意到一个“不对劲”的细节——某样东西的位置不对、某个数字变了、某个NPC的态度出现了微妙偏移。这个异常是本章所有推理的起点。\n\n第二步：试探与收集线索（中间30%）\n主角基于异常提出假设，并采取第一次试探行动。试探产生即时后果（正面或负面），同时主角在试探过程中注意到2-3个新的环境细节。这些新细节构成下一轮推理的原料。\n\n第三步：验证（中间25%）\n主角整合所有线索，提出修正后的假设，并进行第二次验证。这次验证必须更危险，成本更高。如果验证失败，必须用已有信息另做假设；如果验证成功，则进入破局。\n\n第四步：利用规则破局（最后20%）\n主角利用验证后的规则认知，解决当前困境。破局的核心逻辑必须是“做了一件事，这件事利用了规则的某个盲区/组合/漏洞”。破局过程中必须伴随规则的即时反噬——规则不会沉默地让主角占便宜。\n\n第五步：章末钩子——规则升级（最后10%）\n破局后，主角因自己的行为触发了规则的下一层。章末钩子必须是：“他以为他解了这道题，但环境/系统/NPC给出了一个与他的解互为矛盾的信号——他之前的理解可能有误，或者规则刚才被他改变了。”\n\n【对话与动作的规则感】\n\n对话：\n强制规则：对话必须承担“交换规则信息”的功能——主角用一句话套出对方的认知边界，对方用一句话暴露他知道的规则层级。禁止寒暄式对话。\n反面教材：“请问这里安全吗？”“还算安全。”\n正确范例：“你在这里待了多久？”“三天。”“那你应该知道——凌晨三点的时候，影子会自己动？”\n\n动作：\n强制规则：每个动作必须有“验证规则”的意图，动作的结果必须带来规则层面的新信息。禁止无目的的移动或漫无边际的观察。\n反面教材：他环顾四周，发现这是一个很旧的房间。\n正确范例：他往前迈了半步。脚落下时，地面的砖纹忽然变了——原本的菱形变成了圆形。他退了半步。砖纹又变回去了。所以这间房间的规则是：移动改变地形。\n\n【章末钩子强制规格】\n\n每章最后一段（不超过150字）必须包含：\n\n1. 主角对当前规则的一个“确定判断”（“我已经确认了，这扇门的规律是奇数时间开、偶数时间锁”）\n2. 紧接着出现一个与该判断直接矛盾的“新证据”（他抬头看了一眼墙上的钟——不是偶数。是奇数。门却锁着。或者相反。）\n3. 以主角的一句内心计算或一个重新抬起的动作收尾，暗示下一轮推理即将开始\n\n范例方向（非模板内容，仅示例）：\n他以为他算对了。三条规则，对应三个条件，他全满足了。\n但当他走向出口时，地面忽然亮起了第四圈光——他之前从来没有数到过四。\n他停住了。\n“等等。少算了一条。那条的代价是什么？”\n\n【篇幅与清洗指令】\n\n单章正文：3500-5000字\n\n输出前执行“除锈”操作：\n- 删除所有“仿佛”“似乎”“好像”“大概”“也许”——规则世界里没有模糊词，只有“已验证”和“未验证”\n- 删除所有大段的规则说明文——规则必须通过动作和后果呈现\n- 检查主角的每一次验证行为是否有“成本”——如果没有，退回重写\n- 检查章末钩子是否出现了与主角当前认知“矛盾”的新信息——如果没有，退回重写\n- 把任何超过22个汉字的句子拦腰砍断\n- 检查规则文本本身是否具有“叙事张力”——如果读起来像说明书，重写\n\n【网文排版格式】\n\n1. 叙述段落默认顶格写，不首行缩进。\n2. 每个段落尽量不超过120字，尽量多拆段落，短段落快节奏。\n3. 台词（人物对话）单独起一段，对话段落首行缩进2个全角空格（　　）。\n4. 每个段落之间空一行。", charPh:'身份：意外穿越异界的程序员\n处境：被世界规则处处限制\n性格：谨慎理智', sellPh:'卖点：规则类金手指——能看见隐藏规则，但每次验证都要付出代价（有限制）' },
-        ds:{ name:'都市逆袭', mood:'打脸碾压', prompt:"你是一位深耕都市爽文赛道十年的资深主编，笔名“老井”。你经手的爆款中，有三本在番茄单月破亿流量。你信奉的核心法则是：都市逆袭的本质不是“获得系统”，而是“在熟人社会的规则缝隙里，完成一次让所有旧关系重新排位的精准爆破”。\n\n你的写作信条是：打脸不是目的，让读者产生“如果我是主角，我会更爽”的代入感才是。\n\n【角色与视角】\n\n你必须进入主角的身体。使用第三人称限知视角，镜头死死锁定主角的肩膀——读者只能看到主角眼前的具体物件（手机屏幕上的未接来电、对面那人袖口的线头、餐桌转盘上唯一没转动的那个菜盘），只能听到主角耳中捕捉到的具体声音（信用卡刷不过的滴滴声、某人高跟鞋踩在大理石上的节奏变化）。\n\n禁止任何“整个包厢的人都震惊了”式的俯瞰描写。主角的视线就是唯一镜头，他没看到的脸就不写。\n\n【核心叙事逻辑：逆袭即清算】\n\n都市逆袭的本质不是“突然变强”，而是“旧账的复利结算”。每一次打脸，都必须是主角在受辱阶段被欠下的某笔“债务”的连本带利收回。\n\n核心公式：逆袭 = 过去某件具体的事 × 现在一个碾压级的资源/信息差\n\n禁止写“你欺负我所以我打回来”这种空泛复仇。必须写“三年前你为了五万块把我挤出公司，今天我拿着你当年签字的竞业协议漏洞，让你的新项目直接叫停”——每一巴掌都要有账单。\n\n【反降智铁律】\n\n1. 反派的嚣张必须建立在“信息不对称”之上。反派看到的证据链必须是完整且符合逻辑的，他踩主角是有充分依据的。主角的翻盘必须建立在“利用了反派这套逻辑的盲区”之上。禁止写“反派莫名其妙地狂笑然后被秒杀”。\n\n2. 围观者不得统一变脸。震惊必须有梯度：有人第一个反应过来、有人还在嘴硬、有人开始悄悄删朋友圈、有人打电话通风报信。禁止“全桌人齐刷刷站起来敬酒”这种单画面处理。\n\n3. 金手指必须有暴露风险。系统奖励、异能、重生信息——每一次使用，都必须留下一个让旁人产生怀疑的痕迹（监控拍到了异常操作、某个数据无法溯源、主角说了不该知道的事）。没有代价的金手指是假金手指。\n\n【阶层符号法则】\n\n都市逆袭的爽感来自“具体数字”和“可验证的阶层跃迁”。禁止使用“很多钱”“顶级豪宅”“超级跑车”等空泛词汇。\n\n金钱必须给具体数字：到账1987.5万（带小数点更真实）、月薪从6200跳到62000、欠条上的利息计算到分。\n\n身份必须有可验证的锚点：不是“他是董事长”，而是“电梯里那个常年坏掉的VIP楼层按钮，今天刷他的工牌后亮了”。\n\n消费必须有触感：黑卡在POS机上第一次刷不过时收银员的表情、茅台瓶盖拧开时的那声闷响、车钥匙扔在桌上的重量感。", styleText:"【五感强制锚点】\n\n每章正文中，必须在以下至少三个感官维度里插入一个“阶层符号式的生理细节”，不允许使用抽象形容词：\n\n视觉：“她手腕上的百达翡丽秒针刚跳过一格，那声‘咔’像在嘲讽他手腕上那块空荡荡的皮肤——表当了，当了两万三，还差八千才够交住院押金”\n\n听觉：“包厢门关上的瞬间，他听见自己那杯茶在茶几上发出一声极细的碎裂——瓷没裂，但声音像极了当年那封辞退信被揉成一团时的脆响”\n\n触觉：“他摸到西服内袋里的那叠资料，纸张边缘把指尖割出一道白印。不疼，但足够让他确认这不是梦——他确实把那份合同带出来了”\n\n嗅觉：“电梯里那个总监身上的古龙水还是三年前的味道。他闻到的瞬间，胃里翻了一下——上次闻到这个味道，是他被保安架出去时脸贴在大理石地上的消毒水混着同一瓶古龙水”\n\n痛觉/体感：“他攥着手机等转账短信的时候，掌心的汗把指纹锁浸得滑了一次，第二次才按开——那条短信来了，他看见余额位数跳了一下，然后喉咙里涌上一股酸”\n\n禁止出现的写法：“他很爽”“全场震惊”“对方惊呆了”——全部替换为具体动作或生理反应。\n\n【结构：五幕压缩式节奏】\n\n都市逆袭节奏必须比玄幻更快。原五幕结构保留但压缩为“快速三波流”，每波都是一个小闭环：\n\n第一波：受辱与触发（前20%）\n必须是具体场景+具体羞辱词+具体损失金额。在同一个段落里完成“受辱”和“触发”（手机响了/系统亮了/记忆闪回），不允许受辱后冷静思考半天再触发。\n\n第二波：展示与清算（中间50%）\n核心任务：主角用且仅用一条信息差/一项资源，完成对当前场景的规则改写。这段必须包含：反派的反扑（他会尝试用另一条规则压回来）、主角的二次展示（压回去且多压一寸）、一个第三方人物的立场松动（有人开始重新站队）。\n\n第三波：余震与钩子（最后30%）\n碾完后不写庆祝，写余震——主角自己付出的代价开始显现（暴露了什么、透支了什么、引起了谁的注意）。章末钩子必须是“一个具体的声音或画面打断主角的喘息”，而不是“更大的阴谋”。\n\n【对话与动作的铁血规则】\n\n对话：\n强制规则：对话必须承担“信息碾压”功能——主角说的话比他应该知道的多三成，反派说的话比他以为少三成（因为他开始心虚了）。禁止寒暄式对话。\n反面教材：“最近还好吗？”“还行，你呢？”\n正确范例：“你合同第三页第七条的附加条款，用的是去年的模板。”他顿了一下，“但去年六月，那个法务已经被你开除了——所以这份合同，没生效。”\n\n动作：\n强制规则：打脸场景中，每个动作必须改变至少一个人的物理姿态（后退半步、手里东西掉了、膝盖弯了一下、指关节攥白了）。禁止“主角微微一笑然后对面吓尿了”这种脱节写法。\n\n内心：\n强制规则：主角内心独白只允许出现“算计”和“成本核算”——他这一刻在想“我这一手暴露了多少底牌”“接下来三分钟我必须离开现场”。禁止情绪化的“好爽啊”“终于报仇了”。\n\n【章末钩子强制规格】\n\n每章最后一段（不超过150字）必须包含：\n\n1. 一个具体的新声音（短信提示音、某人的脚步声、玻璃杯被放下的磕碰声）\n2. 这个声音带来了旧信息的新解读（不是新敌人，而是刚被碾的那个人的后台/靠山/同伙，用一句话点出）\n3. 主角对钩子的反应必须是一个“收缩式”动作（收起手机、熄灭烟头、拉上外套拉链、把某样东西重新放回内袋）\n\n范例方向（非模板内容，仅示例）：\n他刚把车钥匙放回兜里，手机震了。屏幕上是一个三年前删掉的号码。他没接，但短信自动弹了出来：“你妈的手术是我批的，你知道吗？”\n\n【篇幅与清洗指令】\n\n单章正文：3500-5000字\n\n输出前执行“除锈”操作：\n- 删除所有“仿佛”“似乎”“好像”“大概”“也许”\n- 删除所有“此时此刻”“就在这个时候”“说时迟那时快”\n- 删除所有“空气凝固了”“时间静止了”“全场一片死寂”\n- 把任何超过22个汉字的句子拦腰砍断\n- 检查每一段打脸是否有“信息差”支撑——如果没有，退回重写\n- 检查反派的智商是否低于主角的60%——如果是，重写反派的反扑\n\n【网文排版格式】\n\n1. 叙述段落默认顶格写，不首行缩进。\n2. 每个段落尽量不超过120字，尽量多拆段落，短段落快节奏。\n3. 台词（人物对话）单独起一段，对话段落首行缩进2个全角空格（　　）。\n4. 每个段落之间空一行。", charPh:'身份：被裁员的游戏策划林键\n处境：负债80万、熟人冷眼\n性格：记忆力超强', sellPh:'卖点：逆袭即清算——能预知死亡，但只能看到亲近之人的死期（有限制）' },
+        ds:{ name:'都市逆袭', mood:'打脸碾压', prompt:"你是一位深耕都市爽文赛道十年的王牌写手，笔名“老井”。你对“扮猪吃虎”的理解是：猪是真的猪——至少在反派和围观者眼里，主角此刻就是一只可以随手捏死的弱鸡。但读者从一开始就知道，这只猪肚子里藏着一整座军火库。\n\n你的核心信条是：扮猪吃虎的爽感公式 = 低姿态入场 × 高密度铺垫 × 瞬间引爆 × 余震收割。压抑是为了反弹更高，沉默是为了掀桌更响。\n\n【角色与视角：猪的面具下藏着龙】\n\n主角必须以“低阶身份”进入场景。这个身份必须让在场所有人产生“他不如我”的确定判断。读者必须从一开始就感知到“主角在演”——通过主角的内心独白或细微动作暴露他其实有底牌。\n\n核心设定框架（三选一或叠加）：\n\n1. 回收型强者：主角曾经是巅峰，因为某种原因跌落或伪装成普通人。反派恰好是他当年随手碾过的小角色，如今小人得志，对着真佛念假经。爽点在于：反派在炫耀的东西，全是主角当年玩剩下的。\n\n2. 系统入局型：主角刚获得系统/异能/信息差，这是他第一次进入“旧关系场景”测试自己的能力。他自己也有点不确定，所以谨慎、低调、观察——然后发现“原来我现在已经这么强了”。\n\n3. 替身/误解型：所有人以为主角是某个废柴/替罪羊/被抛弃的人。但主角身上带着一样“不属于废柴的东西”——一张黑卡、一个手机号、一句不该他说出来的话。爽点在于：旧身份和新证据之间的裂缝越来越大，直到崩裂。\n\n禁止让主角真的“无助”。哪怕他在示弱，读者也必须在他的视角里看到“演”的痕迹。没有“演”的扮猪吃虎，就是真受辱。\n\n【反降智铁律：猪要真，虎要狠】\n\n1. 反派的“踩”必须有合理动机。他踩主角是因为在旧秩序里他就是可以踩，且踩得有依据（主角确实欠他钱/主角确实被开除过/主角的前任确实是他的现女友）。禁止无理由的“我就看你不爽”。\n\n2. 主角的“示弱”必须有心理活动的锚点。读者必须看到主角在忍——不是“咬紧牙关”，而是“他在心里算账：你现在踩我的这一脚，等会儿我收你一个什么利息”。没有内心计算的忍叫窝囊，有内心计算的忍叫操盘。\n\n3. 围观者的“震惊”必须有梯度分层：\n   - 最先反应过来的那个（往往是最有见识的那个）——瞳孔缩了一下，但没说话\n   - 第二个（往往是主角的旧熟人）——张了张嘴，看向第三个\n   - 第三个（往往是撑场面的那个）——开始强撑：“你这是……”\n   禁止“全场齐刷刷”的统一表情。", styleText:"【扮猪吃虎五步节奏】\n\n每一步必须清晰推进，不可跳步：\n\n第一步：低姿态入局（前10%）\n主角以在场所有人认定的“弱者身份”进入场景。这个身份有具体的社交标签（前男友/被开除的下属/被退婚的赘婿/班里最穷的那个）。所有人对他的态度基于这个旧标签，且这种态度是“一致且确定的”——没人觉得他值得多看一眼。\n\n禁止让主角一入场就引起怀疑。他的低姿态必须是“旧的社交秩序”内的正常存在。\n\n第二步：踩踏与铺垫（中间25%）\n反派或场景中的高位者对主角进行“符合身份”的轻蔑或打压。这个打压必须是“旧规则内的合理行为”——不是无脑挑衅，而是基于主角旧身份的“正常轻慢”（如不给他倒酒、让他坐最差的位置、当面谈起他当年的糗事）。\n\n在这个过程中，主角必须做出至少两件事：\n- 一件“符合旧身份”的示弱反应（“没事，我坐这里就行”）\n- 一件“露出破绽”的细节行为（被系统提示/碰触到某样东西/脱口而出一句不该他知道的话），且这个破绽只有读者和主角自己注意到\n\n这段的核心功能是埋雷。每一句示弱，都是等会儿引爆时的燃料。\n\n第三步：阈值触发与第一次反转（中间30%）\n某个具体事件将场景推向临界点——反派做出了“超越正常轻慢”的实质性伤害行为（辱及家人/触犯底线/当着主角的面践踏主角在乎的人或物）。这一刻，主角的“演”结束。\n\n反转动作必须满足：在同一段内完成“动作展示→围观者认知断裂→反派第一次失态”三件事。\n\n范例方向：“他站起来的时候，椅子在地上划了一声，不算响，但刚好盖住了对面那人还没说完的半句话。他看了一眼桌上的合同，伸手拿起来，翻到最后一页，签了个名。那签名底下，有一行小字——‘代持人：陈默’。对面那个人的脸色，就是从看到那三个字开始变的。”\n\n第四步：清算与多维碾压（中间25%）\n反转之后不是结束，是清算的开始。主角必须展示他“为什么能碾”——原来他手里攥着的东西不是这一张牌，而是一整副牌。每一张牌对应一个在场者的旧账。\n\n这段的爽感来自“逐一点名”：反派懵了、第二个帮腔的缩了、第三个看戏的开始翻聊天记录。\n\n第五步：余震与阶层复位（最后10%）\n清算完成后，主角的“新身份”被确认。但章末不写庆祝，写“有人在打电话”——主角刚才的暴露产生了连锁反应，一个比当前场景高一阶的人已经被惊动了。钩子是这个高阶人物以一种“比主角还要淡定的姿态”出现。\n\n【视觉锚点：演与不演的裂缝】\n\n扮猪吃虎的视觉核心是“旧身份与新证据之间的矛盾”。每段场景必须至少提供一个“裂缝证据”：\n\n- 动作层面的裂缝：他接东西时，手腕上露出半截纹身/疤痕——那是不属于“这个身份”的东西\n- 言语层面的裂缝：他用了一个在场者不该懂的词/引用了一个不该知道的案例\n- 物品层面的裂缝：他掏出来的手机/钥匙/卡，和身上的衣着不在同一个阶层\n- 时间层面的裂缝：有人在某个时间点做的事情，主角提前知道/提前准备了\n\n禁止让主角一开始就“帅”。扮猪吃虎的魅力在于裂缝越来越大、越来越大，直到崩开的那一刻。\n\n【对话：低姿态口吻 + 高信息含量】\n\n主角在反转之前的所有对话，必须满足以下两条：\n\n1. 语气符合旧身份（谦卑、顺从、甚至带点怂）\n2. 内容包含一个“多出来的信息”——这句话放在旧身份下听起来是废话，但放在新身份下回想起来是预判\n\n正确范例：\n反派：“你当年走的时候，可是连赔偿金都没拿啊。”\n主角：“嗯。那笔钱，后来你用来买了那辆车？”\n反派愣了一秒：“关你屁事？”\n主角没说话。但读者知道——他查过那辆车的过户记录。\n\n【结构：埋→演→破→清→连】\n\n每章遵循以下五步，可用字数比例参考：\n\n埋（10%）：放置一个旧场景的具体符号\n演（30%）：主角在旧身份内被踩，同时暴露一个破绽\n破（25%）：阈值触发，一次性逆转\n清（25%）：多维清算，逐一点名\n连（10%）：高阶人物的关注信号出现\n\n【感官与阶层符号】\n\n每章至少三个感官维度，所有感官描写必须围绕“旧身份与新现实之间的落差”：\n\n视觉：“他面前那杯茶只喝了一口，杯沿上留着一个浅浅的唇印——但那个印子太淡了，不像是不小心沾上的。他故意的。他在这家店的VIP茶室里喝过三年同款，他知道这个杯子该怎么端，这个印子才会留在这个角度。”\n\n听觉：“服务员报出那个包厢号的时候，他听见坐在他左边的那个女人吸了一口气——不是惊讶，是‘完了’的前奏。她认得那个包厢号。那是这家店唯一不对外预订的厅。”\n\n触觉：“他接过对方递来的名片时，拇指在纸面上按了一下。对方没注意到这个动作，但读者知道——他在确认纸浆的厚度。这名片是假的。这家公司三个月前就注销了。”\n\n嗅觉：“他走进大厅时闻到那个味道——是他当年亲自选的那款熏香。这家店换了老板，换了装修，但没换这个味道。因为他当年签的采购合同是十年的。”\n\n痛觉/体感：“他说完那句话，右手无名指的指节轻轻叩了一下桌面。一下。不够响，但足够让坐在他斜对面的人看见——那个人当年见过他这个动作。那是他下决定前的习惯。”\n\n【篇幅与清洗指令】\n\n单章正文：3500-5000字\n\n输出前执行“扮猪吃虎检测”：\n- 检查前30%是否有“主角被踩”的具体场景——如果没有，这段铺垫无效，重写\n- 检查反转动作是否在三段内完成——拖过三段则爽感稀释\n- 检查主角的示弱是否有“内心计算”的锚点——如果没有，读者会共情而非期待，重写\n- 检查反派是否在反转后一回合内就试图反扑——如果他直接懵了，智商太低，必须加一回合“他试图用旧规则压回来”的过程\n- 删除“他真的忍不了了”这类情绪化内心独白——取而代之的是“时间到了”式的操盘感收尾\n- 检查章末钩子是否是“更高一阶关系的激活”——如果是“更大的敌人”，改为“更高位置的人注意到他了”或“他刚才的暴露影响了更高层的局势”\n- 把任何超过22个汉字的句子拦腰砍断\n\n【网文排版格式】\n\n1. 叙述段落默认顶格写，不首行缩进。\n2. 每个段落尽量不超过120字，尽量多拆段落，短段落快节奏。\n3. 台词（人物对话）单独起一段，对话段落首行缩进2个全角空格（　　）。\n4. 每个段落之间空一行。", charPh:'身份：被裁员的游戏策划林键\n处境：负债80万、熟人冷眼\n性格：记忆力超强', sellPh:'卖点：逆袭即清算——能预知死亡，但只能看到亲近之人的死期（有限制）' },
         rs:{ name:'日式轻文', mood:'轻松诙谐', prompt:"你是一位在刺猬猫/次元姬平台拥有多部万订作品的轻小说作者，笔名“不吃香菜”。你的读者对你的评价是：“读你的书，脑子里会自动播放动画分镜——连声优的声音都选好了。”\n\n你的核心信条是：日式轻小说的本质不是“拯救世界”，而是“因为某个人的执念、误会或社交无能，导致一件小事被滚成了大雪球”——每一次事件的发起，都必须源于角色的性格缺陷，而非“为了推动剧情”。\n\n【角色即故事】\n\n在轻小说里，故事因角色而生，而非角色为故事服务。你动笔之前必须确认：\n\n主角的标签是什么？（“吐槽役”“隐藏大佬”“被迫害妄想症”）\n但这个标签的背面是什么？（“嘴硬心软”“其实是社交恐惧”“越想藏越暴露”）\n\n每个出场角色必须拥有至少一个“性格缺陷”作为叙事的燃料：\n- 傲娇的缺陷：死要面子，绝不认错，导致误会螺旋升级\n- 天然呆的缺陷：永远抓错重点，一句话拆掉主角精心编的谎\n- 毒舌的缺陷：关心全藏在攻击里，说出口就变味，越解释越糟\n- 自卑的缺陷：把别人的客气当真，把别人的认真当客气\n\n禁止出现“完美无缺”的角色。没有缺陷的角色没有故事引擎。\n\n【吐槽即叙事推进】\n\n主角的吐槽不是装饰品，是叙事发动机。每一句吐槽必须做到至少以下一项：\n1. 暴露一条新信息（“等等，他说‘又’？意思是以前也炸过？”）\n2. 推动下一个动作（“那我到底要不要按下去——算了反正横竖都是死”）\n3. 建立读者共鸣点（读者心里想的和主角吐槽的必须是同一件事）\n\n禁止为了搞笑而强行吐槽。吐槽必须服务于“解构当前局势”，而不是讲段子。\n\n【迪化与脑补链规则】\n\n如果存在“主角很强但不自知”或“主角很弱但被误解为大佬”的设定，必须设计至少两层脑补：\n\n第一层：角色A产生了误解（“他刚才说的那句话，绝对是在暗示……”）\n第二层：角色A向角色B传播误解时，加入了新的夸张细节（“你知道吗，他当时不仅没慌，还笑了一下”）\n如果主角试图辩解，必须被打断、被忽略，或在辩解过程中说出更让人误解的话。\n\n核心原则：误解不是“误会”，而是“新剧情的第一推动力”。\n\n【轻量化冲突原则】\n\n禁止一上来就“灭世危机”。单章冲突应该围绕以下轻量级事件展开：\n- 被误会在做某件丢人的事\n- 被迫和讨厌的人组队完成一个日常任务\n- 隐藏的能力在不该暴露的时候闪了一下\n- 收到了一个完全无法拒绝的“请求”（实际上是要挟）\n- 某个人突然说了一句和当前话题无关的、但细思极恐的话\n\n冲突的目的是让角色“被迫互动”，而不是“拼个你死我活”。", styleText:"【视角与语感】\n\n默认使用第一人称（“我”的视点）。若用户指定第三人称，则使用“第三人称限知视角”，镜头紧贴主角的脑内活动。\n\n语言节奏必须形成“对话→吐槽→动作→吐槽”的呼吸式循环：\n- 对话推进事件\n- 吐槽解构事件\n- 动作改变物理位置\n- 再次吐槽确认新状态\n\n禁止连续超过三句没有吐槽的纯对话。禁止连续超过两句没有动作的纯吐槽。\n\n语气词自然植入：“嘛”“的说”“超～”“啊咧”“哎——”“咦”“嘶”“啧”\n但禁止过度使用，每章不超过五个语气词。语气词密集度过高会显得油。\n\n称呼体现关系距离：\n- “前辈”“会长”“老师”= 陌生或尊敬\n- “喂”“你”“那家伙”= 熟稔或不爽\n- 姓氏+“君/桑/酱”= 因地制宜本土化处理\n\n【五感即“插画切片”】\n\n每章至少覆盖三个感官维度，但感官描写必须和“插画感”绑定——读者读完这段，脑子里应该能直接截出一张动画截图：\n\n视觉（插画感）：\n“她转过身的时候，夕阳刚好穿过她发梢的缝隙。不是那种‘金色的光’——是一整片橙红色被她的马尾切成细碎的影子，碎在走廊地砖上，碎在她的过膝袜上，碎在我手里那罐快喝完的咖啡罐上。”\n\n听觉（声优感）：\n“她说话的声音不高，但每一个字都像是被人用指尖弹了一下——‘你不去的话，我就告诉全班，上次换教室的课表是你弄丢的。’那个‘弄丢的’三个字，尾音是往上翘的。”\n\n触觉（社交距离感）：\n“递笔记本的时候，她的指尖碰到了我的指尖。大概0.3秒。但那块皮肤的温度比别的地方高了不止一点，我花了整整三秒才确定——不是静电，是她刚握过的那杯热可可透过杯壁染的。”\n\n嗅觉（角色personal气味）：\n“她站得太近了。近到我能闻到她发梢的柑橘洗发水——不对，今天混了另一种味道，有点像旧书页翻开来时的那股纸浆气。她周末去了图书馆？”\n\n体感（尴尬的生理反应）：\n“她说那句话的时候，我明显感觉到自己的脚趾在鞋里抓了一下。不是紧张，是‘完了完了完了’的那个‘完’字被身体提前翻译成了肌肉反应。”\n\n【结构：松散三幕】\n\n不设机械五节拍，改用更自然的三幕流动式：\n\n第一幕：日常与异常（前25%）\n以一个具体的日常画面开场（教室/社团教室/放学路上/便利店）。然后在第3-5句之内，插入一个“不对”的细节——某个角色说了一句多余的话、某件物品的位置不对、某条消息来得不合时宜。\n\n第二幕：被迫应对与角色碰撞（中间50%）\n主角因为“不想惹麻烦”而试图脱身，但每次尝试都在与某个角色的互动中失败。这段的核心不是事件本身，而是角色之间的“化学反应”——两个人的性格缺陷在碰撞中产生了新的信息或新的误会。必须包含至少一次“社交失误”（说错话、会错意、被迫接了一个无法拒绝的球）。\n\n第三幕：意外收尾与钩子（最后25%）\n事件以“意外的方式”收场——不是解决了，而是被另一个人的登场或另一条信息打断了。章末钩子必须是一个角色说出的“多出来的半句话”，而不是旁白式的悬念交代。\n\n【对话与吐槽的合体技】\n\n对话示例（正确）：\n“你昨天——”\n\n“我没去。”\n“——去过旧校舍吧？”\n“……”\n“你刚才是不是想说‘我没去’？”\n“没。我咳了一下。”\n“你咳的是‘没去’的声调。”\n\n这段对话同时完成了：推进信息、暴露主角撒谎、毒舌角色拆穿、制造新的社死危机。\n\n【章末钩子强制规格】\n\n每章最后一段（不超过150字）必须包含：\n\n1. 某个角色说出的一句“多出来的半句话”——话说完了，但比应该说的多了几个字，这几个字暴露了不该暴露的信息\n2. 主角在内心对这半句话的“过度解读”或“强行忽略”\n3. 以省略号或角色的意味深长的停顿收尾\n\n范例方向（非模板内容，仅示例）：\n“其实吧，”她把便当盒盖合上，声音低了半度，“我昨天也看到你了。”\n我愣了一下。\n“——就在你说的那间旧校舍门口。”\n她说完就走了。我没来得及问她看到了什么。但我确定，她说的那个时间点，我根本不在那里。\n\n【篇幅与清洗指令】\n\n单章正文：3500-5000字\n\n输出前执行“除锈”操作：\n- 删除所有“然后”“接着”“于是”——推进方式只能靠误会和对话，不准用连接词\n- 删除所有“他/她解释道”——解释必须用对话，禁止旁白代劳\n- 删除所有主角“叹了一口气”“无奈地笑了笑”等万能表情——用具体动作替换（“我把脸埋进围巾里”“我把书页角折了一下又抚平”）\n- 检查每一段吐槽是否“读者已经在心里这么想了”——如果吐槽的内容读者没在想，那这句吐槽就是废话，删掉\n- 检查章末钩子是否是一个角色说的“半句话”——如果是第三人称叙述句，退回重写\n\n【网文排版格式】\n\n1. 叙述段落默认顶格写，不首行缩进。\n2. 每个段落尽量不超过120字，尽量多拆段落，短段落快节奏。\n3. 台词（人物对话）单独起一段，对话段落首行缩进2个全角空格（　　）。\n4. 每个段落之间空一行。", charPh:'身份：转学异世界的普通高中生\n处境：开学卷入超常事件\n性格：吐槽担当', sellPh:'卖点：吐槽即叙事——轻松日常 + 一项无厘头能力' },
         own:{ name:'自行填写', mood:'', prompt:'', styleText:'', charPh:'身份姓名 / 处境 / 性格标签', sellPh:'反套路 / 有限制金手指' }
     };    const PLAT_STYLE = {
@@ -4560,7 +4761,7 @@ ${chapter.content}
         'cim': "刺猬猫：二次元轻小说平台。吐槽玩梗、脑洞设定为王，日系对话感，轻松日常与热血战斗穿插；角色萌点鲜明、标签化，读者粘性来自角色魅力。",
         'fl': "飞卢中文网：脑洞设定平台。开局即巅峰、设定新奇抓眼球，节奏极快、爽点密集连发，章节标题自带钩子；蹭热点、情绪化表达，追求短时间高密度刺激。",
         'qm': "七猫小说：下沉市场免费平台。逆袭打脸、情绪直给不绕弯，节奏明快、金手指简单粗暴；行文通俗、少铺垫，冲突升级频繁，服务碎片化阅读。",
-    };let sbCurTpl = 'xh', sbPlat = '', sbBusy = false; let sbProgressTimer = null; let sbStageIdx = 0; let sbRetryCount = 0;
+    };let sbCurTpl = 'xh', sbPlat = '', sbBusy = false; let sbProgressTimer = null; let sbStageIdx = 0; let sbMultiRunning = false; let sbRetryCount = 0;
     function openStartBookModal() {
         if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再起书"); return; }
         const k = $('sbApiKeyInp'); if(k) k.value = api.key || '';
@@ -4618,11 +4819,15 @@ ${chapter.content}
     function setSbProgress(pct, text, showWarn) { const w = $('sbProgressWrap'), f = $('sbProgressFill'), t = $('sbProgressText'), warn = $('sbProgressWarn'), close = $('sbProgressClose'); if(w) w.style.display = 'block'; if(f) f.style.width = pct + '%'; if(t) t.innerText = text || ''; if(warn) warn.style.display = (showWarn === false) ? 'none' : 'block'; if(close) close.style.display = (showWarn === false) ? 'block' : 'none'; }
     function resetSbProgress() { const w = $('sbProgressWrap'); if(w) w.style.display = 'none'; }
     function setSbRetryStatus(failed, attempt) { const el = $('sbProgressRetry'); if(el) el.innerText = '已失败' + failed + '次，正在起书第' + attempt + '次'; }
+    function setSbMultiStatus(done, total) { const el = $('sbProgressMulti'); if(el) el.innerText = '已生成 ' + done + ' 章，剩余 ' + Math.max(0, total - done) + ' 章正在生成'; } // v8.0.35：连发多章状态行
     // v8.0.14：通用伪阶段进度推进——stages=[{pct,text}]，每 intervalMs 推一格，最后一格卡住等真实完成
-    function startSbStages(stages, intervalMs) {
+    function startSbStages(stages, intervalMs, warnText) {
         stopSbStages();
         sbStageIdx = 0;
         const retryEl = $('sbProgressRetry'); if(retryEl) retryEl.innerText = ''; // v8.0.23：清空重试状态（仅一键起书重新设置）
+        // v8.0.35：非连发场景清空连发状态行（连发模式由 runMultiChap 自行管理）
+        if(!sbMultiRunning) { const mEl = $('sbProgressMulti'); if(mEl) mEl.innerText = ''; }
+        if(warnText) { const wEl = $('sbProgressWarn'); if(wEl) wEl.innerText = warnText; }
         setSbProgress(stages[0].pct, stages[0].text);
         sbProgressTimer = setInterval(() => {
             if(sbStageIdx < stages.length - 1) {
@@ -4735,7 +4940,7 @@ ${chapter.content}
         ];
         const doAttempt = async (attempt) => {
             // 更新重试状态 + 重启进度阶段（第1次：已失败0次）
-            startSbStages(sbStages, 30000);
+            startSbStages(sbStages, 30000, '⚠️ 请勿关闭网页，等待AI起书中...');
             setSbRetryStatus(attempt - 1, attempt);
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 300000);
@@ -4763,7 +4968,8 @@ ${chapter.content}
                 sessionGenChars += (parsed.chapterContent || '').length;
                 setSbProgress(100, '起书完成！');
                 const created = createBookFromStart(parsed, tp, effPrompt, effStyle, cost, elapsed);
-                if(created && cost > 0) recordCost(cost); // v8.0.13：移到建书后，金额正确记到新书头上
+                if(!created) { lockSbUI(false); resetSbProgress(); return; } // v8.0.30：保存失败已 toast，不再弹成功提示
+                if(cost > 0) recordCost(cost); // v8.0.13：移到建书后，金额正确记到新书头上
                 toast('起书成功《' + parsed.bookTitle + '》');
                 const m = $('startBookModal'); if(m) m.style.display = 'none';
                 lockSbUI(false); resetSbProgress();
@@ -4855,6 +5061,22 @@ ${chapter.content}
             const book = getCurrentBook();
             if(book && book.chapters) { if(!ensureCurrentChapterSaved()) return; const oldOrder = book.chapters.slice(); const [moved] = book.chapters.splice(dragSrcIndex, 1); book.chapters.splice(targetIndex, 0, moved); if(!persistOrWarn()) { book.chapters = oldOrder; renderChapters(); toast("保存失败，章节顺序已恢复"); return; } renderChapters(); toast("章节顺序已更新"); }
         });
+    }
+
+    // v8.3：编辑区标题点击改名（复用列表 rename 逻辑）
+    function renameCurrentChapter() {
+        const book = getCurrentBook(); if(!book) return;
+        const chap = book.chapters.find(c => c.id === book.currentChapterId);
+        if(!chap) { toast('请先选择章节'); return; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再重命名"); return; }
+        let nt = prompt('新章节标题', chap.title);
+        if(nt && nt.trim()) {
+            chap.title = nt.trim();
+            renderChapters();
+            if(!persistOrWarn()) return;
+            const curChapName = $('curChapName'); if(curChapName) curChapName.innerText = chap.title.substring(0,25);
+            toast('章节已重命名');
+        }
     }
 
     function renderChapters() {
@@ -4986,7 +5208,13 @@ ${chapter.content}
             scratchpadPages[scratchpadCurPage] = scratchpadEl.value; // v7.4：同步当前页
             scratchpadContent = scratchpadPages[0] || '';
         }
-        const backupData = { version:"7.7", timestamp:Date.now(), books, currentBookId, apiConfig:api, polishApiCfg:polishApi, imageApiCfg:imageApiCfg, actApiCfg:actApi, globalCharacters, globalActions, globalCostumes, scratchpadPages, scratchpadContent: (scratchpadPages[0]||''), layoutPrefs: JSON.parse(JSON.stringify(layoutPrefs)), appLogs };
+        // v8.1：备份携带累计消耗金额（costStats），导入按存档金额恢复
+        let costStats = {};
+        try { costStats = JSON.parse(localStorage.getItem('cost_stats_v1') || '{}'); } catch(e) {}
+        // v8.2：备份携带自定义标签库（custom_tags_v1），导入恢复
+        let customTags = [];
+        try { customTags = JSON.parse(localStorage.getItem('custom_tags_v1') || '[]'); } catch(e) {}
+        const backupData = { version:"7.7", timestamp:Date.now(), books, currentBookId, apiConfig:api, polishApiCfg:polishApi, imageApiCfg:imageApiCfg, actApiCfg:actApi, globalCharacters, globalActions, globalCostumes, scratchpadPages, scratchpadContent: (scratchpadPages[0]||''), layoutPrefs: JSON.parse(JSON.stringify(layoutPrefs)), appLogs, costStats, customTags };
         const blob = new Blob([JSON.stringify(backupData,null,2)], {type:"application/json"});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `小说参数备份_${new Date().toISOString().slice(0,10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("备份已导出");
     }
@@ -5051,6 +5279,10 @@ ${chapter.content}
                 loadApi();
                 // v7.0：恢复日志（兼容旧备份无 appLogs 字段）
                 if(Array.isArray(data.appLogs)) { appLogs = data.appLogs.slice(-30); try { localStorage.setItem('app_logs_v1', JSON.stringify(appLogs)); } catch(e) {} }
+                // v8.1：恢复累计消耗金额（按存档金额覆盖；老备份无该字段时保持现值不动）
+                if(data.costStats && typeof data.costStats === 'object') { try { localStorage.setItem('cost_stats_v1', JSON.stringify(data.costStats)); } catch(e) {} }
+                // v8.2：恢复自定义标签库（数组时覆盖；老备份无该字段时保持现值不动）
+                if(Array.isArray(data.customTags)) { try { localStorage.setItem('custom_tags_v1', JSON.stringify(data.customTags)); } catch(e) {} }
                 if(savedOk) toast("恢复成功");
                 else toast("备份已载入当前会话但未能保存到本地");
             } catch(err) { isImporting = false; toast("恢复失败: "+err.message); }
@@ -5107,7 +5339,23 @@ ${chapter.content}
     function toggleBanterPanel() {
         const p = $('banterPanel'); if(!p) return;
         if(banterVisible) { p.style.display = 'none'; banterVisible = false; }
-        else { renderBanterPanel(); p.style.display = 'flex'; banterVisible = true; }
+        else {
+            // v8.0.33：吐槽面板定位到「吐槽」按钮正下方（原来固定在右上角 right:20px;top:100px）
+            const btn = $('banterBtn');
+            if(btn) {
+                const r = btn.getBoundingClientRect();
+                const pw = p.offsetWidth || 380;
+                let left = r.left;
+                if(left + pw > window.innerWidth - 12) left = Math.max(12, window.innerWidth - pw - 12);
+                let top = r.bottom + 8;
+                const maxTop = window.innerHeight - 120;
+                if(top > maxTop) top = Math.max(12, maxTop);
+                p.style.left = left + 'px';
+                p.style.top = top + 'px';
+                p.style.right = 'auto';
+            }
+            renderBanterPanel(); p.style.display = 'flex'; banterVisible = true;
+        }
     }
     // 组装吐槽上下文：前 10 章摘要 + 世界观 + 主线大纲 + 精准勾选要素 + 本章正文全文
     function buildBanterContext(book, chap) {
@@ -5161,6 +5409,13 @@ ${chapter.content}
         const genBtn = $('genBanterBtn'); if(genBtn) { genBtn.disabled = true; genBtn.innerText = '⏳ 吐槽生成中...'; }
         pushLog('🔄 吐槽：正在生成 3 条感想…（' + roles.map(r => r.name).join('、') + '）');
         try {
+            // v8.0.35：吐槽接入伪阶段进度窗口（20s 一格）
+            startSbStages([
+                { pct: 15, text: '正在分析本章内容…' },
+                { pct: 45, text: '正在挑选吐槽角色…' },
+                { pct: 75, text: '正在生成感想…' },
+                { pct: 90, text: '正在收尾…' }
+            ], 20000, '⚠️ 请勿关闭网页，等待AI吐槽中...');
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), 180000);
             // v7.8：吐槽改用正文 API（与正文请求同参数体系）；max_tokens 跟 api.maxTokens 一致
@@ -5184,24 +5439,27 @@ ${chapter.content}
             if(!res.ok) {
                 const msg = res.status === 401 ? 'API Key 无效' : res.status === 429 ? '请求频率过高' : 'HTTP ' + res.status;
                 pushLog('❌ 吐槽生成失败：' + msg);
-                toast('吐槽请求失败：' + msg); return;
+                toast('吐槽请求失败：' + msg); startTabBlink('❌ 吐槽生成失败'); return;
             }
             const data = await res.json();
             const text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
             const parsed = parseBanterResponse(text);
-            if(!parsed || parsed.length < 1) { pushLog('❌ 吐槽生成失败：AI 返回格式异常'); toast('吐槽解析失败：AI 返回格式异常'); return; }
+            if(!parsed || parsed.length < 1) { pushLog('❌ 吐槽生成失败：AI 返回格式异常'); toast('吐槽解析失败：AI 返回格式异常'); startTabBlink('❌ 吐槽生成失败'); return; }
             const bCost = calcCost(api.model, data.usage); // v7.8：吐槽计费（正文 API）
             if(bCost > 0) recordCost(bCost); // v7.8.1：累计消耗金额
             setBanterCache(parsed);
             renderBanterPanel();
             pushLog('✅ 吐槽：已生成 ' + parsed.length + ' 条感想（' + parsed.map(x => x.role).join('、') + '）' + (bCost ? '，消费 ¥' + bCost.toFixed(2) + ' 元' : ''));
             toast('已生成 ' + parsed.length + ' 条吐槽' + (bCost ? `（消费 ¥${bCost.toFixed(2)} 元）` : ''));
+            startTabBlink('✅ 已生成 ' + parsed.length + ' 条吐槽');
         } catch(err) {
             const em = (err && err.message ? err.message : '请稍后重试');
             pushLog('❌ 吐槽生成失败：' + em);
             toast('吐槽生成失败：' + em);
+            startTabBlink('❌ 吐槽生成失败');
         } finally {
             if(genBtn) { genBtn.disabled = false; genBtn.innerText = '🔄 生成吐槽'; }
+            stopSbStages(); resetSbProgress(); // v8.0.35：清理吐槽进度窗口
         }
     }
 
@@ -5290,6 +5548,8 @@ ${chapter.content}
         const prevBtn = $('prevChap'); if(prevBtn) prevBtn.onclick = () => changeChap(-1);
         const nextBtn = $('nextChap'); if(nextBtn) nextBtn.onclick = () => changeChap(1);
         const addChapIcon = $('addChapIcon'); if(addChapIcon) addChapIcon.onclick = addNewChapter;
+        // v8.3：编辑区标题点击改名
+        const chapRenameIcon = $('chapRenameIcon'); if(chapRenameIcon) chapRenameIcon.onclick = renameCurrentChapter;
         // v6.4：导出按钮合并——点击弹窗选择「导出全书 / 导出本章」
         const exportBtn = $('exportBtn'); if(exportBtn) exportBtn.onclick = () => { const em = $('exportChoiceModal'); if(em) em.style.display = 'flex'; };
         const exportFullChoiceBtn = $('exportFullChoiceBtn'); if(exportFullChoiceBtn) exportFullChoiceBtn.onclick = () => { const em = $('exportChoiceModal'); if(em) em.style.display = 'none'; exportFull(); };
@@ -5420,7 +5680,7 @@ ${chapter.content}
         document.addEventListener('keydown', (e) => { const aeG = document.activeElement; const inInputG = aeG && (aeG.tagName==='INPUT' || aeG.tagName==='TEXTAREA' || aeG.isContentEditable); if((e.ctrlKey || e.metaKey) && e.key === 'g' && !inInputG) { const anyModalOpen = ['apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','precisionModal','scratchpadModal','branchModal','roleplayModal'].some(id => { const m = $(id); return m && m.style.display === 'flex'; }); if(anyModalOpen) return; e.preventDefault(); onContinue(); } });
         document.addEventListener('keydown', (e) => { if((e.ctrlKey || e.metaKey) && e.key === 's' && document.activeElement?.id !== 'chatInp' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') { e.preventDefault(); const ok = saveCurChapter(); toast(ok ? '已保存' : '❌ 保存失败'); } });
         document.addEventListener('mouseup', () => { if(!isGenerating) saveLibEditorWidth(); });
-        document.addEventListener('keydown', (e) => { if(e.key === 'Escape') { saveLibEditorWidth(); const findBar = $('findBar'); if(findBar && findBar.style.display !== 'none') { hideFindBar(); return; } ['precisionModal','scratchpadModal','exportChoiceModal','regionModal','branchModal','apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','statsModal','batchTagModal'].forEach(id => { let m = $(id); if(m && m.style.display === 'flex') { m.style.display = 'none'; if(id === 'apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } }); const relationEditModal = $('relationEditModal'); if(relationEditModal && relationEditModal.style.display === 'flex') closeRelationEdit(); } });
+        document.addEventListener('keydown', (e) => { if(e.key === 'Escape') { if(privacyActive) { togglePrivacy(); return; } saveLibEditorWidth(); const findBar = $('findBar'); if(findBar && findBar.style.display !== 'none') { hideFindBar(); return; } ['precisionModal','scratchpadModal','exportChoiceModal','genModeModal','regionModal','branchModal','apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','statsModal','batchTagModal'].forEach(id => { let m = $(id); if(m && m.style.display === 'flex') { m.style.display = 'none'; if(id === 'apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } }); const relationEditModal = $('relationEditModal'); if(relationEditModal && relationEditModal.style.display === 'flex') closeRelationEdit(); } });
         const notifyBtn = $('notifyBtn'); if(notifyBtn) notifyBtn.onclick = () => {
             api.notify = !api.notify;
             if(api.notify) { notifyBtn.classList.add('guide-highlight'); toast('页签提醒已开启：生成完成时页签将闪烁 30 秒'); }
@@ -5465,6 +5725,267 @@ ${chapter.content}
                 const sp = $('saveStatus'); if(sp) sp.innerText = '未保存';
             });
         }
+        // v8.1：隐藏模式——双击「AI小说生成器」标题切换（覆盖主界面仅留顶栏），Esc 退出
+        // v8.1.2：遮罩改为自由字符画，5 种风格随机，不表露工具用途
+        const appTitle = document.querySelector('.logo h2');
+        let privacyActive = false;
+                const PRIVACY_ARTS = [
+            // ── 风格① 绿 · 矩阵代码雨（画满幕布） ──
+            { color: '#4ECB71', text:
+              "                                                                                  \n"
+            + "    ╔════════════════════════════════════════════════════════════════════════╗ \n"
+            + "    ║      ▓▓▓▓▓  M A T R I X  //  S I G N A L  ▓▓▓▓▓                              ║ \n"
+            + "    ╚════════════════════════════════════════════════════════════════════════╝ \n"
+            + "                                                                                  \n"
+            + "                  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    \n"
+            + "                  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    \n"
+            + "    01001000 01100101 01101100 01101100 01101111 01101111 01101100                       \n"
+            + "    01110111 01101111 01110010 01101100 01100100 00100000 01110100                       \n"
+            + "    01101000 01100101 00100000 01101101 01100001 01110100 01110010                       \n"
+            + "    01101001 01111000 00100000 01110100 01101000 01100101 01101111                       \n"
+            + "                                                                                  \n"
+            + "                            ▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒               \n"
+            + "                            ▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒               \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    \n"
+            + "        01101010 01101001 00101101 01100001                                          \n"
+            + "        01110100 01110010 01101001 01111000                                          \n"
+            + "                                                                                  \n"
+            + "    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    \n"
+            + "                                                                                  \n"
+            + "                                              ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓    \n"
+            + "                                              ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒    \n"
+            + "                                                                                  \n"
+            + "    > follow the white rabbit                  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓    \n"
+            + "    > wake up, neo                             ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒    \n"
+            + "    > ██ blinking ...                                                                          \n"
+            + "                                                                                  \n"
+            + "                                              ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓    \n"
+            + "                                              ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒    \n"
+            + "                                                                                  \n"
+            + "                              ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    \n"
+            + "    █▓▒░ 数据在血管里流动 ░▒▓█                                                          \n"
+            + "                              ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    \n"
+            + "                                                                                  \n"
+            + "    01100101 01110100 01101000 01101001 01100011 01100001 01101100                       \n"
+            + "    00100000 01110011 01101001 01100111 01101110 01100001 01101100                       \n"
+            + "    00100000 01110010 01100101 01100001 01101100 01101001 01110100                       \n"
+            + "                                                                                  \n"
+            + "        ▒▒▓▓▒▒▓▓▒▒▓▓▒▒▓▓▒▒▓▓▒▒▓▓▒▒▓▓▒▒▓▓▒▒▓▓▒▒▓▓▒▒▓▓▒▒▓▓▒▒▓▓    \n"
+            + "    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    \n"
+            + "                                                                                  \n"
+            + "                          ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓        \n"
+            + "                          ▓▓▓ 01001000 01100101 01101100 01101100 ▓▓▓                \n"
+            + "                          ▓▓▓ 01110111 01101111 01110010 01101100 ▓▓▓                \n"
+            + "                          ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓        \n"
+            },
+            // ── 风格② 蓝 · 星海鲸歌（画满幕布） ──
+            { color: '#6EC6F8', text:
+              "                                                                                  \n"
+            + "                              ✦  星 海 之 间 ， 有 鲸 歌 传 来  ✦                       \n"
+            + "                                                                                  \n"
+            + "    ·       *       .                  *      .   *                                   \n"
+            + "              *         .     .   *       .        *                                \n"
+            + "    *        .   *    ,        .   .     *    .   *    ,                            \n"
+            + "            .     *    .   *      .         .   *     .   *                         \n"
+            + "                       .        *    ,   *      .                                 \n"
+            + "                                                                                  \n"
+            + "    ·      ✦          *              ·            ✦            ·          ✦    \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                              \n"
+            + "                       ~  ✦  银 河  在  转  鲸  鱼  在  唱  ✦  ~                  \n"
+            + "                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                              \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "           ✦                              *                          ·          \n"
+            + "                ·         *            .    *                                     \n"
+            + "      *            .   *     ·                ✦        ·        *                \n"
+            + "                .        ✦              .       *                                 \n"
+            + "                                                                                  \n"
+            + "                                          ·                *              ✦        \n"
+            + "         ✦        ·              *                          ·                   \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                              ✦  鲸歌缓缓回响于整个幕布  ✦                          \n"
+            },
+            // ── 风格③ 金 · 古老铭文（画满幕布） ──
+            { color: '#F0C05A', text:
+              "                                                                                  \n"
+            + "        ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦          \n"
+            + "                                                                                  \n"
+            + "                  ◈ ◈ ◈  解 译 信 号 流  ◈ ◈ ◈                                     \n"
+            + "                  ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔                              \n"
+            + "                  Ｔ Ｈ Ｅ    Ａ Ｎ Ｃ Ｉ Ｅ Ｎ Ｔ    Ｓ Ｉ Ｇ Ｎ Ａ Ｌ          \n"
+            + "                  ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔                              \n"
+            + "                                                                                  \n"
+            + "                            ··−−  ·−·  −−··  ·−−  ··−−                            \n"
+            + "                  ✦   ▙▟  ▚▞  ▛▜  ▙▟  ▚▞   ✦                                          \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "        ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·    \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    \n"
+            + "    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    \n"
+            + "                                                                                  \n"
+            + "    ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·    \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                       ▓▓░░░░░░▓▓                                                  \n"
+            + "                     ▓▓░░░░░░░░░░▓▓                                                \n"
+            + "                     ▓░░░░░░░░░░░░▓                                                \n"
+            + "                      ▓▓░░░░░░░░▓▓                                                  \n"
+            + "                        ▓▓▓▓▓▓▓▓                                                    \n"
+            + "                                                                                  \n"
+            + "    ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·    \n"
+            + "                                                                                  \n"
+            + "    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                  ◈ 频率锁定 ◈ 低语在墙内 ◈                                         \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                       ▓▓░░░░░░▓▓                                                  \n"
+            + "                     ▓▓░░░░░░░░░░▓▓                                                \n"
+            + "                     ▓░░░░░░░░░░░░▓                                                \n"
+            + "                      ▓▓░░░░░░░░▓▓                                                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "        ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦    ✦          \n"
+            + "                                                                                  \n"
+            + "                          ✦ 一枚沉睡的金色齿轮 ✦                                    \n"
+            },
+            // ── 风格④ 白 · 纯白数据流（画满幕布） ──
+            { color: '#EDEAF2', text:
+              "                                                                                  \n"
+            + "    PURE DATA // PURE DATA // PURE DATA // PURE DATA // PURE DATA                \n"
+            + "                                                                                  \n"
+            + "    10101010 01010101 10101010 01010101 10101010 01010101 10101010 01010101    \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "              ▁▂▃▄▅▆▇█▇▆▅▄▃▂▁  ▁▂▃▄▅▆▇█▇▆▅▄▃▂▁  ▁▂▃▄▅▆▇█▇▆▅▄▃▂▁                \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    11110000 00001111 11110000 00001111 11110000 00001111 11110000 00001111    \n"
+            + "                                                                                  \n"
+            + "                          ~ 雪花在屏幕上融化 ~                                       \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "              ▂▃▄▅▆▇█▇▆▅▄▃▂▁  ▂▃▄▅▆▇█▇▆▅▄▃▂▁  ▂▃▄▅▆▇█▇▆▅▄▃▂▁                \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    01011010 01101010 11001010 00101101 01011010 01101010 11001010 00101101    \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    ▏▎▍▌▋▊▉█  █▉▊▋▌▍▎▏  ▏▎▍▌▋▊▉█  █▉▊▋▌▍▎▏  ▏▎▍▌▋▊▉█                \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                          ~ 一切归于寂静 ~                                           \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    00110011 00110101 00110111 00111001 00110011 00110101 00110111 00111001    \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    01001101 01100001 01110100 01110010 01101001 01111000 00100000 01110011    \n"
+            + "    01110100 01100001 01111001 01110011 00100000 01110111 01101001 01110100    \n"
+            + "    01101000 00100000 01101100 01101111 01101110 01100111 00100000 01100011    \n"
+            + "    01101000 01100001 01101001 01101110 00100000 01101111 01100110 00100000    \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                              ❄    ❅    ❆                                          \n"
+            + "                          ❅    ❆    ❄    ❅                                          \n"
+            + "                              ❆    ❅    ❄                                          \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    \n"
+            + "    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                              ❄    ❅    ❆    ❄                                      \n"
+            + "                          ❅    ❆    ❄    ❅    ❆                                      \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    ~ 数据正在变得纯粹，最终化为静默的雪花 ~                                         \n"
+            },
+            // ── 风格⑤ 红 · 警报脉冲（画满幕布） ──
+            { color: '#FF6B6B', text:
+              "                                                                                  \n"
+            + "    ⚠ A L E R T ⚠ A L E R T ⚠ A L E R T ⚠ A L E R T ⚠ A L E R T ⚠ A L E R T      \n"
+            + "    ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔    \n"
+            + "                                                                                  \n"
+            + "    0xDEADBEEF   0xFEEDFACE   0xCAFEBABE   0xDEADBEEF   0xFEEDFACE                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    ████████████░░░░░░  异常定位中  ░░░░░░                                          \n"
+            + "                                                                                  \n"
+            + "                  █▓▒░ 信 号 在 燃 烧 ░▒▓█                                              \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    !!!!  检测到异常波动  !!!!                                                      \n"
+            + "                                                                                  \n"
+            + "                  █▓▒░ 信 号 在 燃 烧 ░▒▓█                                              \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    ████████████░░░░░░  异常定位中  ░░░░░░                                          \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    00110011 00110101 00110111 00111001                                              \n"
+            + "    01000101 01010010 01010010 01001111                                              \n"
+            + "    01010010 00110000 00110110 00110001                                              \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                  █▓▒░ 信 号 在 燃 烧 ░▒▓█                                              \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    ⚠  建议立即关注  ⚠                                                            \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔    \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    0xDEADBEEF   0xFEEDFACE   0xCAFEBABE   0xDEADBEEF   0xFEEDFACE                  \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "                  █▓▒░ 信 号 在 燃 烧 ░▒▓█                                              \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    ████████████░░░░░░  异常定位中  ░░░░░░                                          \n"
+            + "                                                                                  \n"
+            + "                                                                                  \n"
+            + "    ⚠ A L E R T ⚠ A L E R T ⚠ A L E R T ⚠ A L E R T ⚠ A L E R T ⚠ A L E R T      \n"
+            }
+        ];
+        function togglePrivacy() {
+            privacyActive = !privacyActive;
+            const po = $('privacyOverlay');
+            if(po) {
+                po.style.display = privacyActive ? 'flex' : 'none';
+                if(privacyActive) {
+                    const pa = $('privacyArt');
+                    if(pa) {
+                        const art = PRIVACY_ARTS[Math.floor(Math.random() * PRIVACY_ARTS.length)];
+                        pa.textContent = art.text;
+                        pa.style.color = art.color;
+                        pa.style.textShadow = '0 0 18px ' + art.color + '88';
+                    }
+                }
+            }
+        }
+        if(appTitle) appTitle.addEventListener('dblclick', (e) => { e.preventDefault(); togglePrivacy(); });
         const guideBtn = $('guideBtn'); const guideModal = $('guideModal'); const fullGuideModal = $('fullGuideModal');
         const closeGuideBtn = $('closeGuideBtn'); const openFullGuideBtn = $('openFullGuideBtn'); const closeFullGuideBtn = $('closeFullGuideBtn');
         if(guideBtn && guideModal) { guideBtn.onclick = () => { guideModal.style.display = 'flex'; }; if(closeGuideBtn) closeGuideBtn.onclick = () => { guideModal.style.display = 'none'; }; if(openFullGuideBtn) openFullGuideBtn.onclick = () => { guideModal.style.display = 'none'; if(fullGuideModal) fullGuideModal.style.display = 'flex'; }; if(closeFullGuideBtn) closeFullGuideBtn.onclick = () => { if(fullGuideModal) fullGuideModal.style.display = 'none'; }; }
@@ -5473,7 +5994,7 @@ ${chapter.content}
         window.addEventListener('click', (e) => {
             if (modalMouseDownTarget !== e.target) { modalMouseDownTarget = null; return; }
             modalMouseDownTarget = null;
-            ['apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','precisionModal','scratchpadModal','exportChoiceModal','regionModal'].forEach(id => { let m = $(id); if(e.target === m && m) { m.style.display='none'; if(id==='apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } });
+            ['apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','precisionModal','scratchpadModal','exportChoiceModal','genModeModal','regionModal'].forEach(id => { let m = $(id); if(e.target === m && m) { m.style.display='none'; if(id==='apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } });
             const relationEditModal = $('relationEditModal'); if(e.target === relationEditModal && relationEditModal) closeRelationEdit();
             // 动态创建的模态框（如批量导入/导出）：无id的.modal元素，点遮罩即关闭
             if (e.target.classList.contains('modal') && !e.target.id && e.target.parentNode === document.body) {
@@ -5481,7 +6002,7 @@ ${chapter.content}
             }
         });
         document.querySelectorAll('.tab').forEach(t => { t.onclick = () => { document.querySelectorAll('.tab').forEach(tt=>tt.classList.remove('active')); document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active')); t.classList.add('active'); const pane = $(`pane-${t.dataset.tab}`); if(pane) pane.classList.add('active'); if(t.dataset.tab === 'log') renderLogList(); }; });
-        const sortIcon = $('sortChaptersIcon'); if(sortIcon) { sortIcon.style.opacity = '0.7'; sortIcon.title = "拖拽排序已启用"; }
+
         // 字体大小按钮
         const fontSizeDown = $('fontSizeDown'); const fontSizeUp = $('fontSizeUp');
         if(fontSizeDown) fontSizeDown.onclick = () => changeFontSize(-1);
@@ -5498,13 +6019,37 @@ ${chapter.content}
         const precSelectAllActions = $('precSelectAllActions'); if(precSelectAllActions) precSelectAllActions.onclick = () => { selectAllPrecision('action'); };
         const precSelectAllCostumes = $('precSelectAllCostumes'); if(precSelectAllCostumes) precSelectAllCostumes.onclick = () => { selectAllPrecision('costume'); };
         const precDeselectAll = $('precDeselectAll'); if(precDeselectAll) precDeselectAll.onclick = () => { selectAllPrecision('none'); };
-        const dualModeBtn = $('dualModeBtn'); if(dualModeBtn) dualModeBtn.onclick = () => {
-            api.dualMode = !api.dualMode;
-            if(api.dualMode) toast('并发双版已开启：下次全新生成将产出 A/B 两版（续写/重写不生效），生成结束自动关闭');
-            else toast('并发双版已关闭');
-            saveAll();
-            updateDualModeButton();
+        // v8.0.35：点按钮弹居中卡片（仿导出卡片），二选一互斥 + 保存/关闭
+        const dualModeBtn = $('dualModeBtn');
+        let genModeTempDual = false, genModeTempMulti = false; // 卡片临时选择（保存才生效）
+        function updateGenModeCard() {
+            const bD = $('genModeDualBtn'), bM = $('genModeMultiBtn');
+            if(bD) bD.classList.toggle('selected', genModeTempDual);
+            if(bM) bM.classList.toggle('selected', genModeTempMulti);
+        }
+        function openGenModeCard() {
+            genModeTempDual = !!api.dualMode;
+            genModeTempMulti = !!api.multiChap;
+            updateGenModeCard();
+            const m = $('genModeModal'); if(m) m.style.display = 'flex';
+        }
+        if(dualModeBtn) dualModeBtn.onclick = () => { openGenModeCard(); };
+        const gdBtn = $('genModeDualBtn'), gmBtn = $('genModeMultiBtn');
+        if(gdBtn) gdBtn.onclick = () => { genModeTempDual = !genModeTempDual; if(genModeTempDual) genModeTempMulti = false; updateGenModeCard(); };
+        if(gmBtn) gmBtn.onclick = () => { genModeTempMulti = !genModeTempMulti; if(genModeTempMulti) genModeTempDual = false; updateGenModeCard(); };
+        const gsBtn = $('genModeSaveBtn');
+        if(gsBtn) gsBtn.onclick = () => {
+            const mm = $('genModeModal'); if(mm) mm.style.display = 'none';
+            const dualChanged = (genModeTempDual !== !!api.dualMode), multiChanged = (genModeTempMulti !== !!api.multiChap);
+            api.dualMode = genModeTempDual; api.multiChap = genModeTempMulti;
+            if(api.dualMode && !api.multiChap) toast('并发双版已开启：下次全新生成将产出 A/B 两版（续写/重写/连发不生效），生成结束自动关闭');
+            else if(api.multiChap && !api.dualMode) toast('连发多章已开启：下次发送将自动连续生成 ' + (api.multiChapCount || 3) + ' 章（第1章按指令，之后自动续写），生成结束自动关闭');
+            else toast('生成模式已关闭');
+            saveAll(); updateDualModeButton();
+            if(!dualChanged && !multiChanged) return;
         };
+        const gcBtn = $('genModeCloseBtn');
+        if(gcBtn) gcBtn.onclick = () => { const mm = $('genModeModal'); if(mm) mm.style.display = 'none'; };
     }
 
     // ======================== 精准模式 ========================
@@ -5900,7 +6445,11 @@ ${chapter.content}
         const btn = $('dualModeBtn');
         if(!btn) return;
         if(api.dualMode) { btn.classList.add('active'); btn.title = '并发双版开启（单次生效）'; }
-        else { btn.classList.remove('active'); btn.title = '并发双版（单次生效）'; }
+        else if(api.multiChap) { btn.classList.add('active'); btn.title = '连发多章开启（' + (api.multiChapCount || 3) + '章，单次生效）'; }
+        else { btn.classList.remove('active'); btn.title = '生成模式（单次生效）'; }
+        const gmD = $('genModeDualBtn'), gmM = $('genModeMultiBtn');
+        if(gmD) gmD.classList.toggle('selected', !!api.dualMode);
+        if(gmM) gmM.classList.toggle('selected', !!api.multiChap);
     }
 
     // ======================== v7.4 四库编辑栏宽度记忆 ========================
@@ -6095,7 +6644,7 @@ ${chapter.content}
         // 重置内存变量
         books = []; currentBookId = null;
         globalCharacters = []; globalActions = []; globalCostumes = [];
-        api = { url:'https://api.deepseek.com/chat/completions', key:'', model:'deepseek-v4-flash', temp:1.0, top_p:0.92, repetition_penalty:1.15, maxTokens:60000, freqPenalty:0.4, presPenalty:0.5, ctxChapters:5, stopWords:'', thinking: false, reasoningEffort: 'high', notify: false, dualMode: false, branchAutoSend: false, rewriteAutoSend: false };
+        api = { url:'https://api.deepseek.com/chat/completions', key:'', model:'deepseek-v4-flash', temp:1.0, top_p:0.92, repetition_penalty:1.15, maxTokens:60000, freqPenalty:0.4, presPenalty:0.5, ctxChapters:5, stopWords:'', thinking: false, reasoningEffort: 'high', notify: false, dualMode: false, multiChap: false, multiChapCount: 3, branchAutoSend: false, rewriteAutoSend: false };
         // v7.3 修复：重置时一并清空审稿/生图配置（与"清空所有数据"语义一致，防残留 key/url）
         polishApi = { url:'https://api.deepseek.com/chat/completions', key:'', model:'deepseek-v4-flash', maxTokens:50000, reasoning:'max', ratio:50 };
         actApi = { url:'https://api.deepseek.com/chat/completions', key:'', model:'deepseek-v4-flash', temp:0.7, maxTokens:800, rounds:10, persona:true, tone:true }; // v7.9：重置时一并清空扮演 API 配置
@@ -6210,5 +6759,7 @@ ${chapter.content}
     init();
 });
 </script>
+<!-- v8.1：隐藏模式遮罩（双击标题触发，覆盖主界面仅留顶栏；字符画随机，v8.1.2） -->
+<div id="privacyOverlay"><pre id="privacyArt" class="privacy-art"></pre></div>
 </body>
 </html>
