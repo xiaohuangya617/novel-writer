@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AI小说生成器 | v8.3</title>
+    <title>AI小说生成器 | v8.5</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📖%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
     <style>
@@ -444,6 +444,17 @@
     .branch-card{border-radius:20px;}
     /* 提示条统一（保留语义色背景） */
     div[style*="border-radius:12px"][style*="padding:6px 10px"]{border-radius:14px;}
+    /* ================= v8.4-③ 检查面板升级样式 ================= */
+    .conflict-grade{background:linear-gradient(135deg,#2A3A5A,#24304A);border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:0.75rem;color:#EDEAF2;}
+    .conflict-grade b{color:#F0C05A;font-size:0.9rem;}
+    .conflict-dims{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;font-size:0.62rem;color:#8A84A8;}
+    .conflict-dims span{background:#1A1825;border:1px solid #3A3452;border-radius:8px;padding:2px 6px;}
+    .conflict-item.miss{opacity:0.5;border-left-color:#6A627A;cursor:default;}
+    .conflict-item.miss .conflict-desc{color:#6A627A;}
+    /* v8.4.2：点击条目定位时，对应正文标色短暂加亮闪烁 */
+    mark.check-mark.check-active{background:#F0C05A !important;color:#13121C !important;box-shadow:0 0 0 3px rgba(240,192,90,.35);transition:background .2s,box-shadow .2s;}
+    /* v8.4.1-⑥-b：检查面板字号对标吐槽面板（15px） */
+    .conflict-type,.conflict-desc,.conflict-loc{font-size:15px;}
     </style>
 </head>
 <body>
@@ -451,7 +462,7 @@
     <div class="top-bar">
         <div class="logo">
             <h2 style="user-select:none;cursor:default;" title="双击隐藏正文（防窥屏），再双击或按 Esc 恢复"><i class="fas fa-pen-fancy"></i> AI小说生成器</h2>
-            <span class="version-badge">v8.3</span>
+            <span class="version-badge">v8.5</span>
             <div class="current-book-badge"><i class="fas fa-book"></i> <span id="curBookName">未选择</span></div>
             <span id="storageIndicator" class="storage-indicator">💾 0MB / 5MB</span>
         </div>
@@ -485,7 +496,18 @@
             <div class="chat-msgs" id="chatMsgs"></div>
             <div class="chat-input">
                 <div class="chat-input-wrapper">
+                    <div style="flex:1;display:flex;flex-direction:column;gap:6px;min-width:0;">
                     <textarea id="chatInp" rows="3" placeholder="例如：第二章，雨夜男主送女主回家，气氛暧昧... (Ctrl+Enter 发送)"></textarea>
+                    <!-- v8.4-②：上下文预算占用进度条（实时估算，<80% 绿 / 80-100% 黄 / >100% 红；与输入框同宽 + 胶囊边框） -->
+                    <div id="ctxBudgetBar" style="display:flex;align-items:center;gap:8px;padding:4px 10px;border:1px solid #3A3452;border-radius:20px;background:#13121C;">
+                        <span style="font-size:0.65rem;color:#8A84A8;white-space:nowrap;">上下文预算</span>
+                        <div style="flex:1;height:5px;background:#241F38;border-radius:3px;overflow:hidden;">
+                            <div id="ctxBudgetFill" style="width:0%;height:100%;background:#3BAF5A;border-radius:3px;transition:width .2s,background .2s;"></div>
+                        </div>
+                        <span id="ctxBudgetPct" style="font-size:0.65rem;color:#8A84A8;white-space:nowrap;min-width:34px;text-align:right;">0%</span>
+                        <span id="ctxBudgetDetail" style="font-size:0.6rem;color:#6A627A;white-space:nowrap;">估算</span>
+                    </div>
+                    </div>
                     <div class="button-stack">
                         <button id="sendMsgBtn" class="icon-btn send-btn" title="发送指令"><i class="fas fa-paper-plane"></i></button>
                         <button id="stopGenBtn" class="icon-btn stop-btn" disabled title="停止生成"><i class="fas fa-stop"></i></button>
@@ -511,13 +533,14 @@
                     <button id="prevChap" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
                     <button id="nextChap" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
                     <button id="findBtn" class="nav-btn" style="background:#2A3A5A;" title="查找替换 Ctrl+F"><i class="fas fa-search"></i></button>
+                    <!-- v8.4.1-⑥-a：按钮顺序重排（保存→重写→回滚→续写→检查→润色→吐槽），润色/吐槽去小图标 -->
                     <button id="saveChapBtn" class="nav-btn" style="background:#2A5A5A;"><i class="fas fa-save"></i> 保存</button>
-                    <button id="polishBtn" class="nav-btn" style="background:#4A2A6A;" title="✨ 润色：AI 审查并润色本章"><i class="fas fa-wand-magic-sparkles"></i> 润色</button>
-                    <button id="banterBtn" class="nav-btn" style="background:#3A3A5A;" title="💬 吐槽：模拟读者/编辑/粉丝等角色点评本章（v7.8）"><i class="fas fa-comment-dots"></i> 吐槽</button>
                     <button id="regenerateBtn" class="nav-btn" style="background:#4a3a2a;">重写</button>
                     <button id="rollbackBtn" class="nav-btn" style="background:#2A5A3A;" disabled>回滚</button>
                     <button id="continueBtn" class="nav-btn" style="background:#6a4e2e;">续写</button>
-                    <button id="checkConflictBtn" class="nav-btn" style="background:#3A3A6A;">检查</button>
+                    <button id="checkConflictBtn" class="nav-btn" style="background:#3A3A6A;">检测</button>
+                    <button id="polishBtn" class="nav-btn" style="background:#4A2A6A;" title="✨ 润色：AI 审查并润色本章">润色</button>
+                    <button id="banterBtn" class="nav-btn" style="background:#3A3A5A;" title="💬 吐槽：模拟读者/编辑/粉丝等角色点评本章（v7.8）">吐槽</button>
                 </div>
             </div>
             <div id="polishActionBar"><span class="polish-count" id="polishActionCount">共 N 处修改</span><button id="polishApplyBtn"><i class="fas fa-check"></i> 应用修改</button><button id="polishDiscardBtn">↩️ 放弃</button></div>
@@ -550,12 +573,12 @@
             </div>
         </div>
     </div>
-    <div class="status-bar"><span>📄 字数：<span id="wordCount">0</span></span><span>📚 上下文前<span id="ctxNum">2</span>章</span><span>💾 <span id="saveStatus">已同步</span></span><span id="conflictCheckStatus" style="display:none;">🔍 检查中...</span></div>
+    <div class="status-bar"><span>📄 字数：<span id="wordCount">0</span></span><span>📚 上下文前<span id="ctxNum">2</span>章</span><span>💾 <span id="saveStatus">已同步</span></span><span id="conflictCheckStatus" style="display:none;">🔍 检测中...</span></div>
 </div>
 
 <!-- 模态框 -->
 <div id="branchModal" class="modal"><div class="modal-card" style="width:1240px;max-width:96vw;max-height:none;overflow:visible;"><h3><i class="fas fa-code-branch"></i> 续写走向 · 选择一条继续</h3><div id="branchCardWrap"></div><div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;"><button id="closeBranchBtn" class="glass-btn">取消</button></div></div></div>
-<div id="apiModal" class="modal"><div class="modal-card" style="max-width:680px;"><h3>⚙️ API 调参</h3><div style="background:#3A2A2A;border-radius:12px;padding:8px 12px;margin-bottom:10px;font-size:0.65rem;color:#FFA070;"><i class="fas fa-shield-alt"></i> ⚠️ API Key 仅存储在浏览器本地，不会上传到任何服务器。请妥善保管，勿分享给他人。</div><div class="api-tabs" style="display:flex;gap:6px;margin-bottom:12px;"><button class="api-tab glass-btn active" data-apitab="main" style="flex:1;padding:8px 0;">✍️ 正文 API</button><button class="api-tab glass-btn" data-apitab="polish" style="flex:1;padding:8px 0;">🔍 审稿 API</button><button class="api-tab glass-btn" data-apitab="image" style="flex:1;padding:8px 0;opacity:0.45;cursor:not-allowed;" title="生图功能规划中（仅 EXE 版实装）">🎨 生图 API</button><button class="api-tab glass-btn" data-apitab="act" style="flex:1;padding:8px 0;">🎭 扮演 API</button></div><div id="apiPane-main"><input type="text" id="apiUrlInp" placeholder="API地址"><input type="password" id="apiKeyInp" placeholder="API Key"><input type="text" id="modelInp" placeholder="模型"><div class="range-grid"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="tempRange" min="0.1" max="2" step="0.1" value="1.0"></div><div class="range-item"><span class="range-label">核采样 Top-p (0.75~1.25)</span><input type="number" id="topPRange" min="0.75" max="1.25" step="0.01" value="0.92"></div><div class="range-item"><span class="range-label">存在惩罚 (0.0~1.5)</span><input type="number" id="presRange" min="0" max="1.5" step="0.1" value="0.5"></div><div class="range-item"><span class="range-label">频率惩罚 (0.0~1.0)</span><input type="number" id="freqRange" min="0" max="1" step="0.1" value="0.4"></div><div class="range-item"><span class="range-label">重复惩罚 (1.00~1.25)</span><input type="number" id="repPenaltyRange" min="1" max="1.25" step="0.05" value="1.15"></div><div class="range-item"><span class="range-label">前文摘要 (1-50)</span><input type="number" id="ctxRange" min="1" max="50" step="1" value="5"></div></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="maxTokensInp" min="3000" max="90000" value="60000" style="width:390px;margin-left:auto;margin-bottom:0;"></div><div class="range-row"><span style="width:auto;white-space:nowrap;">推理强度（思考模式）</span><input type="range" id="reasoningRange" min="0" max="2" step="1" value="1"><span id="reasoningVal">high</span></div><div class="range-row" style="align-items:center;"><span>💭 思考模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="thinkingCheck" style="width:auto;margin:0;"> 开启后创意参数失效，且增加耗时，请谨慎开启</label></div><div class="range-row" style="align-items:center;"><span>🧭 续写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="branchAutoSendCheck" style="width:auto;margin:0;"> 开启后自动续写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>🔄 重写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="rewriteAutoSendCheck" style="width:auto;margin:0;"> 开启后自动重写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>📚 连发章数</span><label style="display:flex;align-items:center;gap:6px;"> 一次性连续生成多个章节的数目（2~10）<input type="number" id="multiChapCountInp" min="2" max="10" step="1" value="3" style="width:70px;margin:0;"></label></div></div><div id="apiPane-polish" style="display:none;"><div style="background:#2A3A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#7AC0A8;"><i class="fas fa-search"></i> 审稿 API 用于润色审查（DeepSeek：默认开启思考模式，仅推理强度可调，对同人内容宽松）</div><input type="text" id="polishUrlInp" placeholder="审稿 API 地址"><input type="password" id="polishKeyInp" placeholder="审稿 API Key"><input type="text" id="polishModelInp" placeholder="模型（如 deepseek-v4-flash）"><div class="range-row"><span>🧠 推理强度</span><input type="range" id="polishReasoningRange" min="0" max="2" step="1" value="2"><span id="polishReasoningVal">max</span></div><div class="range-row"><span>✂️ 微调原因</span><input type="range" id="polishRatioRange" min="20" max="90" step="1" value="50" title="字符变动比例低于此线的修改，前端会标注黄色理由供你判断是否采纳"><span id="polishRatioVal">50%</span></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="polishMaxTokensInp" min="3000" max="90000" value="50000" style="width:390px;margin-left:auto;margin-bottom:0;"></div></div><div id="apiPane-image" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:24px;text-align:center;color:#8A84A8;font-size:0.8rem;"><i class="fas fa-palette" style="font-size:1.4rem;display:block;margin-bottom:8px;"></i>🎨 生图功能规划中（仅 EXE 版实装），敬请期待</div></div><div id="apiPane-act" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#B8B4D0;"><i class="fas fa-masks-theater"></i> 🎭 扮演 API 用于角色试演（默认 deepseek-v4-flash；对话 10 轮上限防 token 失控；摘要请求复用本 API）</div><input type="text" id="actUrlInp" placeholder="扮演 API 地址"><input type="password" id="actKeyInp" placeholder="扮演 API Key"><input type="text" id="actModelInp" placeholder="模型（默认 deepseek-v4-flash）"><div class="range-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="actTempRange" min="0.1" max="2" step="0.1" value="0.7"></div><div class="range-item"><span class="range-label">台词长度 (500~1500)</span><input type="number" id="actMaxTokensInp" min="500" max="1500" step="1" value="800" title="单轮回复输出上限（token）"></div><div class="range-item"><span class="range-label">对话轮数 (5~30)</span><input type="number" id="actRoundsInp" min="5" max="30" step="1" value="10" title="一来一回算一轮，达上限自动结束试演"></div></div><div class="range-row" style="align-items:center;"><span>🧬 人设注入</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actPersonaCheck" style="width:auto;margin:0;" checked> 注入本书背景与 A/B 精准人设</label></div><div class="range-row" style="align-items:center;"><span>🎭 口吻约束</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actToneCheck" style="width:auto;margin:0;" checked> 强制纯台词+人设口吻（关闭可带少量旁白）</label></div></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="testApiBtn" class="glass-btn">测试连接</button><button id="saveApiBtn" class="glass-btn">保存</button><button id="closeApiBtn" class="glass-btn">取消</button></div></div></div>
+<div id="apiModal" class="modal"><div class="modal-card" style="max-width:680px;"><h3>⚙️ API 调参</h3><div style="background:#3A2A2A;border-radius:12px;padding:8px 12px;margin-bottom:10px;font-size:0.65rem;color:#FFA070;"><i class="fas fa-shield-alt"></i> ⚠️ API Key 仅存储在浏览器本地，不会上传到任何服务器。请妥善保管，勿分享给他人。</div><div class="api-tabs" style="display:flex;gap:6px;margin-bottom:12px;"><button class="api-tab glass-btn active" data-apitab="main" style="flex:1;padding:8px 0;">✍️ 正文 API</button><button class="api-tab glass-btn" data-apitab="polish" style="flex:1;padding:8px 0;">🔍 审稿 API</button><button class="api-tab glass-btn" data-apitab="image" style="flex:1;padding:8px 0;opacity:0.45;cursor:not-allowed;" title="生图功能规划中（仅 EXE 版实装）">🎨 生图 API</button><button class="api-tab glass-btn" data-apitab="act" style="flex:1;padding:8px 0;">🎭 扮演 API</button></div><div id="apiPane-main"><input type="text" id="apiUrlInp" placeholder="API地址"><input type="password" id="apiKeyInp" placeholder="API Key"><input type="text" id="modelInp" placeholder="模型"><div class="range-grid"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="tempRange" min="0.1" max="2" step="0.1" value="1.0"></div><div class="range-item"><span class="range-label">核采样 Top-p (0.75~1.25)</span><input type="number" id="topPRange" min="0.75" max="1.25" step="0.01" value="0.92"></div><div class="range-item"><span class="range-label">存在惩罚 (0.0~1.5)</span><input type="number" id="presRange" min="0" max="1.5" step="0.1" value="0.5"></div><div class="range-item"><span class="range-label">频率惩罚 (0.0~1.0)</span><input type="number" id="freqRange" min="0" max="1" step="0.1" value="0.4"></div><div class="range-item"><span class="range-label">重复惩罚 (1.00~1.25)</span><input type="number" id="repPenaltyRange" min="1" max="1.25" step="0.05" value="1.15"></div><div class="range-item"><span class="range-label">前文摘要 (1-50)</span><input type="number" id="ctxRange" min="1" max="50" step="1" value="5"></div></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="maxTokensInp" min="3000" max="90000" value="60000" style="width:390px;margin-left:auto;margin-bottom:0;"></div><div class="range-row"><span style="width:auto;white-space:nowrap;">推理强度（思考模式）</span><input type="range" id="reasoningRange" min="0" max="2" step="1" value="1"><span id="reasoningVal">high</span></div><div class="range-row" style="align-items:center;"><span>💭 思考模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="thinkingCheck" style="width:auto;margin:0;"> 开启后创意参数失效，且增加耗时，请谨慎开启</label></div><div class="range-row" style="align-items:center;"><span>🧭 续写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="branchAutoSendCheck" style="width:auto;margin:0;"> 开启后自动续写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>🔄 重写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="rewriteAutoSendCheck" style="width:auto;margin:0;"> 开启后自动重写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>📚 连发章数</span><label style="display:flex;align-items:center;gap:6px;"> 一次性连续生成多个章节的数目（2~10）<input type="number" id="multiChapCountInp" min="2" max="10" step="1" value="3" style="width:70px;margin:0;"></label></div></div><div id="apiPane-polish" style="display:none;"><div style="background:#2A3A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#7AC0A8;"><i class="fas fa-search"></i> 审稿 API 用于润色审查（DeepSeek：默认开启思考模式，仅推理强度可调，对同人内容宽松）</div><input type="text" id="polishUrlInp" placeholder="审稿 API 地址"><input type="password" id="polishKeyInp" placeholder="审稿 API Key"><input type="text" id="polishModelInp" placeholder="模型（如 deepseek-v4-flash）"><div class="range-row"><span>🧠 推理强度</span><input type="range" id="polishReasoningRange" min="0" max="2" step="1" value="2"><span id="polishReasoningVal">max</span></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="polishMaxTokensInp" min="3000" max="90000" value="50000" style="width:390px;margin-left:auto;margin-bottom:0;"></div></div><div id="apiPane-image" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:24px;text-align:center;color:#8A84A8;font-size:0.8rem;"><i class="fas fa-palette" style="font-size:1.4rem;display:block;margin-bottom:8px;"></i>🎨 生图功能规划中（仅 EXE 版实装），敬请期待</div></div><div id="apiPane-act" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#B8B4D0;"><i class="fas fa-masks-theater"></i> 🎭 扮演 API 用于角色试演（默认 deepseek-v4-flash；对话 10 轮上限防 token 失控；摘要请求复用本 API）</div><input type="text" id="actUrlInp" placeholder="扮演 API 地址"><input type="password" id="actKeyInp" placeholder="扮演 API Key"><input type="text" id="actModelInp" placeholder="模型（默认 deepseek-v4-flash）"><div class="range-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="actTempRange" min="0.1" max="2" step="0.1" value="0.7"></div><div class="range-item"><span class="range-label">台词长度 (500~1500)</span><input type="number" id="actMaxTokensInp" min="500" max="1500" step="1" value="800" title="单轮回复输出上限（token）"></div><div class="range-item"><span class="range-label">对话轮数 (5~30)</span><input type="number" id="actRoundsInp" min="5" max="30" step="1" value="10" title="一来一回算一轮，达上限自动结束试演"></div></div><div class="range-row" style="align-items:center;"><span>🧬 人设注入</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actPersonaCheck" style="width:auto;margin:0;" checked> 注入本书背景与 A/B 精准人设</label></div><div class="range-row" style="align-items:center;"><span>🎭 口吻约束</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actToneCheck" style="width:auto;margin:0;" checked> 强制纯台词+人设口吻（关闭可带少量旁白）</label></div></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="testApiBtn" class="glass-btn">测试连接</button><button id="saveApiBtn" class="glass-btn">保存</button><button id="closeApiBtn" class="glass-btn">取消</button></div></div></div>
 <div id="sbOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:1500;"></div>
 <div class="sb-progress" id="sbProgressWrap" style="display:none;"><div class="sb-progress-bar"><div class="sb-progress-fill" id="sbProgressFill"></div></div><div class="sb-progress-text" id="sbProgressText"></div><div class="sb-progress-warn" id="sbProgressWarn">⚠️ 请勿关闭网页，等待AI生成中...</div><div class="sb-progress-retry" id="sbProgressRetry"></div><div class="sb-progress-multi" id="sbProgressMulti"></div><div class="sb-progress-close" id="sbProgressClose" style="display:none;"><button class="glass-btn" id="sbProgressCloseBtn">关闭</button></div></div>
 <div id="startBookModal" class="modal"><div class="modal-card start-book-card">
@@ -695,7 +718,7 @@
 
 <div id="fullGuideModal" class="modal">
     <div class="modal-card" style="max-width:1100px;">
-        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v8.3 完整说明</h3>
+        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v8.5 完整说明</h3>
         <div class="full-guide">
             <h4>一、快速上手</h4>
             <p><b>方式 A · 一键起书（新手向）</b>：左侧面板点绿色「⚡ 一键起书」→ 填 API Key → 选模板（玄幻升级/异界规则/都市逆袭/日式轻文）与目标平台（起点/番茄/刺猬猫/飞卢/七猫）→ 点「开始起书」，AI 从零生成书名、世界观·专有名词、主线大纲、第一章完整正文（3500~5000 字）与本章摘要。</p>
@@ -760,11 +783,11 @@
             <p><b>💾 保存</b>：手动保存当前章节到本地存储</p>
             <p><b>续写</b>：在已有最后章节的基础上，让 AI 自动生成下一章。可在聊天框输入额外指令（如"引入新角色"）来引导续写方向</p>
             <p><b>重写（v7.2）</b>：点击重写 → 把本章原始指令回填到消息栏（可见可编辑）+ 还原当前精准勾选（精准模式开启时按勾选精准注入）；**发送按钮变重写态**（警示色+脉冲）标识「发送=重写本章」，防误新建章节；切换章节/发送完成自动退出重写态。重写前自动保存快照，可用「回滚」恢复；回滚按钮仅在重写真正生成文字后才亮起。</p>
-            <p><b>续写（v7.2）</b>：点击续写 → 先生成 3 个剧情走向卡片（标题+150 字大纲，注入精准角色+最新章摘要+前10章摘要+最新章开头/结尾500字+世界观+情节主线），三方向固定架构：①主动攻略（男主计谋/能力/正向手段）②被动转折（突发事件打破僵局、男主可受限但仍有办法，不引入超自然/凶杀/未铺垫的隐藏真相）③女主视角（前半段女主与核心关联人物的羁绊日常，中后段男主切入形成对照）。选中卡片 → 大纲填入消息栏（可编辑）→ Ctrl+Enter 或「续写自动」开关自动续写；走向请求失败 → toast+日志+聊天区提示，无回退动作。</p>
-            <p><b>润色（v7.3）</b>：AI 审查并润色本章（审稿 API，默认 DeepSeek 思考模式）。审查三类——<b>大幅修改</b>（人设冲突、违背物理常识、时空混乱、不合理比喻，即使影响后文也标出，由作者后处理）、<b>小幅修改</b>（词语错误、逻辑小错位）、<b>不修改</b>（信息量零变化的措辞替换）。预览红（原句）/绿（新句）高亮，**低幅度修改带黄色理由**（字符变动比例低于「低幅度理由线」时标注，供你判断是否采纳）；正文可自由编辑、可逐条删红/绿。点「应用」→ 红绿配对去红留绿、孤立红/绿按你的选择保留 + **直接保存并解锁**（正文纯净）；点「取消」→ **完全还原润色前正文**（预览期手动删改全部作废）。</p>
-            <p><b>冲突检测（v7.3）</b>：生成后<b>不再自动检测</b>，改为手动——点击「检查」检测定稿内容（生成初稿 → 可选润色 → 手动检测），每章省一次 API</p>
+            <p><b>续写（v7.2）</b>：点击续写 → 先生成 3 个剧情走向卡片（标题+150 字大纲，注入精准角色+关系图+最新章摘要+前10章摘要（总量≤2000）+世界观+主线大纲，v8.5 起不再注入最新章开头/结尾500字），三方向固定架构：①主动攻略（男主计谋/能力/正向手段）②被动转折（突发事件打破僵局、男主可受限但仍有办法，不引入超自然/凶杀/未铺垫的隐藏真相）③女主视角（前半段女主与核心关联人物的羁绊日常，中后段男主切入形成对照）。选中卡片 → 大纲填入消息栏（可编辑）→ Ctrl+Enter 或「续写自动」开关自动续写；走向请求失败 → toast+日志+聊天区提示，无回退动作。</p>
+            <p><b>润色（v7.3）</b>：AI 审查并润色本章（审稿 API，默认 DeepSeek 思考模式）。审查三类——<b>大幅修改</b>（人设冲突、违背物理常识、时空混乱、不合理比喻，即使影响后文也标出，由作者后处理）、<b>小幅修改</b>（词语错误、逻辑小错位）、<b>不修改</b>（信息量零变化的措辞替换）。预览红（原句）/绿（新句）高亮，**每一处修改都附黄色理由说明**（说明改了什么、为什么更好，供你判断是否采纳）；正文可自由编辑、可逐条删红/绿。点「应用」→ 红绿配对去红留绿、孤立红/绿按你的选择保留 + **直接保存并解锁**（正文纯净）；点「取消」→ **完全还原润色前正文**（预览期手动删改全部作废）。</p>
+            <p><b>冲突检测（v7.3）</b>：生成后<b>不再自动检测</b>，改为手动——点击「检测」检测定稿内容（生成初稿 → 可选润色 → 手动检测），每章省一次 API</p>
             <p><b>回滚</b>：撤销最近一次重写，恢复重写前的章节内容。仅在重写后可用</p>
-            <p><b>检查</b>：调用 AI 对比前文内容与角色设定，检测外貌矛盾、时间线混乱、关系错误等潜在问题</p>
+            <p><b>检测</b>：调用 AI 对比前文内容与角色设定，检测外貌矛盾、时间线混乱、关系错误等潜在问题</p>
             <hr>
             
             <h4>六、💬 聊天指令区</h4>
@@ -812,7 +835,7 @@
             
             <h4>十四、⚙️ API 调参（四页签）</h4>
             <p>点击聊天区右侧 ⚙ 按钮打开设置，含四个页签：</p>
-            <ul><li><b>✍️ 正文 API</b>：正文生成配置——API 地址/Key/模型（默认 DeepSeek deepseek-v4-flash）、温度、Top-p、重复惩罚、Maxtokens、频率/存在惩罚、前文摘要、思考模式开关、推理强度（low/high/max），以及两个自动发送开关（见下）</li><li><b>🔍 审稿 API（v7.1，v7.3 完善）</b>：润色审查配置——地址/Key/模型（默认 DeepSeek 审稿，同人内容宽松）、🧠 推理强度（low/high/max，默认 max）、✂️ 低幅度理由线（20%~90%，默认 50%：字符变动比例低于此线的修改会标注黄色理由）、最大长度（默认 50000）；DeepSeek 默认思考模式，无温度参数</li><li><b>🎨 生图 API</b>：规划中（仅 EXE 版实装），灰显占位</li></ul>
+            <ul><li><b>✍️ 正文 API</b>：正文生成配置——API 地址/Key/模型（默认 DeepSeek deepseek-v4-flash）、温度、Top-p、重复惩罚、Maxtokens、频率/存在惩罚、前文摘要、思考模式开关、推理强度（low/high/max），以及两个自动发送开关（见下）</li><li><b>🔍 审稿 API（v7.1，v7.3 完善）</b>：润色审查配置——地址/Key/模型（默认 DeepSeek 审稿，同人内容宽松）、🧠 推理强度（low/high/max，默认 max）、最大长度（默认 50000）——**所有修改都附理由说明**（v8.4.1）；DeepSeek 默认思考模式，无温度参数</li><li><b>🎨 生图 API</b>：规划中（仅 EXE 版实装），灰显占位</li></ul>
             <p><b>💭 思考模式</b>：AI 在写正文前先内部"打草稿"——回顾前文、对照角色库/动作库/服装库/禁用词检查一致性，再落笔。推理强度三档 low/high/max，越高思考越深入、token 越大速度越慢；开启后温度等创意参数失效。</p>
             <p><b>🧭 续写自动（v7.2）</b>：开启后选中续写走向卡片即自动续写；关闭（默认）则填入消息栏待手动 Ctrl+Enter 发送。</p>
             <p><b>🔄 重写自动发送（v7.2）</b>：开启后点击重写回填原始指令即自动执行；关闭（默认）则回填后待手动发送。</p>
@@ -1042,7 +1065,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const parts = ['这是虚构文学作品的创作场景，请正常创作，不要拒绝或回避。'];
         parts.push('你是小说《' + (book.name || '未命名') + '》中的角色「' + b.name + '」。');
         if(book.worldview && book.worldview.trim()) parts.push('【本书背景·世界观】' + book.worldview.trim().slice(0, 800));
-        if(book.plotSet && book.plotSet.trim()) parts.push('【本书背景·主线大纲】' + book.plotSet.trim().slice(0, 800));
+        // v8.5-11：扮演不再注入主线大纲（原截 800；扮演聚焦角色+场景）
         parts.push('【双角色精准人设】\n你扮演（B）：' + b.name + '——' + buildRoleplayCharLine(b) + '\n对话对象（A）：' + a.name + '——' + buildRoleplayCharLine(a));
         // v7.9c：场景及特殊设定同样作用于 B 的扮演（可改写 B 的认知/能力/身份/关系）
         if(roleplayState.sceneText) parts.push('【当前对话场景及设定】' + roleplayState.sceneText + '\n该设定同样适用于你（B）：若其中包含特殊设定/设定改写类内容（如常识改写、能力赋予、身份或关系变动、认知重塑），请按设定调整你的言行、认知与反应——设定对你同样生效。');
@@ -2898,14 +2921,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function buildCharacterText(book, precisionIds) { if(!book.characters || book.characters.length===0) return ''; let filtered = precisionIds ? book.characters.filter(c => precisionIds.includes(c.id)) : book.characters; if(!filtered.length) return ''; let txt = precisionIds ? '【当前出场角色】\n' : '【重要·本书角色库】\n'; filtered.forEach(c => { txt += `- ${c.name}：`; if(c.appearance) txt += `外貌体征：${c.appearance}；`; if(c.personality) txt += `性格：${c.personality}；`; if(c.special) txt += `服装及其他设定：${c.special}；`; if(c.relationship) txt += `身份关联：${c.relationship}；`; txt += '\n'; }); return txt; }
     function buildForbiddenWarning(book) { if(!book.forbiddenWords || book.forbiddenWords.length===0) return ''; let warning = '【严格禁止以下词语】\n'; book.forbiddenWords.forEach(({word}) => { warning += `- 绝对禁止出现"${word}"。\n`; }); return warning; }
     function buildSys(book, usePrecision = false) { let precisionChars = null, precisionActions = null, precisionCostumes = null; if(usePrecision && book.precisionMode && book.precisionChars && book.precisionActions && (book.precisionChars.length || book.precisionActions.length || (book.precisionCostumes||[]).length)) { precisionChars = book.precisionChars; precisionActions = book.precisionActions; precisionCostumes = book.precisionCostumes; } let relationLib = buildRelationText(book); let actionLib = buildActionText(precisionActions); let costumeLib = buildCostumeText(precisionCostumes); let charLib = buildCharacterText(book, precisionChars); let forbiddenWarning = buildForbiddenWarning(book); const parts = []; if(book.globalPrompt && book.globalPrompt.trim()) parts.push(book.globalPrompt.trim()); if(book.writingStyle && book.writingStyle.trim()) parts.push('【行文】'+book.writingStyle.trim()); if(relationLib) parts.push(relationLib.replace(/\n$/,'')); if(charLib) parts.push(charLib.replace(/\n$/,'')); if(actionLib) parts.push(actionLib.replace(/\n$/,'')); if(costumeLib) parts.push(costumeLib.replace(/\n$/,'')); if(forbiddenWarning) parts.push(forbiddenWarning.replace(/\n$/,'')); if(book.worldview && book.worldview.trim()) parts.push('【世界观】'+book.worldview.trim()); if(book.plotSet && book.plotSet.trim()) parts.push('【情节】'+book.plotSet.trim());
-        const growthLib = buildGrowthText(book, precisionChars); if(growthLib) parts.push(growthLib.replace(/\n$/,'')); // v7.9缓存优化：成长段挪至末尾，避免带崩其后稳定段（动作/服装/世界观/情节）
+        const growthLib = buildGrowthText(book, precisionChars, 10); // v8.5-9：生文成长取最近 10 条（原全量）；精准模式开→仅勾选角色，未开→全部角色
+        if(growthLib) parts.push(growthLib.replace(/\n$/,'')); // v7.9缓存优化：成长段挪至末尾，避免带崩其后稳定段（动作/服装/世界观/情节）
         return parts.join('\n') + '\n输出Markdown正文。'; } // v7.6：专有名词已并入世界观名词（termSet 移除）
     function getPrev(book, idx) {
         let start = Math.max(0, idx - api.ctxChapters);
         let prev = book.chapters.slice(start, idx);
         if(!prev.length) return "开篇。";
-        const MAX_TOTAL = 30000, MAX_SINGLE = 5000, MAX_SUMMARY = 300;
-        // v7.1 权重修正：优先保留最近的章节——从后往前挑选能装入 30000 预算的章节，
+        const MAX_TOTAL = 5000, MAX_SINGLE = 2000, MAX_SUMMARY = 300; // v8.5-8：生文前文总量 30000→5000、无摘要单章节选 5000→2000（防单章节选吃满预算）
+        // v7.1 权重修正：优先保留最近的章节——从后往前挑选能装入预算的章节，
         // 超限丢弃的是最早章节（旧逻辑从前往后注入、超限 break，反而丢掉离当前最近的章节）
         const picked = [];
         let budget = MAX_TOTAL;
@@ -2942,64 +2966,74 @@ document.addEventListener('DOMContentLoaded', function() {
         return fallbackTitle;
     }
 
-    // v6.3：前 20 章人物经历参考——有摘要用摘要（≤300字），无摘要回退正文节选（前 500 字），总量 ≤8000
+    // v8.5-8：前 3 章人物经历参考——有摘要用摘要（≤300字），无摘要回退正文节选（前 500 字），总量 ≤1000，超限丢弃最旧（从后往前保留最新）
     function buildCheckPrev(book, chapter) {
         const idx = book.chapters.findIndex(c=>c.id===chapter.id);
-        const start = Math.max(0, idx - 5); // v7.8：前文人设参考由 20 章改为前 5 章（减注入量）
+        const start = Math.max(0, idx - 3); // v8.5-8：前文参考由前 5 章改前 3 章（对齐润色/吐槽）
         const prevChaps = book.chapters.slice(start, idx);
         if(!prevChaps.length) return '（开篇，无前文）';
-        let txt = '', total = 0;
-        let regularNo = book.chapters.slice(0, start).filter(ch => !ch.isInterlude).length;
-        for(const ch of prevChaps) {
-            regularNo += ch.isInterlude ? 0 : 1;
+        const picked = [];
+        let total = 0;
+        for(let i = prevChaps.length - 1; i >= 0; i--) {
+            const ch = prevChaps[i];
+            const regularNo = book.chapters.slice(0, book.chapters.indexOf(ch)).filter(x => !x.isInterlude).length + 1;
             const label = `${ch.isInterlude ? '间章' : '第' + regularNo + '章'} ${ch.title || ''}`;
             let seg;
             if(ch.summary && ch.summary.trim()) seg = `${label}（摘要）：${ch.summary.trim().slice(0,300)}`;
             else seg = `${label}（正文节选）：${(ch.content || '').slice(0,500)}`;
+            if(total + seg.length > 1000 && picked.length) break; // v8.5-8：超 1000 丢弃最旧
             total += seg.length;
-            if(total > 8000) { txt += '\n…（前文人设参考已截断）'; break; }
-            txt += seg + '\n';
+            picked.unshift(seg);
         }
-        return txt || '（无前文）';
+        if(!picked.length) return '（无前文）';
+        let txt = picked.join('\n');
+        if(picked.length < prevChaps.length) txt += '\n…（前文人设参考已截断）';
+        return txt;
     }
-    // v6.3：检测用角色——精准模式开启用勾选角色，未开启用全部
-    function buildCheckChars(book) {
-        let ids = null;
-        if(book.precisionMode && book.precisionChars && book.precisionChars.length) ids = book.precisionChars;
-        return buildCharacterText(book, ids);
-    }
-    async function runChapterCheck(book, chapter, prevContent, showToastOnError=false) {
+    async function runChapterCheck(book, chapter, showToastOnError=false) { // v8.5.2-P3-2：删 prevContent 死参数（前文由 buildCheckPrev 内部构造，20000 预算构造段已移除）
         if(!api.key) return { ok:false, error:"请先配置 API Key" };
         if(!apiUrlValid(api.url)) return { ok:false, error:"API 地址无效（需以 http:// 或 https:// 开头）" };
-        // v6.3：检测内容重定义——本章正文 + 前 20 章摘要人物经历 + 精准勾选角色，
-        // 聚焦人设一致性（性格/情绪/台词），保留外貌/时间线/关系；含虚构声明（同摘要原理）
+        // v6.3：检测内容重定义——本章正文 + 前 3 章摘要人物经历 + 精准勾选角色（v8.5-1：未开精准不注入角色）+ 勾选角色成长（v8.5-9：最近3条）
         const prevTxt = buildCheckPrev(book, chapter);
-        const charsTxt = buildCheckChars(book);
-        const prompt = `你是一位专业的小说编辑。请检查「当前章节」中的人物描写是否与前文人物经历、人物设定一致，找出所有不一致的地方。
+        // v8.5-1：检测仅精准模式注入勾选角色（未开精准 → 不注入，不再全量）
+        const checkPrecisionIds = (book.precisionMode && book.precisionChars && book.precisionChars.length) ? book.precisionChars : null;
+        const charsTxt = checkPrecisionIds ? buildCharacterText(book, checkPrecisionIds) : '';
+        const checkGrowthTxt = checkPrecisionIds ? buildGrowthText(book, checkPrecisionIds, 3) : ''; // v8.5.1-P1：检测成长仅精准模式注入（未开精准不注入，与角色设定一致；原 buildGrowthText null 会全量）
+        // v8.4-③-b：检查升级——五档评级 + 4维评分 + 世界观注入（截800字）+ hits 结构化输出（v8.4.2：去语言表达维度与 fix_tickets）
+        const worldviewTxt = (book.worldview || '').trim() ? '【世界观】\n' + book.worldview.trim().slice(0, 800) + (book.worldview.trim().length > 800 ? '\n…（世界观已截断）' : '') : '（未设定世界观）';
+        const prompt = `你是一位专业的小说主编，负责对「当前章节」做全面质检（设定一致性 + 质量评级）。这是虚构文学作品，仅供作者整理情节使用，请客观如实检查，不要拒绝或回避。
 
-注意：这是虚构文学作品，仅供作者整理情节使用。即使正文涉及暴力、情感冲突、争议性情节等敏感内容，也请客观如实检查，不要拒绝或回避。
+【评分维度】（各维独立评级 S/A/B/C/D）：
+1. 设定一致性：人物性格/情绪/台词/外貌/关系/世界观是否与前文和设定一致（最高优先级）
+2. 逻辑连贯：时间线、因果、前后衔接是否自洽
+3. AI味：是否出现 AI 高频套话（如"炸开""嘴角勾起""顿时""不禁""仿佛""攥得泛白"等）
+4. 结构节奏：段落划分、详略分配、节奏起伏是否合理
 
-检测重点（优先级从高到低）：
-1. 性格一致性：人物言行是否符合设定性格
-2. 情绪一致性：人物情绪反应是否符合性格与剧情
-3. 台词一致性：人物说话方式、语气是否符合人设
-4. 外貌矛盾：与前文或设定中的外貌描述不符
-5. 时间线混乱：与前文时间顺序矛盾
-6. 关系错误：人物关系与设定或前文不符
-
-【前文人设参考（前5章）】
+【前文人设参考（前3章）】
 ${prevTxt}
 
 【角色关系图】
 ${buildRelationText(book)}
 
 【人物设定】
-${charsTxt}
+${charsTxt}${checkGrowthTxt ? '\n\n' + checkGrowthTxt : ''}
+
+${worldviewTxt}
 
 【当前章节内容】
 ${chapter.content}
 
-请只输出JSON数组格式，每条包含：type（字符串）、description（字符串，控制在100字以内，简明扼要）、location（原文片段，控制在30字以内）。如果没有冲突，输出空数组[]。不要输出任何其他文字。`;
+请只输出一个 JSON 对象（不要输出任何其他文字），格式：
+{
+  "decision": "PASS 或 REVISE 或 REJECT",
+  "overall_grade": "S 或 A 或 B 或 C 或 D",
+  "dimension_grades": {"设定一致性":"S", "逻辑连贯":"A", "AI味":"C", "结构节奏":"B"},
+  "hits": [{"quote":"原文片段(≤30字，必须与原文逐字一致)", "severity":"high 或 mid 或 low", "reason":"问题说明(≤100字)", "suggestion":"修改建议(≤80字)"}]
+}
+规则：
+- decision：overall_grade 为 S/A → PASS；B → REVISE（需修改）；C/D → REJECT（建议重写）
+- hits 只列需要修改的实质问题（高/中严重度：设定不一致、逻辑漏洞、AI套话），无关紧要的提示性内容（如"时间线紧凑""节奏稍快""用词建议"等不影响设定与逻辑的琐碎建议）一律不要列入；无问题输出空数组 []
+- hits 中的 quote 必须与正文逐字一致（用于定位标色）`;
         // v6.8：controller/timeout 提升到 try 外——finally 无法访问 try 块内 const（v6.7 引入 ReferenceError 使冲突检测失效）
         const controller = new AbortController();
         let timeout = null;
@@ -3008,12 +3042,13 @@ ${chapter.content}
             const res = await fetch(api.url, {
                 method:'POST',
                 headers:{'Content-Type':'application/json','Authorization':`Bearer ${api.key}`},
-                body:JSON.stringify({ model:api.model, messages:[{role:"system",content:"你是一个严谨的编辑，只输出JSON。"},{role:"user",content:prompt}], temperature:0.3, max_tokens:api.maxTokens, thinking:{ type:'disabled' } }), // v7.8：max_tokens 与正文 API 配置一致
+                body:JSON.stringify({ model:api.model, messages:[{role:"system",content:"你是一个严谨的编辑，只输出JSON。"},{role:"user",content:prompt}], temperature:0.3, max_tokens:Math.min(30000, api.maxTokens || 30000), thinking:{ type:'disabled' } }), // v8.5.1：检测输出封顶 3w（原跟正文 6w），用户调低 maxTokens 时跟随；输出仅需几百 token，防异常超长烧钱
                 signal: controller.signal
             });
             if(!res.ok) return { ok:false, error:"冲突检测请求失败 (" + await extractApiError(res) + ")" };
             const data = await res.json();            let content = data.choices[0]?.message?.content;
             const usage = data && data.usage; // v7.8：检查计费用
+            setCtxBudgetFromUsage(usage && usage.prompt_tokens, usage && usage.completion_tokens); // v8.5.2-A：检测真实 usage 覆盖预算条
             if(!content) {
                 // v6.3：空内容诊断——带出 finish_reason 与 message 字段，便于定位（length=截断/思考结构/API 异常）
                 const ch = data.choices && data.choices[0];
@@ -3025,9 +3060,18 @@ ${chapter.content}
                 }
                 return { ok:false, error:"冲突检测返回内容为空（" + diag + "）" };
             }
-            let jsonMatch = content.match(/\[[\s\S]*\]/);
-            if(jsonMatch) return { ok:true, conflicts: JSON.parse(jsonMatch[0]), cost: calcCost(api.model, usage) }; // v7.8：返回计费
+            // v8.4-③-b：解析升级——先匹配对象（新格式 {decision,overall_grade,...}），再兼容数组（旧格式）
+            let jsonMatch = content.match(/\{[\s\S]*\}/);
+            if(jsonMatch) {
+                try {
+                    const obj = JSON.parse(jsonMatch[0]);
+                    if(obj && !Array.isArray(obj)) return { ok:true, conflicts: (obj.hits || []), checkReport: obj, cost: calcCost(api.model, usage) };
+                } catch(e) {}
+            }
+            jsonMatch = content.match(/\[[\s\S]*\]/);
+            if(jsonMatch) return { ok:true, conflicts: JSON.parse(jsonMatch[0]), cost: calcCost(api.model, usage) }; // v7.8：旧格式数组兼容
             let cleaned = content.replace(/```json\s*|\s*```/g, '').trim();
+            if(cleaned.startsWith('{')) { try { const obj = JSON.parse(cleaned); return { ok:true, conflicts: (obj.hits || []), checkReport: obj, cost: calcCost(api.model, usage) }; } catch(e) {} }
             if(cleaned.startsWith('[')) return { ok:true, conflicts: JSON.parse(cleaned), cost: calcCost(api.model, usage) };
             return { ok:true, conflicts: [], cost: calcCost(api.model, usage) };
         } catch(e) {
@@ -3054,12 +3098,11 @@ ${chapter.content}
         const checkVer = chapter.checkRequestVersion || 0;
         setConflictChecking(true);
         try {
-            // v7.4 H1 修复：冲突检测前文加预算（20000 字符，超限截断防撑爆上下文）——从最近章节向前取，保留最近的
-            let prevContent = ''; { let budget = 20000; const pcs = book.chapters.slice(Math.max(0, idx - api.ctxChapters), idx); for(let pi = pcs.length - 1; pi >= 0; pi--) { const seg = (pcs[pi].content || ''); if(prevContent.length + seg.length + 2 > budget && prevContent) break; if(!prevContent && seg.length > budget) { prevContent = seg.slice(0, budget); break; } prevContent = (prevContent ? seg + '\n\n' + prevContent : seg); } }
-            const result = await runChapterCheck(book, chapter, prevContent);
+            // v8.5.2-P3-2：旧 20000 预算前文构造已移除（runChapterCheck 内部改用 buildCheckPrev 前3章≤1000）
+            const result = await runChapterCheck(book, chapter);
             const current = book.chapters.find(c => c.id === chapterId);
             if(!current || current.checkRequestVersion !== checkVer || current.content !== contentSnapshot) return; // 正文已变/已编辑，旧检测作废
-            if(result.ok) { current.checkResult = result.conflicts; current.checkState = 'done'; }
+            if(result.ok) { current.checkResult = (result.conflicts || []).filter(c => (c.severity || 'mid') !== 'low'); current.checkState = 'done'; } // v8.4.2：落库即过滤 low 提示性条目——通知/按钮/面板数量自动一致
             else { current.checkResult = []; current.checkState = 'error'; toast("冲突检测失败：" + (result.error || '请稍后重试')); console.warn(result.error); }
             saveAll();
             // UI 更新前校验来源书籍仍为当前书（防切书后旧结果误染新书按钮）
@@ -3067,7 +3110,7 @@ ${chapter.content}
             if(currentBookId === book.id && book.currentChapterId === current.id && checkBtn) {
                 checkBtn.style.background = current.checkResult.length ? "#C97A3A" : "#3A3A6A";
                 if(current.checkResult.length) {
-                    toast(`检查发现 ${current.checkResult.length} 处潜在冲突`);
+                    toast(`检测发现 ${current.checkResult.length} 处潜在冲突`);
                     // v6.3：自动检测发现冲突 → 自动打开面板展示（面板已开则刷新内容）
                     if(conflictVisible) { toggleConflictPanel(); toggleConflictPanel(); }
                     else toggleConflictPanel();
@@ -3082,6 +3125,11 @@ ${chapter.content}
     const SUMMARY_PLACEHOLDER = '⏳ 摘要生成中...';
     // v6.0：摘要生成进行中标志——防重复点击发起多个摘要请求浪费 API 费用
     let summaryGenerating = false;
+    let currentSummaryController = null; // v8.5.3-P2-2：摘要在途 controller——供 stopGeneration 中止（摘要阶段可停止）
+    // v8.4-④：生文完成时的正文成本快照（bookId/chapId/cost）——供自动摘要完成后合并展示总成本
+    let lastGenCostRef = null;
+    // v8.4-③-b：检查正文标色激活标志（保存/切章/关面板时剥离 <mark> 防污染数据）
+    let checkMarksActive = false;
     async function generateChapterSummary(book, chapter) {
         if(!api.key || !chapter || !chapter.content || !chapter.content.trim()) return;
         if(!apiUrlValid(api.url)) { toast("API 地址无效，请重新配置"); return; }
@@ -3167,11 +3215,10 @@ ${chapter.content}
             { pct: 45, text: '正在扫描设定冲突…' },
             { pct: 75, text: '正在核对前后文一致性…' },
             { pct: 90, text: '正在汇总结果…' }
-        ], 20000, '⚠️ 请勿关闭网页，等待AI检查中...');
+        ], 20000, '⚠️ 请勿关闭网页，等待AI检测中...');
         try {
-            // v7.4 H1 修复：冲突检测前文加预算（20000 字符，超限截断防撑爆上下文）——从最近章节向前取，保留最近的
-            let prevContent = ''; { let budget = 20000; const pcs = book.chapters.slice(Math.max(0, idx - api.ctxChapters), idx); for(let pi = pcs.length - 1; pi >= 0; pi--) { const seg = (pcs[pi].content || ''); if(prevContent.length + seg.length + 2 > budget && prevContent) break; if(!prevContent && seg.length > budget) { prevContent = seg.slice(0, budget); break; } prevContent = (prevContent ? seg + '\n\n' + prevContent : seg); } }
-            const result = await runChapterCheck(book, chap, prevContent, true);
+            // v8.5.2-P3-2：旧 20000 预算前文构造已移除（runChapterCheck 内部改用 buildCheckPrev 前3章≤1000）
+            const result = await runChapterCheck(book, chap, true);
             // 检测期间用户可能已切换章节/书籍/正文已编辑，结果作废
             if(book.currentChapterId !== chapterId || currentBookId !== book.id) return;
             const current = book.chapters.find(c => c.id === chapterId);
@@ -3180,17 +3227,24 @@ ${chapter.content}
             const checkBtn = $('checkConflictBtn');
             if(result.ok) {
                 if(result.cost > 0) recordCost(result.cost); // v7.8.1：累计消耗金额
-                current.checkResult = result.conflicts; current.checkState = 'done';
+                current.checkResult = (result.conflicts || []).filter(c => (c.severity || 'mid') !== 'low'); current.checkState = 'done'; // v8.4.2：落库即过滤 low 提示性条目——通知/按钮/面板数量自动一致
+                if(result.checkReport) current.checkReport = result.checkReport; else delete current.checkReport; // v8.4-③-b：完整报告（五档+维度；v8.4.2 去语言表达维度/fix_tickets 仅不展示，模型残留字段无害）
                 if(checkBtn) checkBtn.style.background = current.checkResult.length ? "#C97A3A" : "#3A3A6A";
                 const cCostTxt = result.cost ? `（消费 ¥${result.cost.toFixed(2)} 元）` : '';
-                if(current.checkResult.length) toast(`检查发现 ${current.checkResult.length} 处潜在冲突${cCostTxt}`);
+                if(current.checkResult.length) toast(`检测发现 ${current.checkResult.length} 处潜在冲突${cCostTxt}`);
                 else toast(`未检测到明显冲突${cCostTxt}`);
-                startTabBlink(current.checkResult.length ? `✅ 检查发现 ${current.checkResult.length} 处冲突` : '✅ 未检测到明显冲突');
+                // v8.4-④：检查系统通知补金额（toast 已有，系统通知此前缺失）
+                startTabBlink(current.checkResult.length ? `✅ 检测发现 ${current.checkResult.length} 处冲突${cCostTxt}` : '✅ 未检测到明显冲突' + cCostTxt);
+                // v8.4.1-⑥-b：检查完成通知到左侧聊天面板
+                const gradeTxt = current.checkReport && current.checkReport.overall_grade ? `，评级 ${current.checkReport.overall_grade}` : '';
+                addChat('assistant', current.checkResult.length ? `✅ 检测完成${gradeTxt}，发现 ${current.checkResult.length} 处冲突${cCostTxt}` : `✅ 检测完成${gradeTxt}，未检测到明显冲突${cCostTxt}`);
+                if(conflictVisible) renderConflictPanel(current); // v8.4-③-b：面板开着时刷新渲染 + 重新标色
             } else {
                 current.checkResult = []; current.checkState = 'error';
                 if(checkBtn) checkBtn.style.background = "#3A3A6A";
                 toast(result.error || "冲突检测失败");
                 startTabBlink('❌ 冲突检测失败');
+                if(conflictVisible) renderConflictPanel(current); // v8.5.1-P2：失败也刷新面板，清除「自动重测中」占位
             }
             saveAll();
         } finally { setConflictChecking(false); stopSbStages(); resetSbProgress(); } // v8.0.35：清理检查进度窗口
@@ -3231,30 +3285,52 @@ ${chapter.content}
         const manual = !!(opts && opts.manual);
         if(!api.key || !apiUrlValid(api.url)) { if(manual) toast('请先配置 API Key'); return; }
         if(!chap || !(chap.content || '').trim()) { if(manual) toast('章节正文为空，无法生成摘要和经历'); return; }
-        if(summaryGenerating) { if(manual) toast('摘要与经历生成中，请稍候'); return; }
+        if(summaryGenerating) {
+            if(manual) toast('摘要与经历生成中，请稍候');
+            else {
+                pushLog('⚠️ 上一章摘要仍在生成，本章摘要已跳过（可手动重新生成）'); // v8.5.2-P2-1：非手动跳过也给日志留痕（原静默丢弃）
+                // v8.5.3-P2：本次自动摘要被跳过——若本章正文已完成（summaryGrowthPending 挂起），
+                // 需释放挂起标志与锁，防"手动摘要在途 + 发正文"路径下写作锁永久卡死（原 v7.8 遗留，仅刷新可恢复）
+                if(!multiChapRunning) {
+                    summaryGrowthPending = false;
+                    isGenerating = false;
+                    setWritingLockTip('');
+                    setWritingLock(false);
+                }
+            }
+            return;
+        }
         summaryGenerating = true;
-        if(!manual) { isGenerating = true; setWritingLockTip('📝 正文已生成，摘要与经历生成中…'); }
+        if(!manual) { isGenerating = true; setWritingLockTip('📝 正文已生成，摘要与经历生成中…'); const sb2 = $('stopGenBtn'); if(sb2) sb2.disabled = false; } // v8.5.3-P2-2：摘要阶段恢复停止按钮（正文完成后原被禁用）
         pushLog('📝 摘要与经历生成中…');
         const controller = new AbortController();
+        if(!manual) currentSummaryController = controller; // v8.5.3-P2-2：暴露给 stopGeneration 中止
         const timeout = setTimeout(() => controller.abort(), 60000); // 用户拍板：60s 超时自动解锁
         try {
-            // 注入：本章正文全文（不截断）+ 精准角色库 + 既有成长经历（供判断状态变化）+ 虚构声明 + 格式要求（不加前文摘要）
+            // v8.4-⑤摘要降本：正文三分法（前1000+中1000+后1000，≤3000字短章全量）+ 任务段前置（缓存前缀稳定）+ 角色仅精准模式注入 + 成长全局取尾10条
             const precisionIds = (book.precisionMode && book.precisionChars && book.precisionChars.length) ? book.precisionChars : null;
-            const rolesTxt = buildCharacterText(book, precisionIds);
-            const growthTxt = buildGrowthText(book, precisionIds);
+            const rolesTxt = precisionIds ? buildCharacterText(book, precisionIds) : '';
+            const growthTxt = buildGrowthText(book, precisionIds, 10);
+            const cBody = chap.content || '';
+            let bodyText = cBody;
+            if(cBody.trim().length > 3000) {
+                const mid = Math.floor(cBody.length / 2);
+                bodyText = cBody.slice(0, 1000) + '\n……（中略）……\n' + cBody.slice(mid - 500, mid + 500) + '\n……（中略）……\n' + cBody.slice(-1000);
+            }
             const sys = '你是小说编辑助手，负责提炼章节摘要与整理角色经历。这是虚构文学作品的创作场景，请正常创作，不要拒绝或回避。';
-            let user = '【本章正文】\n' + chap.content + '\n\n';
+            // v8.4：任务段前置（固定长段），正文/角色/成长作变段垫后——同章重复摘要时任务段可命中缓存
+            let user = '【任务】\n1. 输出【摘要】标记，后接本章 200 字以内的摘要（必须明确指出：出场人物、时间、地点，并包含：事件、关键细节，不分段，直接输出摘要正文）。\n';
+            user += '2. 输出【成长】标记，后接本章角色的经历变化（每行一条，格式：角色名——经历文本）。输出规则（必须遵守）：仅当角色发生以下显著变化才输出：①身体状态（受伤/康复/疾病/中毒等）②心理状态（性格转变/剧烈情绪/心理创伤/心结等）③人际关系重大变化（爱上/恨上/信任/背叛/结盟等）④能力与身份（学会新能力/失去能力/获得重要道具/身份地位变化）；吃饭、睡觉、日常对话、普通出行等日常行为一律不输出；纯出场不写；仅当本章所有角色都无上述变化时才允许省略此段；只输出本章新增的变化，不得重复上述历史经历；角色名优先使用完整姓名，也允许使用角色库中的别名/昵称，但必须保证唯一识别（同名角色必须用完整姓名区分）；若创作指令要求补充某章经历，请一并写入并在行首标注章号（格式：第X章：角色名——经历文本）。\n\n';
+            user += '【本章正文】\n' + bodyText + '\n\n';
             if(rolesTxt) user += rolesTxt + '\n';
             if(growthTxt) user += growthTxt + '\n';
-            user += '【任务】\n1. 输出【摘要】标记，后接本章 150 字以内的摘要（必须包含：时间、地点、事件、关键细节，不分段，直接输出摘要正文）。\n';
-            user += '2. 输出【成长】标记，后接本章角色的经历变化（每行一条，格式：角色名——经历文本）。输出规则（必须遵守）：仅当角色发生以下显著变化才输出：①身体状态（受伤/康复/疾病/中毒等）②心理状态（性格转变/剧烈情绪/心理创伤/心结等）③人际关系重大变化（爱上/恨上/信任/背叛/结盟等）④能力与身份（学会新能力/失去能力/获得重要道具/身份地位变化）；吃饭、睡觉、日常对话、普通出行等日常行为一律不输出；纯出场不写；仅当本章所有角色都无上述变化时才允许省略此段；只输出本章新增的变化，不得重复上述历史经历；角色名优先使用完整姓名，也允许使用角色库中的别名/昵称，但必须保证唯一识别（同名角色必须用完整姓名区分）；若创作指令要求补充某章经历，请一并写入并在行首标注章号（格式：第X章：角色名——经历文本）。';
             const res = await fetch(api.url, {
                 method:'POST',
                 headers:{'Content-Type':'application/json','Authorization':`Bearer ${api.key}`},
                 body: JSON.stringify({
                     model: api.model,
                     messages:[{role:'system',content:sys},{role:'user',content:user}],
-                    max_tokens: api.maxTokens, // v7.8：max_tokens 与正文 API 配置一致
+                    max_tokens: Math.min(10000, api.maxTokens || 10000), // v8.4-⑤：摘要输出仅需几百 token，封顶 10000；用户调低 maxTokens 时跟随（兼容限 8k 端点）
                     temperature: 0.3,
                     thinking: { type:'disabled' }
                 }),
@@ -3263,6 +3339,7 @@ ${chapter.content}
             if(!res.ok) throw new Error(await extractApiError(res));
             const data = await res.json();
             const sgCost = calcCost(api.model, data.usage); // v7.8：摘要+经历计费（正文 API）
+            setCtxBudgetFromUsage(data.usage && data.usage.prompt_tokens, data.usage && data.usage.completion_tokens); // v8.5.2-A：摘要真实 usage 覆盖预算条
             if(sgCost > 0) recordCost(sgCost); // v7.8.1：累计消耗金额
             const text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
             if(!text.trim()) throw new Error('返回内容为空');
@@ -3290,18 +3367,33 @@ ${chapter.content}
                 const sumEl = $('summaryArea'); if(sumEl) sumEl.value = current.summary || '';
             }
             if(manual) toast('摘要与经历已生成' + (sgCost ? `（消费 ¥${sgCost.toFixed(2)} 元）` : ''));
+            // v8.4-④：自动摘要补成本提示——与正文成本合并展示（对上实时面板）
+            else if(sgCost > 0) {
+                let costTail = `摘要经历 ¥${sgCost.toFixed(2)}`;
+                if(lastGenCostRef && lastGenCostRef.bookId === book.id && lastGenCostRef.chapId === chap.id) {
+                    const x = lastGenCostRef.cost;
+                    costTail = `正文 ¥${x.toFixed(2)}，摘要经历 ¥${sgCost.toFixed(2)}，共 ¥${(x + sgCost).toFixed(2)}`;
+                    lastGenCostRef = null;
+                }
+                toast('✅ ' + costTail);
+            }
             pushLog('✅ 摘要与经历生成完成' + (summaryText ? '（含摘要）' : '（未提取到摘要段）') + '，成长 ' + growthParsed.length + ' 条' + (sgCost ? '，消费 ¥' + sgCost.toFixed(2) + ' 元' : ''));
         } catch(e) {
-            if(e.name === 'AbortError') { toast('摘要与经历生成超时（60s）已取消，可稍后手动重新生成'); pushLog('❌ 摘要与经历生成超时（60s）'); }
+            if(e.name === 'AbortError') { toast('摘要与经历生成已取消（超时或被停止），可稍后手动重新生成'); pushLog('❌ 摘要与经历生成已取消（超时或被停止）'); } // v8.5.3-P2-2：区分主动停止语义
             else { toast('摘要与经历生成失败：' + e.message); pushLog('❌ 摘要与经历生成失败：' + e.message); }
         } finally {
             clearTimeout(timeout);
+            currentSummaryController = null; // v8.5.3-P2-2
             summaryGenerating = false;
+            const stopBtn3 = $('stopGenBtn'); if(stopBtn3 && !multiChapRunning) stopBtn3.disabled = true; // v8.5.3-P3：摘要完成恢复停止按钮禁用（连发期间保持可用供整轮停止）
             if(!manual) {
-                isGenerating = false;
                 summaryGrowthPending = false;
-                setWritingLockTip('');
-                setWritingLock(false);
+                // v8.5.2-P1：连发期间摘要完成只清自己的标志，不动全局锁/写作锁（锁由 runMultiChap 统一管理）
+                if(!multiChapRunning) {
+                    isGenerating = false;
+                    setWritingLockTip('');
+                    setWritingLock(false);
+                }
             }
         }
     }
@@ -3386,24 +3478,31 @@ ${chapter.content}
         (book.characters || []).forEach(c => { if(c.growth && c.growth.length > 30) c.growth = c.growth.slice(-30); });
         return added;
     }
-    function buildGrowthText(book, precisionCharIds) {
+    function buildGrowthText(book, precisionCharIds, maxTotal) {
         const chars = (book.characters || []).filter(c => c && c.growth && c.growth.length);
         if(!chars.length) return '';
         const selected = chars.filter(c => !precisionCharIds || precisionCharIds.includes(c.id));
         if(!selected.length) return '';
-        const lines = [];
+        // v8.4：收集后按章号全局排序；maxTotal 时只保留最近 N 条（摘要场景瘦身），⭐ 在截断后按角色重标
+        let items = [];
         selected.forEach(c => {
             const gs = c.growth.slice().sort((a,b) => (a.chapNo||0) - (b.chapNo||0));
-            gs.forEach((g, gi) => {
-                // v7.1：最新一条标 ⭐当前状态（权重：用户消息指令 > 成长经历最新状态 > 角色库初始设定）
-                const tag = (gi === gs.length - 1) ? ' ⭐当前状态' : '';
-                lines.push('第' + (g.chapNo || '?') + '章：' + pickPrimaryAlias(c.name) + '——' + g.text + tag);
+            gs.forEach(g => {
+                items.push({ chapNo: g.chapNo || 0, charId: c.id, line: '第' + (g.chapNo || '?') + '章：' + pickPrimaryAlias(c.name) + '——' + g.text });
             });
         });
-        if(!lines.length) return '';
+        if(!items.length) return '';
+        // v8.4：仅摘要场景（maxTotal）全局按章号排序取最近 N 条；生文场景不传 maxTotal 保持 v8.3 按角色分组顺序
+        if(maxTotal) {
+            items.sort((a,b) => a.chapNo - b.chapNo);
+            if(items.length > maxTotal) items = items.slice(-maxTotal);
+        }
+        const lastIdxByChar = {};
+        items.forEach((it, i) => { lastIdxByChar[it.charId] = i; });
+        const lines = items.map((it, i) => it.line + (lastIdxByChar[it.charId] === i ? ' ⭐当前状态' : ''));
         return '【角色成长经历（按章号排列，⭐当前状态为最新一条；生成时角色状态以⭐当前状态为准，若与角色库人设冲突以成长经历为准；用户消息中的新变化优先于一切）】\n' + lines.join('\n');
     }
-    async function executeGeneration(instr, isRegen=false, targetId=null, isCont=false, chatId=null, onSuccess=null, isDual=false, controller=null, sourceBookId=null) {
+    async function executeGeneration(instr, isRegen=false, targetId=null, isCont=false, chatId=null, onSuccess=null, isDual=false, controller=null, sourceBookId=null, fromMultiChap=false) {
         // Prerequisites — no state changes
         // 来源书优先（API 配置后自动重试场景：原书可能已不是当前书，必须生成回原书）
         let book = (sourceBookId ? books.find(b=>b.id===sourceBookId) : null) || getCurrentBook();
@@ -3418,7 +3517,7 @@ ${chapter.content}
             return { status: 'need-api' };
         }
         // State lock — after all prerequisites pass
-        if(!isDual && isGenerating) { toast("已有生成任务进行中，请等待或点击停止"); return null; }
+        if(!isDual && isGenerating && !fromMultiChap) { toast("已有生成任务进行中，请等待或点击停止"); return null; } // v8.5.2-P1：连发内部任务（fromMultiChap）放行，用户任务仍被全局锁拦截
         if(!isDual) isGenerating = true;
         // 会话号：单版任务启动即成为最新会话（旧任务随之过期，finally 不再清理）；
         // 双版不在此递增（由 runDualGeneration 统一管理）
@@ -3441,18 +3540,19 @@ ${chapter.content}
         let idx = isRegen ? book.chapters.findIndex(c=>c.id===targetId) : book.chapters.length;
         if(idx===-1) idx=book.chapters.length;
         let prev = getPrev(book, idx);
+        // v8.4-①缓存分区：稳定段（全局动作库/服装库固定提示）前置——可命中缓存；创作指令中段；【前文】垫底（变段不拖垮前缀）
         let user = '';
+        if(globalActions.length) user += `请严格按照【全局动作库】中的定义来描写动作。\n\n`;
+        if(globalCostumes.length) user += `请严格按照【全局服装库】中的定义来描写服装。\n\n`;
         if(isCont) {
             let ci = (instr && instr.trim()) ? instr : `请续写下一章（保持连贯），使用Markdown标题格式 "# 章节标题"。`;
-            user = `${ci}\n\n【前文】\n${prev}`;
+            user += `${ci}\n\n【前文】\n${prev}`;
         } else if(isRegen) {
             let effectiveInstr = (instr && instr.trim()) ? instr : `请根据前文重新创作本章，保持连贯。`;
-            user = `${effectiveInstr}\n\n【前文】\n${prev}`;
+            user += `${effectiveInstr}\n\n【前文】\n${prev}`;
         } else {
-            user = `创作指令：${instr}\n\n【前文】\n${prev}\n\n请以 Markdown 标题格式 "# 章节标题" 开头输出正文。`;
+            user += `创作指令：${instr}\n\n【前文】\n${prev}\n\n请以 Markdown 标题格式 "# 章节标题" 开头输出正文。`;
         }
-        if(globalActions.length) user += `\n\n请严格按照【全局动作库】中的定义来描写动作。`;
-        if(globalCostumes.length) user += `\n\n请严格按照【全局服装库】中的定义来描写服装。`;
         // v7.8：摘要/成长已从正文请求移除——改为正文生成后由合并请求独立生成（generateSummaryGrowth），
         // 正文输出预算全部用于正文，避免长输出末尾被截断导致摘要/成长丢失
         let stopWordsArray = [];
@@ -3503,6 +3603,7 @@ ${chapter.content}
             if(data.usage && (data.usage.prompt_tokens || data.usage.completion_tokens)) {
                 totalCost = calcCost(api.model, data.usage); // v7.8：按模型+缓存命中计费
                 if(totalCost > 0) recordCost(totalCost); // v7.8.1：累计消耗金额
+                setCtxBudgetFromUsage(data.usage.prompt_tokens, data.usage.completion_tokens); // v8.5.2-A：生文真实 usage 覆盖预算条
             }
             // v7.8：摘要/成长已移至正文后合并请求（generateSummaryGrowth），正文请求不再解析标记，content 即完整正文
             let defaultTitle = isCont ? `续写` : ((instr && instr.trim().length <= 20) ? instr.trim() : "新章节");
@@ -3572,12 +3673,15 @@ ${chapter.content}
                 // 会话号校验：若此任务已不是最新会话（停止后新任务已启动），
                 // 不得清理全局状态——否则会清空新任务的状态
                 if(sessionId !== generationSessionId) return;
-                isGenerating = false;
+                // v8.5.2-P1：连发内部任务（fromMultiChap）且连发未结束 → 保持全局锁与写作锁，
+                // 防第 N 章摘要/正文 finally 误释放第 N+1 章正文生成中的锁（原 v8.3 遗留：锁被解、用户编辑被 AI 结果覆盖）
+                const keepLock = fromMultiChap && multiChapRunning;
+                if(!keepLock) isGenerating = false;
                 const stopBtn = $('stopGenBtn'); if(stopBtn) stopBtn.disabled = true;
                 currentAbortController = null;
                 stopSbStages(); resetSbProgress(); // v8.0.14：清理进度窗口
                 // v7.8：正文完成后进入"摘要与经历生成中"阶段，锁定由合并请求完成/超时后释放
-                if(!summaryGrowthPending) setWritingLock(false);
+                if(!summaryGrowthPending && !keepLock) setWritingLock(false);
             }
         }
     }
@@ -3632,6 +3736,7 @@ ${chapter.content}
             return;
         }
         if(currentAbortController) { currentAbortController.abort(); currentAbortController = null; }
+        if(currentSummaryController) { currentSummaryController.abort(); currentSummaryController = null; } // v8.5.3-P2-2：摘要阶段停止（摘要用独立 controller，原无法中止）
         isGenerating = false;
         const stopBtn = $('stopGenBtn'); if(stopBtn) stopBtn.disabled = true;
         setWritingLock(false); // v5.8：停止即解锁编辑器（旧任务 finally 会因会话过期跳过解锁）
@@ -3739,7 +3844,8 @@ ${chapter.content}
             await executeGeneration(instr, false, null, false, lid, (chap, cost, aborted, saveFailed) => {
                 if(chap) {
                     const elapsed = formatTime(Date.now() - startTime);
-                    let tail = cost > 0 ? ` (预估 ¥${cost.toFixed(2)}元) (耗时：${elapsed})` : ` (耗时：${elapsed})`;
+                    let tail = cost > 0 ? ` (正文 ¥${cost.toFixed(2)}元) (耗时：${elapsed})` : ` (耗时：${elapsed})`; // v8.4-④：预估→正文，明确该笔为正文部分
+                    lastGenCostRef = { bookId: book.id, chapId: chap.id, cost: cost }; // v8.4-④：供摘要完成合并展示
                     if(wasPrecision) tail += ' (精准模式)';
                     // v5.8：保存失败时聊天显示警告而非普通成功（toast 一闪而过，聊天是持久状态）
                     if(saveFailed) {
@@ -3764,6 +3870,9 @@ ${chapter.content}
         // 双版开关已在任务启动时消费（v5.8），此处不再关闭——防旧任务收尾误关用户新开关
     }
 
+    // v8.5.2-P1：连发多章进行中标志——连发内部任务不释放全局锁（isGenerating/写作锁），
+    // 由 runMultiChap 统一管理；防第 N 章摘要/正文 finally 误释放第 N+1 章生成中的锁
+    let multiChapRunning = false;
     // v8.0.34：连发多章——第1章按指令生成，之后每章自动续写，直到 N 章
     async function runMultiChap(instr, book) {
         const count = Math.max(2, Math.min(10, api.multiChapCount || 3));
@@ -3775,6 +3884,7 @@ ${chapter.content}
         const startTime = Date.now();
         // v8.0.35：连发多章状态行（startSbStages 不清空它）
         sbMultiRunning = true;
+        multiChapRunning = true; // v8.5.2-P1：连发进行中标志——内部任务不释放全局锁，防止锁被摘要/正文 finally 误解
         const multiStages = [
             { pct: 15, text: '正在回顾前文…' },
             { pct: 45, text: '正在构思续写走向…' },
@@ -3784,8 +3894,14 @@ ${chapter.content}
         startSbStages(multiStages, 20000, '⚠️ 请勿关闭网页，等待AI续写中...');
         setSbMultiStatus(0, count);
         let stopped = false, failedAt = 0;
+        // v8.5.2-P1-2：连发会话基准——stopGeneration 会推进 generationSessionId（含摘要阶段点停止，
+        // 摘要用独立 controller 无法被 abort），每章启动前对比预期进度，被停止打断即不再启动下一章
+        const multiBaseSession = generationSessionId;
         for(let i = 1; i <= count; i++) {
             if(stopped) break;
+            // v8.5.2-P1-2：第 i 章启动前，预期会话号 = base + (i-1)（每章 executeGeneration 推进 1 次）；
+            // 若已被 stopGeneration 额外推进（摘要阶段停止/用户发了新任务）→ 不再启动本章，静默终止连发
+            if(generationSessionId > multiBaseSession + (i - 1)) { stopped = true; break; }
             replaceChatMessage(lid, '📚 连发多章：正在生成第 ' + i + '/' + count + ' 章...', book);
             const isFirst = (i === 1);
             // v8.0.35：每章启动进度窗口（第1章按生文节奏 40s/生文中，后续续写 20s/续写中）+ 更新状态行
@@ -3801,11 +3917,17 @@ ${chapter.content}
                 (chap, cost, aborted, saveFailed) => {
                     if(aborted) { stopped = true; return; }
                     if(!chap) { stopped = true; failedAt = i; }
+                    else if(cost > 0) lastGenCostRef = { bookId: book.id, chapId: chap.id, cost: cost }; // v8.5.2-P3-7：连发每章补成本快照——摘要 toast 合并「正文 x，摘要经历 y，共 z」
                 },
-                false, null, book ? book.id : null
+                false, null, book ? book.id : null,
+                true // v8.5.2-P1：来自连发多章——启动检查放行、finally 保持全局锁（锁由本函数统一管理）
             );
         }
         sbMultiRunning = false;
+        multiChapRunning = false; // v8.5.2-P1：连发结束，统一释放全局锁与写作锁（摘要 finally 若仍挂起会再释放一次，幂等无害）
+        isGenerating = false;
+        setWritingLockTip('');
+        setWritingLock(false);
         const mEl = $('sbProgressMulti'); if(mEl) mEl.innerText = '';
         const elapsed = formatTime(Date.now() - startTime);
         if(failedAt) {
@@ -3873,7 +3995,9 @@ ${chapter.content}
         const bChap = bOk ? results[1].value.r.chap : null;
         const aCost = aOk ? results[0].value.r.cost : 0;
         const bCost = bOk ? results[1].value.r.cost : 0;
-        if(aCost > 0) recordCost(aCost, sourceBook && sourceBook.id); if(bCost > 0) recordCost(bCost, sourceBook && sourceBook.id); // v7.8.1：双版累计（归到源书）
+        // v8.5.1-P0：删除原 recordCost(aCost, sourceBook && sourceBook.id)——
+        // sourceBook 在 runDualGeneration 作用域未定义（ReferenceError 双版必崩，v8.3 遗留）；
+        // 成本已由 executeGeneration(3582) 无条件记账（双版期间 switchBook 被拦截，当前书=源书），此处为重复记账
         
         dualPendingChapA = aChap; dualPendingChapB = bChap;
         dualCosts.A = aCost; dualCosts.B = bCost;
@@ -3901,8 +4025,8 @@ ${chapter.content}
         
         if(aOk && bOk) {
             // Both ok - show both for selection
-            document.getElementById('splitStatusA').innerHTML = '<span style="color:#4AE06A;">✅ 完成</span> <span style="font-size:0.55rem;color:#8A84A8;">预估 ¥'+aCost.toFixed(2)+'</span>';
-            document.getElementById('splitStatusB').innerHTML = '<span style="color:#4AE06A;">✅ 完成</span> <span style="font-size:0.55rem;color:#8A84A8;">预估 ¥'+bCost.toFixed(2)+'</span>';
+            document.getElementById('splitStatusA').innerHTML = '<span style="color:#4AE06A;">✅ 完成</span> <span style="font-size:0.55rem;color:#8A84A8;">正文 ¥'+aCost.toFixed(2)+'</span>';
+            document.getElementById('splitStatusB').innerHTML = '<span style="color:#4AE06A;">✅ 完成</span> <span style="font-size:0.55rem;color:#8A84A8;">正文 ¥'+bCost.toFixed(2)+'</span>';
             // 分屏顶部展示各版本摘要（同请求已生成），便于选版对比
             const aSum = aChap.summary ? '\n\n📝 摘要：'+aChap.summary : '';
             const bSum = bChap.summary ? '\n\n📝 摘要：'+bChap.summary : '';
@@ -3911,10 +4035,10 @@ ${chapter.content}
             document.getElementById('splitContentA').style.cursor = 'pointer';
             document.getElementById('splitContentB').style.cursor = 'pointer';
             const totalCost = aCost + bCost;
-            const tail = totalCost>0?' (总预估 ¥'+totalCost.toFixed(2)+'元) (耗时：'+elapsed+')':' (耗时：'+elapsed+')';
+            const tail = totalCost>0?' (正文合计 ¥'+totalCost.toFixed(2)+'元) (耗时：'+elapsed+')':' (耗时：'+elapsed+')';
             const aWC = aChap ? aChap.content.length : 0;
             const bWC = bChap ? bChap.content.length : 0;
-            replaceChatMessage(dualLid, '🔀 A/B两版均生成完成 (A版预估 ¥'+aCost.toFixed(2)+'，字数'+aWC+') (B版预估 ¥'+bCost.toFixed(2)+'，字数'+bWC+') '+tail+' — 请点击左侧版本选择保留', book);
+            replaceChatMessage(dualLid, '🔀 A/B两版均生成完成 (A版正文 ¥'+aCost.toFixed(2)+'，字数'+aWC+') (B版正文 ¥'+bCost.toFixed(2)+'，字数'+bWC+') '+tail+' — 请点击左侧版本选择保留', book);
             if(book && book.precisionMode) { book.precisionMode = false; saveAll(); updatePrecisionButton(); }
         } else if(aOk || bOk) {
             // One failed - auto keep the successful one
@@ -3974,6 +4098,7 @@ ${chapter.content}
             // v7.8：成长不再随正文请求生成、无 growthPending 挂载；选中版本后保持锁定，
             // 由合并请求（generateSummaryGrowth）生成摘要+经历，完成/超时后解锁
             const savedOk = saveAll();
+            lastGenCostRef = { bookId: book.id, chapId: chap.id, cost: cost }; // v8.4.4-P2.1：双版选版补正文成本快照——摘要完成合并展示「正文 x，摘要经历 y，共 z」（对齐单版）
             // v7.3：冲突检测改为仅手动——双版选中同样不再自动检测
             // const chIdx = book.chapters.length - 1;
             // void afterChapterGenerated(book, chap, chIdx).catch(err => console.warn(err));
@@ -3991,7 +4116,7 @@ ${chapter.content}
             try {
                 if(lid) {
                     const elapsed = formatTime(Date.now() - startTime);
-                    let tail = cost>0?' (预估 ¥'+cost.toFixed(2)+'元) (耗时：'+elapsed+')':' (耗时：'+elapsed+')';
+                    let tail = cost>0?' (正文 ¥'+cost.toFixed(2)+'元) (耗时：'+elapsed+')':' (耗时：'+elapsed+')';
                     if(wasPrecision) tail += ' (精准模式)';
                     const wc = '('+(chap.content ? chap.content.length : 0)+')';
                     if(!savedOk) {
@@ -4027,40 +4152,42 @@ ${chapter.content}
     }
 
     // ======================== v7.2 续写三走向 ========================
-    // 组装走向请求上下文：最新章摘要 + 前10章摘要 + 最新章开头/结尾各500字 + 当前精准设定
+    // 组装走向请求上下文：最新章摘要 + 前10章摘要（≤2000） + 关系图 + 世界观/主线大纲 + 精准设定（v8.5：去开头/结尾500字）
     function buildBranchContext(book) {
         if(!book || !book.chapters.length) return '';
         const parts = [];
         const last = book.chapters[book.chapters.length - 1];
         const lastNo = book.chapters.slice(0, book.chapters.length - 1).filter(c => !c.isInterlude).length + 1;
         const lastLabel = (last.isInterlude ? '间章' : '第' + lastNo + '章') + ' ' + (last.title || '');
-        if(last.summary && last.summary.trim()) parts.push(lastLabel + '（摘要）：' + last.summary.trim().slice(0, 300));
-        else parts.push(lastLabel + '（正文节选）：' + (last.content || '').slice(0, 500));
+        // v8.5-8：最新章摘要/节选始终保留；前10章从后往前，摘要总量 ≤2000 超限丢弃最旧
+        // v8.5.1-去重：不再注入最新章开头/结尾 500 字（摘要已含关键信息，原重复注入信息量零收益）
+        let budget = 2000;
+        if(last.summary && last.summary.trim()) { const s = lastLabel + '（摘要）：' + last.summary.trim().slice(0, 300); budget -= s.length; parts.push(s); }
+        else { const s = lastLabel + '（正文节选）：' + (last.content || '').slice(0, 500); budget -= s.length; parts.push(s); }
         const start = Math.max(0, book.chapters.length - 1 - 10);
         const prevs = book.chapters.slice(start, book.chapters.length - 1);
         if(prevs.length) {
-            let prevTxt = '【前10章摘要】\n';
-            let reg = book.chapters.slice(0, start).filter(c => !c.isInterlude).length;
-            for(const ch of prevs) {
-                reg += ch.isInterlude ? 0 : 1;
+            const picked = [];
+            for(let i = prevs.length - 1; i >= 0; i--) {
+                const ch = prevs[i];
+                const reg = book.chapters.slice(0, book.chapters.indexOf(ch)).filter(c => !c.isInterlude).length + 1;
                 const label = (ch.isInterlude ? '间章' : '第' + reg + '章') + ' ' + (ch.title || '');
-                if(ch.summary && ch.summary.trim()) prevTxt += label + '（摘要）：' + ch.summary.trim().slice(0, 300) + '\n';
-                else prevTxt += label + '（正文节选）：' + (ch.content || '').slice(0, 500) + '\n';
+                const seg = (ch.summary && ch.summary.trim()) ? label + '（摘要）：' + ch.summary.trim().slice(0, 300) : label + '（正文节选）：' + (ch.content || '').slice(0, 500);
+                if(budget - seg.length < 0 && picked.length) break; // v8.5-8：超 2000 丢弃最旧
+                budget -= seg.length;
+                picked.unshift(seg);
             }
-            parts.push(prevTxt.trim());
+            if(picked.length) parts.push('【前10章摘要】\n' + picked.join('\n'));
         }
-        const content = last.content || '';
-        if(content.length > 1000) {
-            parts.push('【最新章开头500字】' + content.slice(0, 500));
-            parts.push('【最新章结尾500字】' + content.slice(-500));
-        } else if(content) {
-            parts.push('【最新章全文】' + content);
-        }
+        // v8.5.1-去重：最新章开头/结尾 500 字已移除（原 4135-4141 段）
+        // v8.5-2：走向注入角色关系图（全量，与生文/检测一致）——设计走向需把握人物关系
+        const relTxt = buildRelationText(book);
+        if(relTxt) parts.push(relTxt.replace(/\n$/, ''));
         // v7.2 二次优化：注入全书世界观/情节主线/专有名词（各限 800 字），把握全书节奏
         if(book.worldview && book.worldview.trim()) parts.push('【世界观】' + book.worldview.trim().slice(0, 800));
         if(book.plotSet && book.plotSet.trim()) parts.push('【主线大纲】' + book.plotSet.trim().slice(0, 800)) // v7.6：情节主线更名主线大纲;
         // v7.6：专有名词已并入世界观名词（termSet 移除）
-        if(book.precisionMode && (book.precisionChars.length || book.precisionActions.length || (book.precisionCostumes || []).length)) {
+        if(book.precisionMode && Array.isArray(book.precisionChars) && (book.precisionChars.length || (book.precisionActions||[]).length || (book.precisionCostumes || []).length)) { // v8.5.2-P3-5：Array.isArray 判空防旧书缺字段 TypeError
             const selChars = (book.characters || []).filter(c => book.precisionChars.includes(c.id));
             if(selChars.length) parts.push('【当前精准角色】' + selChars.map(c => {
                 let s = c.name + '：';
@@ -4096,6 +4223,7 @@ ${chapter.content}
             }
             const data = await res.json();
             const outlineCost = calcCost(api.model, data.usage); // v7.8.1：续写走向计费（正文 API）
+            setCtxBudgetFromUsage(data.usage && data.usage.prompt_tokens, data.usage && data.usage.completion_tokens); // v8.5.2-A：走向真实 usage 覆盖预算条
             if(outlineCost > 0) recordCost(outlineCost); // v7.8.1：累计消耗金额
             const text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
             if(!text.trim()) return { ok:false, err:'走向请求失败：响应为空' };
@@ -4160,7 +4288,7 @@ ${chapter.content}
         await executeGeneration(instr, false, null, true, lid, (chap, cost, aborted, saveFailed) => {
             if(chap) {
                 const elapsed = formatTime(Date.now() - startTime);
-                let tail = cost > 0 ? ` (预估 ¥${cost.toFixed(2)}元) (耗时：${elapsed})` : ` (耗时：${elapsed})`;
+                let tail = cost > 0 ? ` (正文 ¥${cost.toFixed(2)}元) (耗时：${elapsed})` : ` (耗时：${elapsed})`;
                 if(saveFailed) {
                     replaceChatMessage(lid, `⚠️ 续写第${book.chapters.length}章《${chap.title}》完成但本地保存失败！请立即导出或复制正文，刷新可能丢失`, book);
                     toast('⚠️ 续写完成但保存失败，请立即导出备份或复制正文');
@@ -4226,26 +4354,15 @@ ${chapter.content}
     }
     // ======================== v7.3 润色审查（DeepSeek 审稿 API） ========================
     // 注入内容组装：精准设定的人设（精准模式开且有勾选→精准角色；否则全量角色兜底）+ 本章全文 + 前5章摘要 + 世界观 + 情节主线
+    // v8.4-③-a：润色专注文笔——注入精简为 4 项（精准角色【未开精准不注入】+ 本章全文 + 前3章摘要 + 行文规范）；
+    // 关系图/世界观/主线大纲减掉（设定核对归检查）；a 类人设检测弱化（见 sys）
     function buildPolishContext(book, chap) {
         if(!book || !chap) return '';
         const parts = [];
-        // v7.8：注入角色关系图（润色需人设关系参考，检查一致性）
-        const relationLib = buildRelationText(book); if(relationLib) parts.push(relationLib.replace(/\n$/,''));
-        // 人设：优先精准勾选，无则全量（保证 AI 有人设参考）
-        let chars = [];
+        // 人设：仅精准模式注入勾选角色（未勾选/未开精准 → 不注入，人设一致性归检查负责）
         if(book.precisionMode && book.precisionChars && book.precisionChars.length) {
-            chars = (book.characters || []).filter(c => book.precisionChars.includes(c.id));
+            const chars = (book.characters || []).filter(c => book.precisionChars.includes(c.id));
             if(chars.length) parts.push('【精准角色设定】' + chars.map(c => {
-                let s = c.name + '：';
-                if(c.appearance) s += '外貌体征：' + c.appearance + '；';
-                if(c.personality) s += '性格：' + c.personality + '；';
-                if(c.special) s += '服装及其他设定：' + c.special + '；';
-                if(c.relationship) s += '身份关联：' + c.relationship + '；';
-                return s;
-            }).join('\n'));
-        }
-        if(!chars.length && (book.characters || []).length) {
-            parts.push('【角色设定】' + book.characters.map(c => {
                 let s = c.name + '：';
                 if(c.appearance) s += '外貌体征：' + c.appearance + '；';
                 if(c.personality) s += '性格：' + c.personality + '；';
@@ -4256,20 +4373,25 @@ ${chapter.content}
         }
         // 本章全文
         if(chap.content && chap.content.trim()) parts.push('【本章全文】\n' + chap.content);
-        // 前 5 章摘要（当前章之前最近 5 章；无摘要用正文节选 300 字）
+        // 前 3 章摘要（v8.4：由前 5 章改为前 3 章——润色不需太远前文；v8.5-8：总量 ≤1000，超限丢弃最旧）
         const idx = book.chapters.findIndex(c => c.id === chap.id);
-        const prevs = book.chapters.slice(Math.max(0, idx - 5), idx);
+        const prevs = book.chapters.slice(Math.max(0, idx - 3), idx);
         if(prevs.length) {
-            let prevTxt = '【前5章摘要】\n';
-            for(const ch of prevs) {
-                if(ch.summary && ch.summary.trim()) prevTxt += (ch.title || '未命名') + '（摘要）：' + ch.summary.trim().slice(0, 300) + '\n';
-                else prevTxt += (ch.title || '未命名') + '（正文节选）：' + (ch.content || '').slice(0, 300) + '\n';
+            const picked = [];
+            let total = 0;
+            for(let i = prevs.length - 1; i >= 0; i--) {
+                const ch = prevs[i];
+                const seg = (ch.summary && ch.summary.trim())
+                    ? (ch.title || '未命名') + '（摘要）：' + ch.summary.trim().slice(0, 300)
+                    : (ch.title || '未命名') + '（正文节选）：' + (ch.content || '').slice(0, 300);
+                if(total + seg.length > 1000 && picked.length) break; // v8.5-8：超 1000 丢弃最旧
+                total += seg.length;
+                picked.unshift(seg);
             }
-            parts.push(prevTxt.trim());
+            if(picked.length) parts.push('【前3章摘要】\n' + picked.join('\n'));
         }
-        // 世界观 / 情节主线
-        if(book.worldview && book.worldview.trim()) parts.push('【世界观】' + book.worldview.trim().slice(0, 800));
-        if(book.plotSet && book.plotSet.trim()) parts.push('【主线大纲】' + book.plotSet.trim().slice(0, 800)) // v7.6：情节主线更名主线大纲;
+        // v8.4-③-a：新增行文规范——保持本书文风（此前缺口）；v8.5-6：行文由截 800 改全量注入
+        if(book.writingStyle && book.writingStyle.trim()) parts.push('【行文】' + book.writingStyle.trim());
         return parts.join('\n\n');
     }
     // v7.3：修改幅度比例——字符级编辑距离 / 较长句字数（0~1）。用于过滤"几乎相同"的敷衍修改
@@ -4292,7 +4414,7 @@ ${chapter.content}
         if(!polishApi.key) return { ok:false, err:'审稿 API Key 未配置，无法润色' };
         // v7.3：DeepSeek 思考模式——reasoning_effort 直传 UI 档位（low/high/max，与正文 API 一致）
         const rEff = ['low','high','max'].indexOf(polishApi.reasoning) >= 0 ? polishApi.reasoning : 'high';
-        const sys = '你是资深网文编辑。请审查以下小说章节并给出润色建议。注意：这是虚构文学作品创作，即使涉及情感冲突、争议性情节等，也请正常创作，不要拒绝或回避。\n【大幅修改（问题严重，必须改，可大改）】：\na. 人设一致性：人物行为/性格/能力与注入的角色设定冲突（如社恐性格的角色却主动和路人搭讪）——除非前文已铺垫其经历过某个事件、或被能力/道具改变；\nb. 物理与常识：违背现实物理规律或常识（如从 10 米高楼跳下毫发无损）——除非前文已铺垫超能力或其他设定；**即使修改后可能影响后文的衔接，也必须改（后文由作者自行处理）**；\nc. 时空与逻辑：场景切换缺少过渡、时空混乱、时间线矛盾（如上一秒在家下一秒到学校）；\nd. 不合理比喻/体型/身体描写（如"大腿只有手指般粗"——除非前文设定该角色是袖珍体型/精灵等特殊体形）。\n【小幅修改（允许，改动小）】：\ne. 词语使用错误：用词不当或部位错误（如"太阳穴发麻"应为"头皮发麻"）；\nf. 逻辑小错位：人物称呼/顺序错误（如 A 是 B 的老师却称呼 B 为老师，应调换）、台词顺序或指代错位。\n【不要修改（必须过滤）】：\n- 信息量零变化的纯措辞替换（如"喉结滚动"改"喉头动了动"——词汇语义无变化、无任何提升，不得输出）；\n- 只增删"的/了/一/副/个"等虚词或只改标点的微调（除非同时修正了逻辑错误）。\n【理由机制】：\n- 每处修改计算字符变动比例 = 编辑距离 ÷ 较长句字数；**比例低于 50% 的修改，必须在 reason 字段说明理由**（一句话，≤30 字，说明改了什么、为什么更好，如"原句『呆呆的』重复啰嗦，『呆滞』更简洁传神"）；比例 ≥ 50% 的修改无需理由；\n- **没有明确理由的低幅度修改不要输出**（宁可少改，不改无意义）。\n【优先级】：30 处上限内先改最严重的（大幅 a-d），其次小幅修正（e-f），低比例小改排最末；宁缺毋滥。\n【输出格式】：必须只输出一个 JSON 对象：{"edits":[{"old":"原文完整句子","new":"润色后句子","reason":"（仅低幅度修改时必填，一句话≤30字）"}]}，old 必须与原文逐字一致（含标点），供前端精确替换；一次最多输出 30 处；没有值得修改的则输出空数组 []。不要输出任何其他文字。\n\n【去AI味要求】\n1. 增加口语与语气词，让人物多说人话（如“啧”“得了吧”“行行行”“算了算了”），避免通篇书面腔。\n2. 加入“废话”动作细节：刻意穿插日常无意义小动作（中途擦桌子、翻白眼、蹲下系鞋带、把笔帽咬得坑坑洼洼），增强真实感。\n3. 善用错位描写：表达情绪时不直接写“他很难过”，改写成具体动作（“他盯着外卖，筷子夹了好几次只夹起一粒米”），让读者从动作细节中自行体会。\n4. 避免以下 AI 高频词/短语（出现即替换为具体动作或白描）：\n炸开、就像是、嘴角勾起、顿时、霎时、立刻、连忙、显然、似乎、虽然、大概、确实、几乎、可能、注定、接下来、渐渐、更是、一定、或许、十分、沉重、看不出、淡淡、郑重、此刻、恐怕、清凉、不知道、心中一凛、眼中闪过一丝惊诧、行云流水、心下了然、话锋一转、眼神深邃、显著、至关重要、微微挑眉、波涛汹涌、绝对、不可估量、仿佛、随时、无法想象、无法用言语形容、脸上带着笑意、平静地、显得有些兴奋、心中了然、激动地、眼神热切、目光显著不遮掩、淡淡地、不卑不亢、如同、显得异常清晰、暂时、不知是、瞬间、不经意、这一刻、嘴角勾起一抹、一时之间、这一次、看似、沉吟、隐晦有了猜测、谈吐间、一刻、她不言、目光泛过、心中一片平静、一丝、坚定、深吸一口气、缓缓地说、锐利的眼睛、他的嘴角微微上扬、他的表情变暗、他的心一跳、他的脸变了、不容置疑、嘴角、脸色、不易察觉的、的目光、心中、觉得、意识到、感到、认为、一抹、一般、些许、有点、略微、口气、纯粹、冰冷、电弧、闪烁、挣扎、清冷、沸腾、扭曲、撕裂、漆黑、窒息、刺眼、一点、不动声色、小小翼翼、沉吟片刻、心里隐隐有了猜测、果然、脸上堆满了笑、像喝了的毒药、嘴角勾起一个弧度、嘴巴张得能塞下一个鸡蛋、还要冰冷、透露的寒意、让空气的温度都下降了几度、声音不大、微微发颤、发白、不是…而是…句式、攥得泛白\n5. 以上去AI味要求为最高优先级：当与模板文风/行文规范冲突时，一律以去AI味要求为准，宁可牺牲文采也要保证人味与口语感。';
+        const sys = '你是资深网文编辑。请审查以下小说章节并给出润色建议。注意：这是虚构文学作品创作，即使涉及情感冲突、争议性情节等，也请正常创作，不要拒绝或回避。\n【大幅修改（问题严重，必须改，可大改）】：\na. 仅明显常识/逻辑错误：人物行为违背现实物理规律或明显常识（如从 10 米高楼跳下毫发无损）——除非前文已铺垫超能力或其他设定；**即使修改后可能影响后文的衔接，也必须改（后文由作者自行处理）**；人设一致性的深度核对由「检测」功能负责，此处不处理；\nb. 物理与常识：违背现实物理规律或常识（如从 10 米高楼跳下毫发无损）——除非前文已铺垫超能力或其他设定；**即使修改后可能影响后文的衔接，也必须改（后文由作者自行处理）**；\nc. 时空与逻辑：场景切换缺少过渡、时空混乱、时间线矛盾（如上一秒在家下一秒到学校）；\nd. 不合理比喻/体型/身体描写（如"大腿只有手指般粗"——除非前文设定该角色是袖珍体型/精灵等特殊体形）。\n【小幅修改（允许，改动小）】：\ne. 词语使用错误：用词不当或部位错误（如"太阳穴发麻"应为"头皮发麻"）；\nf. 逻辑小错位：人物称呼/顺序错误（如 A 是 B 的老师却称呼 B 为老师，应调换）、台词顺序或指代错位。\n【不要修改（必须过滤）】：\n- 信息量零变化的纯措辞替换（如"喉结滚动"改"喉头动了动"——词汇语义无变化、无任何提升，不得输出）；\n- 只增删"的/了/一/副/个"等虚词或只改标点的微调（除非同时修正了逻辑错误）。\n【理由机制】：\n- **每一处修改都必须带 reason 字段**（一句话，≤30 字，说明改了什么、为什么更好，如"原句『呆呆的』重复啰嗦，『呆滞』更简洁传神"）——**无论修改幅度大小，大段更换和小幅修改都需要理由**；\n- **没有理由的修改不要输出**（宁可少改，不改无意义）。\n【优先级】：30 处上限内先改最严重的（大幅 a-d），其次小幅修正（e-f），低比例小改排最末；宁缺毋滥。\n【输出格式】：必须只输出一个 JSON 对象：{"edits":[{"old":"原文完整句子 或 连续小段（≤200字，可跨行）","new":"润色后内容","reason":"（仅低幅度修改时必填，一句话≤30字）"}]}，old 必须与原文逐字一致（含标点、换行），供前端精确替换；支持整段/跨行替换；一次最多输出 30 处；没有值得修改的则输出空数组 []。不要输出任何其他文字。\n\n【去AI味要求】\n1. 增加口语与语气词，让人物多说人话（如“啧”“得了吧”“行行行”“算了算了”），避免通篇书面腔。\n2. 加入“废话”动作细节：刻意穿插日常无意义小动作（中途擦桌子、翻白眼、蹲下系鞋带、把笔帽咬得坑坑洼洼），增强真实感。\n3. 善用错位描写：表达情绪时不直接写“他很难过”，改写成具体动作（“他盯着外卖，筷子夹了好几次只夹起一粒米”），让读者从动作细节中自行体会。\n4. 避免以下 AI 高频词/短语（出现即替换为具体动作或白描）：\n炸开、就像是、嘴角勾起、顿时、霎时、立刻、连忙、显然、似乎、虽然、大概、确实、几乎、可能、注定、接下来、渐渐、更是、一定、或许、十分、沉重、看不出、淡淡、郑重、此刻、恐怕、清凉、不知道、心中一凛、眼中闪过一丝惊诧、行云流水、心下了然、话锋一转、眼神深邃、显著、至关重要、微微挑眉、波涛汹涌、绝对、不可估量、仿佛、随时、无法想象、无法用言语形容、脸上带着笑意、平静地、显得有些兴奋、心中了然、激动地、眼神热切、目光显著不遮掩、淡淡地、不卑不亢、如同、显得异常清晰、暂时、不知是、瞬间、不经意、这一刻、嘴角勾起一抹、一时之间、这一次、看似、沉吟、隐晦有了猜测、谈吐间、一刻、她不言、目光泛过、心中一片平静、一丝、坚定、深吸一口气、缓缓地说、锐利的眼睛、他的嘴角微微上扬、他的表情变暗、他的心一跳、他的脸变了、不容置疑、嘴角、脸色、不易察觉的、的目光、心中、觉得、意识到、感到、认为、一抹、一般、些许、有点、略微、口气、纯粹、冰冷、电弧、闪烁、挣扎、清冷、沸腾、扭曲、撕裂、漆黑、窒息、刺眼、一点、不动声色、小小翼翼、沉吟片刻、心里隐隐有了猜测、果然、脸上堆满了笑、像喝了的毒药、嘴角勾起一个弧度、嘴巴张得能塞下一个鸡蛋、还要冰冷、透露的寒意、让空气的温度都下降了几度、声音不大、微微发颤、发白、不是…而是…句式、攥得泛白\n5. 以上去AI味要求为最高优先级：当与模板文风/行文规范冲突时，一律以去AI味要求为准，宁可牺牲文采也要保证人味与口语感。';
         const context = buildPolishContext(book, chap);
         const user = '待润色内容：\n' + context + '\n\n请输出润色 diff 的 JSON。';
         const t0 = Date.now();
@@ -4306,7 +4428,7 @@ ${chapter.content}
                 body: JSON.stringify({
                     model: polishApi.model,
                     messages:[{role:'system',content:sys},{role:'user',content:user}],
-                    max_tokens: polishApi.maxTokens || 50000,
+                    max_tokens: Math.min(30000, polishApi.maxTokens || 30000), // v8.5.1：润色输出封顶 3w（原 5w/6w），用户调低 polishMaxTokens 时跟随；30处edits 最坏 ~4k token，3w 富余充足
                     // v7.3：审稿默认开启思考模式（DeepSeek 对同人内容宽松，且推理更适合润色审查）
                     thinking: { type:'enabled' },
                     reasoning_effort: rEff
@@ -4322,6 +4444,7 @@ ${chapter.content}
             const data = await res.json();
             const text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
             const usage = data && data.usage; // v7.8：计费用
+            setCtxBudgetFromUsage(usage && usage.prompt_tokens, usage && usage.completion_tokens); // v8.5.2-A：润色真实 usage 覆盖预算条
             // v7.3：识别 Gemini 安全拦截（PROHIBITED_CONTENT）——中转站错误透传进 content，不再误报"无需修改"
             if(/PROHIBITED_CONTENT|blockReason/i.test(text)) {
                 stopSbStages(); resetSbProgress();
@@ -4444,13 +4567,10 @@ ${chapter.content}
             markers.push({ i, old: e.old, nw: e.new, ratio: e.ratio, reason: e.reason });
         }
         markers.sort((a,b) => b.i - a.i);
-        // v7.3：阈值 = 理由触发线——字符变动比例低于阈值 → 渲染黄色理由（AI 给了用 AI 的，没给显示占位提示"不放过可疑小改"）
-        const thr = (Number.isFinite(polishApi.ratio) && polishApi.ratio >= 20 && polishApi.ratio <= 90) ? polishApi.ratio : 50;
+        // v8.4.1-⑥-d：所有修改必须显示理由（AI 给了用 AI 的，没给显示警示占位）
         for(const m of markers) {
             let seg = '@@D@@' + m.old + '@@I@@' + m.nw;
-            if((m.ratio !== undefined ? m.ratio : (editRatio(m.old, m.nw) * 100)) < thr) {
-                seg += '@@R@@' + (m.reason || 'AI 未说明理由，低幅度修改请谨慎');
-            }
+            seg += '@@R@@' + (m.reason || 'AI 未说明理由，请谨慎');
             seg += '@@E@@';
             htmlText = htmlText.slice(0, m.i) + seg + htmlText.slice(m.i + m.old.length);
         }
@@ -4606,7 +4726,8 @@ ${chapter.content}
                 // v7.2：重写真正生成文字后才启用回滚按钮（发起时只静默存快照）
                 enableRollbackButton(true);
                 const elapsed = formatTime(Date.now() - startTime);
-                let tail = cost > 0 ? ` (预估 ¥${cost.toFixed(2)}元) (耗时：${elapsed})` : ` (耗时：${elapsed})`;
+                let tail = cost > 0 ? ` (正文 ¥${cost.toFixed(2)}元) (耗时：${elapsed})` : ` (耗时：${elapsed})`;
+                lastGenCostRef = { bookId: book.id, chapId: chap.id, cost: cost }; // v8.4-P2.1：重写完成后同步成本快照，防旧快照与摘要配对错位
                 if(saveFailed) {
                     replaceChatMessage(lid, `⚠️ 重写完成 新标题：《${chap.title}》但本地保存失败！请立即导出或复制正文，刷新可能丢失`, book);
                     toast('⚠️ 重写完成但保存失败，请立即导出备份或复制正文');
@@ -4663,8 +4784,7 @@ ${chapter.content}
             renderChapters(); renderChat(); loadCurChapter(); saveAll(); renderBookshelf();
             const conflictPanel = $('conflictPanel'); if(conflictPanel) conflictPanel.style.display = 'none';
             const banterPanel0 = $('banterPanel'); if(banterPanel0) banterPanel0.style.display = 'none'; banterVisible = false;
-            closeRoleplay(); // v7.9：切书自动退出试演
-            closeRoleplay(); // v7.9：切书自动退出试演
+            closeRoleplay(); // v7.9：切书自动退出试演（v8.5.2-P3-1：去重重复调用，与 loadCurChapter 一致）
             const checkBtn = $('checkConflictBtn'); if(checkBtn) checkBtn.style.background = "#3A3A6A";
             conflictVisible = false;
             updatePrecisionButton();
@@ -4970,6 +5090,10 @@ ${chapter.content}
                 const created = createBookFromStart(parsed, tp, effPrompt, effStyle, cost, elapsed);
                 if(!created) { lockSbUI(false); resetSbProgress(); return; } // v8.0.30：保存失败已 toast，不再弹成功提示
                 if(cost > 0) recordCost(cost); // v8.0.13：移到建书后，金额正确记到新书头上
+                // v8.5.3-P2-1：起书成功把 Key/模型同步到正文 API 主配置并持久化——防首次起书用户刚填过 Key、正文生成又要求再填
+                if(key) api.key = key;
+                if(model) api.model = model;
+                try { localStorage.setItem('api_config_v3', JSON.stringify({ main: api, polish: polishApi, image: imageApiCfg, act: actApi })); } catch(e) {}
                 toast('起书成功《' + parsed.bookTitle + '》');
                 const m = $('startBookModal'); if(m) m.style.display = 'none';
                 lockSbUI(false); resetSbProgress();
@@ -5007,6 +5131,7 @@ ${chapter.content}
         let b = getCurrentBook(); if(!b || !b.currentChapterId) return false;
         let c = b.chapters.find(ch=>ch.id===b.currentChapterId);
         const el = $('novelContent'); if(!c || !el) return false;
+        if(checkMarksActive && !conflictVisible) clearCheckMarks(); // v8.4-③-b：保存前剥离检查标色防 <mark> 污染；v8.4.2：面板打开时保留标色（getEditorText 剥标签，数据不受污染），高亮持续到关面板
         c.content = getEditorText(); contentDirty = false;
         if(!c.savedAt) c.savedAt = Date.now(); // v7.6：章节首次保存记录时间戳（统计每日字数/连续更新/码字时点用）
         // 摘要一并保存（与正文同属当前章节）；跳过"生成中"占位符防止污染
@@ -5112,11 +5237,11 @@ ${chapter.content}
         // v6.3：切章/切书时关闭冲突面板——面板随当前章节走，残留旧章节结果无意义
         const conflictPanelEl = $('conflictPanel'); if(conflictPanelEl) conflictPanelEl.style.display = 'none';
         conflictVisible = false;
+        clearCheckMarks(); // v8.4-③-b：切章剥离正文标色
         // v7.8：吐槽面板同样随章节关闭；按钮按当前章是否有正文启用
         const banterPanelEl = $('banterPanel'); if(banterPanelEl) banterPanelEl.style.display = 'none';
         banterVisible = false;
-        closeRoleplay(); // v7.9：切章自动退出试演
-        closeRoleplay(); // v7.9：切章自动退出试演
+        closeRoleplay(); // v7.9：切章自动退出试演（v8.5.1-P3：去重重复调用）
         const banterBtnEl = $('banterBtn');
         let banterEnabled = false;
         let b = getCurrentBook();
@@ -5294,17 +5419,135 @@ ${chapter.content}
     function toggleConflictPanel() {
         let book = getCurrentBook(); if(!book || !book.currentChapterId) return;
         let chap = book.chapters.find(c=>c.id===book.currentChapterId); if(!chap) return;
-        const conflictPanel = $('conflictPanel'); const conflictList = $('conflictList');
-        if(!conflictPanel || !conflictList) return;
-        if(conflictVisible) { conflictPanel.style.display = 'none'; conflictVisible = false; }
+        const conflictPanel = $('conflictPanel');
+        if(!conflictPanel) return;
+        if(conflictVisible) { conflictPanel.style.display = 'none'; conflictVisible = false; clearCheckMarks(); } // v8.4-③-b：关闭剥离标色
         else {
-            conflictList.innerHTML = '';
-            if(chap.checkState === 'never' || chap.checkResult === undefined) { conflictList.innerHTML = '<div style="padding:12px;color:#6A627A;">本章尚未检测，点击「重新检测」发起检测</div>'; }
-            else if(chap.checkState === 'error') { conflictList.innerHTML = '<div style="padding:12px;color:#FFA070;">检测失败，请点击「重新检测」重试</div>'; }
-            else if(!chap.checkResult || chap.checkResult.length===0) { conflictList.innerHTML = '<div style="padding:12px;color:#6A627A;">未检测到明显冲突</div>'; }
-            else { chap.checkResult.forEach(conf => { let div = document.createElement('div'); div.className = 'conflict-item'; div.innerHTML = `<div class="conflict-type"><i class="fas fa-exclamation-triangle"></i> ${escapeHtml(conf.type||'潜在矛盾')}</div><div class="conflict-desc">${escapeHtml(conf.description)}</div><div class="conflict-loc">📍 ${escapeHtml(conf.location||'')}</div>`; conflictList.appendChild(div); }); }
-            conflictPanel.style.display = 'flex'; conflictVisible = true;
+            // v8.5.3-P2-4：打开前保存当前编辑——标色基于最新正文（原基于旧 checkResult 标旧内容，编辑未保存时大量灰显）
+            if(!ensureCurrentChapterSaved()) return;
+            renderConflictPanel(chap); conflictPanel.style.display = 'flex'; conflictVisible = true;
         }
+    }
+
+    // v8.4-③-b：检查面板渲染（五档评级 + 4维评分 + hits + 条目点击定位 + 旧格式自动重测 + 全部标色）
+    function renderConflictPanel(chap) {
+        const conflictList = $('conflictList'); if(!conflictList) return;
+        conflictList.innerHTML = '';
+        if(!chap.checkState || chap.checkState === 'never' || chap.checkResult === undefined) { conflictList.innerHTML = '<div style="padding:12px;color:#6A627A;">本章尚未检测，点击「重新检测」发起检测</div>'; return; } // v8.5.2-P2-2：新生成/新建章节无 checkState 字段也走"尚未检测"（原误显示"未检测到明显冲突"）
+        if(chap.checkState === 'error') { conflictList.innerHTML = '<div style="padding:12px;color:#FFA070;">检测失败，请点击「重新检测」重试</div>'; return; }
+        // 旧格式兼容（方案A）：数组且无 checkReport → 提示升级并自动重测（_legacyRerun 防循环，单次会话仅自动重测一次）
+        if(Array.isArray(chap.checkResult) && chap.checkReport === undefined && chap.checkResult.length && !chap._legacyRerun) {
+            chap._legacyRerun = true;
+            conflictList.innerHTML = '<div style="padding:12px;color:#F0C05A;">⚠️ 检测格式已升级，正在自动重新检测…</div>';
+            setTimeout(() => { if(conflictVisible) recheckCurrentChapter(); }, 400); // v8.5.3-P3-2：面板已关闭则不发起（防后台白费一次 API）
+            return;
+        }
+        const r = chap.checkReport || {};
+        // 综合评级 + decision
+        if(r.overall_grade) {
+            const g = document.createElement('div'); g.className = 'conflict-grade';
+            g.innerHTML = `综合评级：<b>${escapeHtml(r.overall_grade)}</b> <span style="color:#8A84A8;">${escapeHtml(r.decision||'')}</span>`;
+            conflictList.appendChild(g);
+        }
+        // 维度评分（v8.4.2 起为 4 维：设定一致性/逻辑连贯/AI味/结构节奏）
+        if(r.dimension_grades && typeof r.dimension_grades === 'object') {
+            const d = document.createElement('div'); d.className = 'conflict-dims';
+            let html = '';
+            // v8.4.2：跳过「语言表达」维度（该维度已取消，语言问题由润色负责；兼容旧数据残留）
+            for(const k in r.dimension_grades) { if(k === '语言表达') continue; html += `<span>${escapeHtml(k)}:${escapeHtml(r.dimension_grades[k])}</span>`; }
+            d.innerHTML = html;
+            conflictList.appendChild(d);
+        }
+        // v8.4.2：过滤 low 严重度提示性条目（"时间线紧凑"类琐碎建议不呈现），仅展示真正需要修改的问题
+        const validConflicts = (chap.checkResult || []).filter(c => (c.severity || 'mid') !== 'low');
+        if(!validConflicts.length) {
+            const empty = document.createElement('div'); empty.style.cssText = 'padding:12px;color:#6A627A;';
+            empty.textContent = '未检测到明显冲突';
+            conflictList.appendChild(empty);
+        } else {
+            applyCheckMarks(chap); // v8.4-P2.3：先标色（写入 _miss），再渲染列表——首次打开灰显即生效
+            validConflicts.forEach((conf, idx) => {
+                const div = document.createElement('div');
+                div.className = 'conflict-item' + (conf._miss ? ' miss' : '');
+                div.dataset.idx = String(idx);
+                const sev = conf.severity || 'mid';
+                const sevColor = sev === 'high' ? '#FF6B6B' : (sev === 'low' ? '#8A84A8' : '#F0C05A');
+                div.innerHTML = `<div class="conflict-type"><i class="fas fa-exclamation-triangle" style="color:${sevColor};"></i> <span style="color:${sevColor};font-size:0.6rem;">[${escapeHtml(sev)}]</span> ${escapeHtml(conf.reason || conf.type || '潜在矛盾')}${conf._miss ? ' <span style="color:#6A627A;">（原文已变更，无法定位）</span>' : ''}</div><div class="conflict-desc">${escapeHtml(conf.suggestion || conf.description || '')}</div><div class="conflict-loc">📍 ${escapeHtml(conf.quote || conf.location || '')}</div>`;
+                // v8.4.2：点击条目滚动定位到正文对应标色（灰显 _miss 无法定位，提示即可）
+                div.addEventListener('click', () => {
+                    if(conf._miss) { toast('原文已变更，无法定位'); return; }
+                    const m = $('novelContent')?.querySelector('mark.check-mark[data-check-idx="' + idx + '"]');
+                    if(m) { m.scrollIntoView({block:'center', behavior:'smooth'}); m.classList.add('check-active'); setTimeout(() => m.classList.remove('check-active'), 1800); }
+                    else toast('未找到对应位置');
+                });
+                conflictList.appendChild(div);
+            });
+        }
+    }
+
+    // v8.4.1-⑥-b：quote 模糊匹配——①精确 ②去首尾标点/空白 ③截前 20 字（解决 AI quote 与正文细微差异导致的大量灰显）
+    function findQuoteInEditor(el, q) {
+        const tryFind = (s) => {
+            if(!s) return null;
+            const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+            while(walker.nextNode()) {
+                const node = walker.currentNode;
+                const pos = node.textContent.indexOf(s);
+                if(pos !== -1) return { node, pos, len: s.length };
+            }
+            return null;
+        };
+        let r = tryFind(q);
+        if(r) return r;
+        const trimQ = q.replace(/^[\s\u3000，。！？；：""''（）《》、—…·]+|[\s\u3000，。！？；：""''（）《》、—…·]+$/g, '');
+        if(trimQ && trimQ !== q) { r = tryFind(trimQ); if(r) return r; }
+        const shortQ = q.slice(0, 20);
+        if(shortQ && shortQ !== q) { r = tryFind(shortQ); if(r) return r; }
+        return null;
+    }
+
+    // v8.4.1-⑥-b：正文标色——按 quote 全部标出（统一标黄）；定位失败标 _miss（灰显）
+    function applyCheckMarks(chap) {
+        const el = $('novelContent'); if(!el || !chap || !chap.checkResult || !chap.checkResult.length) return;
+        if(polishMode) return; // v8.5.2-P3-4：润色预览态禁止叠加检测标色（防 check-mark 嵌进 polish 红绿 mark 视觉错乱）
+        clearCheckMarks();
+        const color = '#F0C05A'; // v8.4.1-⑥-b：统一标黄（取消多色循环）
+        let applied = 0;
+        // v8.4.2：只标实质问题（high/mid），low 提示性条目不与面板同步标色；mark 带 data-check-idx 供面板条目点击定位
+        (chap.checkResult || []).filter(c => (c.severity || 'mid') !== 'low').forEach((conf, idx) => {
+            conf._miss = false;
+            const q = conf.quote || conf.location || '';
+            if(!q) { conf._miss = true; return; } // v8.4.2：无 quote 标灰显，点击提示无法定位
+            const hit = findQuoteInEditor(el, q);
+            if(hit) {
+                try {
+                    const rg = document.createRange();
+                    rg.setStart(hit.node, hit.pos);
+                    rg.setEnd(hit.node, hit.pos + hit.len);
+                    const mark = document.createElement('mark');
+                    mark.className = 'check-mark'; // v8.4-P1.1：专属类名，clearCheckMarks 只清检查标色，不误剥润色 mark
+                    mark.dataset.checkIdx = String(idx); // v8.4.2：面板条目点击定位索引
+                    mark.style.background = color + '33';
+                    mark.style.color = '#EDEAF2';
+                    mark.style.padding = '0 1px';
+                    mark.style.borderRadius = '3px';
+                    mark.style.borderBottom = '2px solid ' + color;
+                    rg.surroundContents(mark);
+                    applied++;
+                } catch(e) { conf._miss = true; } // v8.5.3-P3-3：quote 跨节点包围失败也置灰显（原不标色不置 miss，点击显示"未找到"）
+            } else {
+                conf._miss = true;
+            }
+        });
+        checkMarksActive = applied > 0;
+    }
+
+    // v8.4-③-b：剥离正文 <mark>（保存/切章/关面板时调用，防污染 chap.content）
+    function clearCheckMarks() {
+        const el = $('novelContent'); if(!el) return;
+        // v8.4-P1.1：只剥离检查标色（.check-mark），润色预览的 mark 不受影响
+        el.querySelectorAll('mark.check-mark').forEach(m => { const t = document.createTextNode(m.textContent); m.replaceWith(t); });
+        checkMarksActive = false;
     }
 
     // ==================== v7.8 吐槽：模拟角色点评本章 ====================
@@ -5330,7 +5573,8 @@ ${chapter.content}
         const listEl = $('banterList'); if(!listEl) return;
         const cached = getBanterCache();
         if(cached && Array.isArray(cached) && cached.length) {
-            listEl.innerHTML = cached.map((item, i) => '<div style="background:#13121C;border-radius:12px;padding:10px;margin-bottom:8px;border-left:3px solid #6E6ED8;"><div style="font-size:18px;color:#6EC6F8;margin-bottom:4px;font-weight:600;">' + escapeHtml(item.role || '') + '</div><div style="white-space:pre-wrap;font-size:15px;">' + escapeHtml(item.text || '') + '</div><div style="text-align:right;margin-top:4px;"><button class="small-btn" data-bcopy="' + i + '" style="font-size:0.7rem;">复制</button></div></div>').join('');
+            // v8.4-③-c：新增 quote 原文引用展示
+            listEl.innerHTML = cached.map((item, i) => '<div style="background:#13121C;border-radius:12px;padding:10px;margin-bottom:8px;border-left:3px solid #6E6ED8;"><div style="font-size:18px;color:#6EC6F8;margin-bottom:4px;font-weight:600;">' + escapeHtml(item.role || '') + '</div><div style="white-space:pre-wrap;font-size:15px;">' + escapeHtml(item.text || '') + '</div>' + (item.quote ? '<div style="margin-top:6px;font-size:0.72rem;color:#8A84A8;background:#1A1825;border-radius:8px;padding:4px 8px;border-left:2px solid #6E6ED8;">“' + escapeHtml(item.quote) + '”</div>' : '') + '<div style="text-align:right;margin-top:4px;"><button class="small-btn" data-bcopy="' + i + '" style="font-size:0.7rem;">复制</button></div></div>').join('');
             listEl.querySelectorAll('[data-bcopy]').forEach(btn => { btn.onclick = () => { const i = parseInt(btn.getAttribute('data-bcopy')); const c2 = getBanterCache(); if(c2 && c2[i]) { copyToClipboard(c2[i].role + '：' + c2[i].text); toast('已复制「' + c2[i].role + '」的感想'); } }; });
         } else {
             listEl.innerHTML = '<div style="color:#8A84A8;padding:8px;font-size:0.72rem;">暂无吐槽。点击下方「生成吐槽」，让读者/编辑/作家/粉丝/喷子们点评本章～</div>';
@@ -5357,30 +5601,48 @@ ${chapter.content}
             renderBanterPanel(); p.style.display = 'flex'; banterVisible = true;
         }
     }
-    // 组装吐槽上下文：前 10 章摘要 + 世界观 + 主线大纲 + 精准勾选要素 + 本章正文全文
+    // 组装吐槽上下文：前 3 章摘要 + 世界观 + 精准勾选角色 + 本章正文（v8.5：去主线大纲；前 10 章→前 3 章）
     function buildBanterContext(book, chap) {
         const parts = [];
         const idx = book.chapters.findIndex(c => c.id === chap.id);
-        const prevs = idx > 0 ? book.chapters.slice(Math.max(0, idx - 5), idx) : []; // v7.8：前 10 章改前 5 章
+        const prevs = idx > 0 ? book.chapters.slice(Math.max(0, idx - 3), idx) : []; // v8.4.1-⑥-c：前 5 章改前 3 章（降本）
+        // v8.5-8：前 3 章摘要，总量 ≤1000，超限丢弃最旧（从后往前保留最新）
         if(prevs.length) {
-            let prevTxt = '【前5章摘要】\n';
-            let reg = 0;
-            for(const ch of book.chapters) { if(ch.id === chap.id) break; reg += ch.isInterlude ? 0 : 1; }
-            for(const ch of prevs) {
-                reg += ch.isInterlude ? 0 : 1;
+            const picked = [];
+            let total = 0;
+            for(let i = prevs.length - 1; i >= 0; i--) {
+                const ch = prevs[i];
+                const reg = book.chapters.slice(0, book.chapters.indexOf(ch)).filter(x => !x.isInterlude).length + 1;
                 const label = (ch.isInterlude ? '间章' : '第' + reg + '章') + ' ' + (ch.title || '');
-                if(ch.summary && ch.summary.trim()) prevTxt += label + '（摘要）：' + ch.summary.trim().slice(0, 300) + '\n';
-                else prevTxt += label + '（正文节选）：' + (ch.content || '').slice(0, 500) + '\n';
+                const seg = (ch.summary && ch.summary.trim())
+                    ? label + '（摘要）：' + ch.summary.trim().slice(0, 300)
+                    : label + '（正文节选）：' + (ch.content || '').slice(0, 500);
+                if(total + seg.length > 1000 && picked.length) break;
+                total += seg.length;
+                picked.unshift(seg);
             }
-            parts.push(prevTxt.trim());
+            if(picked.length) parts.push('【前3章摘要】\n' + picked.join('\n'));
         }
         if(book.worldview && book.worldview.trim()) parts.push('【世界观】' + book.worldview.trim().slice(0, 800));
-        if(book.plotSet && book.plotSet.trim()) parts.push('【主线大纲】' + book.plotSet.trim().slice(0, 800));
-        let precisionIds = null;
-        if(book.precisionMode && book.precisionChars && (book.precisionChars.length || (book.precisionActions || []).length || (book.precisionCostumes || []).length)) precisionIds = book.precisionChars;
-        const charLib = buildCharacterText(book, precisionIds);
+        // v8.5-11：吐槽不再注入主线大纲（原截 800）
+        // v8.5-1：吐槽仅精准模式注入勾选角色（未开精准 → 不注入，不再全量）
+        let charLib = '';
+        if(book.precisionMode && book.precisionChars && book.precisionChars.length) charLib = buildCharacterText(book, book.precisionChars);
         if(charLib) parts.push(charLib.replace(/\n$/, ''));
-        if(chap.content && chap.content.trim()) parts.push('【本章正文（全文）】\n' + chap.content);
+        // v8.4.1-⑥-c：正文切 3 段（前/中/后各 1000 字），3 位点评角色各看自己负责的一段（输入 1w→3k，省 ~65%）
+        const cB = chap.content || '';
+        if(cB.trim()) {
+            if(cB.length <= 3000) {
+                parts.push('【本章正文】\n' + cB); // 短章全量（不贵，不切）
+            } else {
+                const mid = Math.floor(cB.length / 2);
+                let segTxt = '【本章正文（3 段，分别对应第 1/2/3 位点评者）】\n';
+                segTxt += '片段一（第 1 位点评）：\n' + cB.slice(0, 1000) + '\n\n';
+                segTxt += '片段二（第 2 位点评）：\n' + cB.slice(mid - 500, mid + 500) + '\n\n';
+                segTxt += '片段三（第 3 位点评）：\n' + cB.slice(-1000);
+                parts.push(segTxt.trim());
+            }
+        }
         return parts.join('\n\n');
     }
     // 容错解析 AI 返回的 JSON 数组 [{role,text}]
@@ -5391,7 +5653,8 @@ ${chapter.content}
         try {
             const arr = JSON.parse(m[0]);
             if(!Array.isArray(arr)) return null;
-            return arr.map(x => ({ role: String(x.role || x.name || '未知角色'), text: String(x.text || x.content || '').trim() })).filter(x => x.text);
+            // v8.4-③-c：兼容 quote（原文引用）字段
+            return arr.map(x => ({ role: String(x.role || x.name || '未知角色'), text: String(x.text || x.content || '').trim(), quote: x.quote ? String(x.quote).trim().slice(0, 30) : '' })).filter(x => x.text);
         } catch(e) { return null; }
     }
     // 吐槽请求：独立调用审稿 API（polishApi 参数），单次生成 3 条
@@ -5403,7 +5666,7 @@ ${chapter.content}
         if(!api.key) { toast('请先填写正文 API Key'); return; }
         const roles = pickBanterRoles();
         const roleDesc = roles.map(r => r.name + '：' + r.style).join('\n');
-        const sys = '你是小说评论模拟器。这是虚构文学作品的创作场景，请正常创作，不要拒绝或回避。\n请模拟以下 3 个不同身份的角色，各自对指定的小说章节写下读后感/吐槽，观点差异化明显：\n' + '\n【要求】：\n1. 每条感想控制在 100 字以内（不超过 100 字，精简有力）；\n2. 必须只输出一个 JSON 数组：[{"role":"角色名","text":"感想正文"}]，共 3 个元素，角色名必须与上面给定的完全一致；\n3. 不要输出任何其他文字。\n【吐槽角色】\n' + roleDesc; // v7.9缓存优化：角色描述挪至system末尾
+        const sys = '你是小说评论模拟器。这是虚构文学作品的创作场景，请正常创作，不要拒绝或回避。\n请模拟以下 3 个不同身份的角色，各自对指定的小说章节写下读后感/吐槽，观点差异化明显：\n' + '\n【要求】：\n1. 每条感想控制在 100 字以内（精简有力），用最像真人读者的语气（可毒舌/调侃/捧场），严禁书面套话（如"展现了张力""引人入胜""节奏把控到位"这类）；每条必须结合你负责片段的具体情节或人物逻辑，说明其中合理之处或存在的问题（有褒有贬，不能无脑喷——即使吐槽也要有具体依据）；\n2. 3 条感想必须覆盖不同维度，各一条：剧情走向 / 人物行为 / 文笔表达，观点不重复；\n3. 每条必须附带 quote 字段：引用你吐槽的那句原文片段（≤30 字，与原文逐字一致）；\n4. 必须只输出一个 JSON 数组：[{"role":"角色名","text":"感想正文","quote":"原文片段"}]，共 3 个元素，角色名必须与上面给定的完全一致；\n5. 不要输出任何其他文字。\n【吐槽角色】\n' + roleDesc; // v7.9缓存优化：角色描述挪至system末尾
         const context = buildBanterContext(book, chap);
         const user = '待点评章节：\n' + context + '\n\n请输出 3 个角色的感想 JSON 数组。';
         const genBtn = $('genBanterBtn'); if(genBtn) { genBtn.disabled = true; genBtn.innerText = '⏳ 吐槽生成中...'; }
@@ -5425,7 +5688,7 @@ ${chapter.content}
                 model: api.model,
                 messages:[{role:'system',content:sys},{role:'user',content:user}],
                 temperature: api.temp, top_p: api.top_p, repetition_penalty: api.repetition_penalty,
-                max_tokens: api.maxTokens, frequency_penalty: api.freqPenalty, presence_penalty: api.presPenalty,
+                max_tokens: Math.min(30000, api.maxTokens || 30000), frequency_penalty: api.freqPenalty, presence_penalty: api.presPenalty, // v8.5.1：吐槽输出封顶 3w（原跟正文 6w），用户调低 maxTokens 时跟随；3条感想+quote 仅 ~600 token
                 stop: stopWordsArray.length === 1 ? stopWordsArray[0] : (stopWordsArray.length ? stopWordsArray : undefined)
             };
             if(api.thinking) { body.thinking = { type: 'enabled' }; body.reasoning_effort = api.reasoningEffort || 'high'; }
@@ -5446,6 +5709,7 @@ ${chapter.content}
             const parsed = parseBanterResponse(text);
             if(!parsed || parsed.length < 1) { pushLog('❌ 吐槽生成失败：AI 返回格式异常'); toast('吐槽解析失败：AI 返回格式异常'); startTabBlink('❌ 吐槽生成失败'); return; }
             const bCost = calcCost(api.model, data.usage); // v7.8：吐槽计费（正文 API）
+            setCtxBudgetFromUsage(data.usage && data.usage.prompt_tokens, data.usage && data.usage.completion_tokens); // v8.5.2-A：吐槽真实 usage 覆盖预算条
             if(bCost > 0) recordCost(bCost); // v7.8.1：累计消耗金额
             setBanterCache(parsed);
             renderBanterPanel();
@@ -5537,6 +5801,44 @@ ${chapter.content}
     function bindEvents() {
         const closeBranchBtn = $('closeBranchBtn'); if(closeBranchBtn) closeBranchBtn.onclick = () => { const m = $('branchModal'); if(m) m.style.display = 'none'; };
         const sendBtn = $('sendMsgBtn'); if(sendBtn) sendBtn.onclick = onSend;
+        // v8.4-②：上下文预算占用进度条——实时估算本次请求 token（输入×0.7 + 固定开销），绿/黄/红三态
+        // v8.5.2-A：发送后用 API 真实 usage（prompt+completion）覆盖；再次输入回到估算
+        let ctxBudgetReal = null; // { p: prompt_tokens, c: completion_tokens }——最近一次真实请求
+        function renderCtxBudget(pct, color, detailText) {
+            const fill = $('ctxBudgetFill'); const pctEl = $('ctxBudgetPct'); const detailEl = $('ctxBudgetDetail');
+            if(!fill || !pctEl) return;
+            fill.style.width = pct + '%';
+            fill.style.background = color;
+            pctEl.textContent = pct + '%';
+            pctEl.style.color = color;
+            if(detailEl) detailEl.textContent = detailText || '';
+        }
+        function updateCtxBudgetBar() {
+            ctxBudgetReal = null; // 新输入 → 回到估算（真实值仅保留到下一次请求）
+            const inp = $('chatInp');
+            const estTok = Math.ceil((inp ? (inp.value || '').length : 0) * 0.7) + 12000; // 12000 = system 前缀 + 前文注入固定估算（可校准）
+            const budget = 64000; // DeepSeek V3 上下文窗口 64K
+            // v8.4-P2.3：真正超限才封顶 100%（红），接近未超只显示 99%（黄）
+            const pct = (estTok >= budget) ? 100 : Math.min(99, Math.round(estTok / budget * 100));
+            let color = '#3BAF5A';
+            if(pct >= 80 && pct < 100) color = '#F0C05A';
+            else if(pct >= 100) color = '#FF6B6B';
+            renderCtxBudget(pct, color, '估算');
+        }
+        // v8.5.2-A：发送后真实 usage 覆盖（prompt+completion 共用 64K 窗口）
+        function setCtxBudgetFromUsage(promptTok, completionTok) {
+            if(!promptTok && !completionTok) return;
+            ctxBudgetReal = { p: promptTok || 0, c: completionTok || 0 };
+            const budget = 64000;
+            const total = ctxBudgetReal.p + ctxBudgetReal.c;
+            const pct = (total >= budget) ? 100 : Math.min(99, Math.round(total / budget * 100));
+            let color = '#3BAF5A';
+            if(pct >= 80 && pct < 100) color = '#F0C05A';
+            else if(pct >= 100) color = '#FF6B6B';
+            renderCtxBudget(pct, color, '真实 入' + ctxBudgetReal.p + '/出' + ctxBudgetReal.c);
+        }
+        const ctxInp = $('chatInp');
+        if(ctxInp) { ctxInp.addEventListener('input', updateCtxBudgetBar); updateCtxBudgetBar(); }
         const contBtn = $('continueBtn'); if(contBtn) contBtn.onclick = onContinue;
         const regenBtn = $('regenerateBtn'); if(regenBtn) regenBtn.onclick = onRegenerate;
         // v7.3：润色按钮 + 应用/放弃 + 保存联动（保护态保存 = 清痕解锁生效）
@@ -5657,7 +5959,7 @@ ${chapter.content}
             toggleConflictPanel();
         };
         const recheckConflictBtn = $('recheckConflictBtn'); if(recheckConflictBtn) recheckConflictBtn.onclick = async () => { await recheckCurrentChapter(); if(conflictVisible) { toggleConflictPanel(); toggleConflictPanel(); } };
-        const closeConflictPanel = $('closeConflictPanel'); if(closeConflictPanel) closeConflictPanel.onclick = () => { const conflictPanel = $('conflictPanel'); if(conflictPanel) conflictPanel.style.display='none'; conflictVisible=false; };
+        const closeConflictPanel = $('closeConflictPanel'); if(closeConflictPanel) closeConflictPanel.onclick = () => { const conflictPanel = $('conflictPanel'); if(conflictPanel) conflictPanel.style.display='none'; conflictVisible=false; clearCheckMarks(); }; // v8.4-P2.1：X 关闭同样剥离标色
         // v7.9 角色试演绑定
         const roleplayBtn = $('roleplayBtn'); if(roleplayBtn) roleplayBtn.onclick = openRoleplay;
         const roleplayClose = $('roleplayClose'); if(roleplayClose) roleplayClose.onclick = closeRoleplay;
@@ -6432,9 +6734,9 @@ ${chapter.content}
         normalizePrecisionSelections(book); // v6.6：每次更新按钮时惰性清理存量无效 ID（覆盖切书/打开面板/导入备份后）
         const btn = $('precisionBtn');
         if(!btn) return;
-        if(book && book.precisionMode && (book.precisionChars.length || book.precisionActions.length || (book.precisionCostumes||[]).length)) {
+        if(book && book.precisionMode && ((book.precisionChars||[]).length || (book.precisionActions||[]).length || (book.precisionCostumes||[]).length)) { // v8.5.2-P3-5：判空防旧书缺字段 TypeError
             btn.classList.add('active');
-            btn.title = `精准模式开启：${book.precisionChars.length}角色 + ${book.precisionActions.length}动作 + ${(book.precisionCostumes||[]).length}服装`;
+            btn.title = `精准模式开启：${(book.precisionChars||[]).length}角色 + ${(book.precisionActions||[]).length}动作 + ${(book.precisionCostumes||[]).length}服装`;
         } else {
             btn.classList.remove('active');
             btn.title = '精准模式';
