@@ -3130,6 +3130,44 @@ ${chapter.content}
     let lastGenCostRef = null;
     // v8.4-③-b：检查正文标色激活标志（保存/切章/关面板时剥离 <mark> 防污染数据）
     let checkMarksActive = false;
+    // v8.4-②：上下文预算占用进度条——实时估算本次请求 token（输入×0.7 + 固定开销），绿/黄/红三态
+    // v8.5.2-A：发送后用 API 真实 usage（prompt+completion）覆盖；再次输入回到估算
+    // v8.5.3-FIX：本块必须定义在顶层作用域——6 个请求函数（生文/摘要/检测/润色/吐槽/走向）直接调用 setCtxBudgetFromUsage，
+    // 原误定义在 bindEvents 闭包内导致「setCtxBudgetFromUsage is not defined」请求失败
+    let ctxBudgetReal = null; // { p: prompt_tokens, c: completion_tokens }——最近一次真实请求
+    function renderCtxBudget(pct, color, detailText) {
+        const fill = $('ctxBudgetFill'); const pctEl = $('ctxBudgetPct'); const detailEl = $('ctxBudgetDetail');
+        if(!fill || !pctEl) return;
+        fill.style.width = pct + '%';
+        fill.style.background = color;
+        pctEl.textContent = pct + '%';
+        pctEl.style.color = color;
+        if(detailEl) detailEl.textContent = detailText || '';
+    }
+    function updateCtxBudgetBar() {
+        ctxBudgetReal = null; // 新输入 → 回到估算（真实值仅保留到下一次请求）
+        const inp = $('chatInp');
+        const estTok = Math.ceil((inp ? (inp.value || '').length : 0) * 0.7) + 12000; // 12000 = system 前缀 + 前文注入固定估算（可校准）
+        const budget = 64000; // DeepSeek V3 上下文窗口 64K
+        // v8.4-P2.3：真正超限才封顶 100%（红），接近未超只显示 99%（黄）
+        const pct = (estTok >= budget) ? 100 : Math.min(99, Math.round(estTok / budget * 100));
+        let color = '#3BAF5A';
+        if(pct >= 80 && pct < 100) color = '#F0C05A';
+        else if(pct >= 100) color = '#FF6B6B';
+        renderCtxBudget(pct, color, '估算');
+    }
+    // v8.5.2-A：发送后真实 usage 覆盖（prompt+completion 共用 64K 窗口）
+    function setCtxBudgetFromUsage(promptTok, completionTok) {
+        if(!promptTok && !completionTok) return;
+        ctxBudgetReal = { p: promptTok || 0, c: completionTok || 0 };
+        const budget = 64000;
+        const total = ctxBudgetReal.p + ctxBudgetReal.c;
+        const pct = (total >= budget) ? 100 : Math.min(99, Math.round(total / budget * 100));
+        let color = '#3BAF5A';
+        if(pct >= 80 && pct < 100) color = '#F0C05A';
+        else if(pct >= 100) color = '#FF6B6B';
+        renderCtxBudget(pct, color, '真实 入' + ctxBudgetReal.p + '/出' + ctxBudgetReal.c);
+    }
     async function generateChapterSummary(book, chapter) {
         if(!api.key || !chapter || !chapter.content || !chapter.content.trim()) return;
         if(!apiUrlValid(api.url)) { toast("API 地址无效，请重新配置"); return; }
@@ -5801,44 +5839,9 @@ ${chapter.content}
     function bindEvents() {
         const closeBranchBtn = $('closeBranchBtn'); if(closeBranchBtn) closeBranchBtn.onclick = () => { const m = $('branchModal'); if(m) m.style.display = 'none'; };
         const sendBtn = $('sendMsgBtn'); if(sendBtn) sendBtn.onclick = onSend;
-        // v8.4-②：上下文预算占用进度条——实时估算本次请求 token（输入×0.7 + 固定开销），绿/黄/红三态
-        // v8.5.2-A：发送后用 API 真实 usage（prompt+completion）覆盖；再次输入回到估算
-        let ctxBudgetReal = null; // { p: prompt_tokens, c: completion_tokens }——最近一次真实请求
-        function renderCtxBudget(pct, color, detailText) {
-            const fill = $('ctxBudgetFill'); const pctEl = $('ctxBudgetPct'); const detailEl = $('ctxBudgetDetail');
-            if(!fill || !pctEl) return;
-            fill.style.width = pct + '%';
-            fill.style.background = color;
-            pctEl.textContent = pct + '%';
-            pctEl.style.color = color;
-            if(detailEl) detailEl.textContent = detailText || '';
-        }
-        function updateCtxBudgetBar() {
-            ctxBudgetReal = null; // 新输入 → 回到估算（真实值仅保留到下一次请求）
-            const inp = $('chatInp');
-            const estTok = Math.ceil((inp ? (inp.value || '').length : 0) * 0.7) + 12000; // 12000 = system 前缀 + 前文注入固定估算（可校准）
-            const budget = 64000; // DeepSeek V3 上下文窗口 64K
-            // v8.4-P2.3：真正超限才封顶 100%（红），接近未超只显示 99%（黄）
-            const pct = (estTok >= budget) ? 100 : Math.min(99, Math.round(estTok / budget * 100));
-            let color = '#3BAF5A';
-            if(pct >= 80 && pct < 100) color = '#F0C05A';
-            else if(pct >= 100) color = '#FF6B6B';
-            renderCtxBudget(pct, color, '估算');
-        }
-        // v8.5.2-A：发送后真实 usage 覆盖（prompt+completion 共用 64K 窗口）
-        function setCtxBudgetFromUsage(promptTok, completionTok) {
-            if(!promptTok && !completionTok) return;
-            ctxBudgetReal = { p: promptTok || 0, c: completionTok || 0 };
-            const budget = 64000;
-            const total = ctxBudgetReal.p + ctxBudgetReal.c;
-            const pct = (total >= budget) ? 100 : Math.min(99, Math.round(total / budget * 100));
-            let color = '#3BAF5A';
-            if(pct >= 80 && pct < 100) color = '#F0C05A';
-            else if(pct >= 100) color = '#FF6B6B';
-            renderCtxBudget(pct, color, '真实 入' + ctxBudgetReal.p + '/出' + ctxBudgetReal.c);
-        }
-        const ctxInp = $('chatInp');
-        if(ctxInp) { ctxInp.addEventListener('input', updateCtxBudgetBar); updateCtxBudgetBar(); }
+        // v8.5.3-FIX：预算条函数已移至顶层（原在此闭包内定义，顶层请求函数调用 setCtxBudgetFromUsage 报 is not defined）
+        const ctxInp2 = $('chatInp');
+        if(ctxInp2) { ctxInp2.addEventListener('input', updateCtxBudgetBar); updateCtxBudgetBar(); }
         const contBtn = $('continueBtn'); if(contBtn) contBtn.onclick = onContinue;
         const regenBtn = $('regenerateBtn'); if(regenBtn) regenBtn.onclick = onRegenerate;
         // v7.3：润色按钮 + 应用/放弃 + 保存联动（保护态保存 = 清痕解锁生效）
