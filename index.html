@@ -578,7 +578,7 @@
 
 <!-- 模态框 -->
 <div id="branchModal" class="modal"><div class="modal-card" style="width:1240px;max-width:96vw;max-height:none;overflow:visible;"><h3><i class="fas fa-code-branch"></i> 续写走向 · 选择一条继续</h3><div id="branchCardWrap"></div><div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;"><button id="closeBranchBtn" class="glass-btn">取消</button></div></div></div>
-<div id="apiModal" class="modal"><div class="modal-card" style="max-width:680px;"><h3>⚙️ API 调参</h3><div style="background:#3A2A2A;border-radius:12px;padding:8px 12px;margin-bottom:10px;font-size:0.65rem;color:#FFA070;"><i class="fas fa-shield-alt"></i> ⚠️ API Key 仅存储在浏览器本地，不会上传到任何服务器。请妥善保管，勿分享给他人。</div><div class="api-tabs" style="display:flex;gap:6px;margin-bottom:12px;"><button class="api-tab glass-btn active" data-apitab="main" style="flex:1;padding:8px 0;">✍️ 正文 API</button><button class="api-tab glass-btn" data-apitab="polish" style="flex:1;padding:8px 0;">🔍 审稿 API</button><button class="api-tab glass-btn" data-apitab="image" style="flex:1;padding:8px 0;opacity:0.45;cursor:not-allowed;" title="生图功能规划中（仅 EXE 版实装）">🎨 生图 API</button><button class="api-tab glass-btn" data-apitab="act" style="flex:1;padding:8px 0;">🎭 扮演 API</button></div><div id="apiPane-main"><input type="text" id="apiUrlInp" placeholder="API地址"><input type="password" id="apiKeyInp" placeholder="API Key"><input type="text" id="modelInp" placeholder="模型"><div class="range-grid"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="tempRange" min="0.1" max="2" step="0.1" value="1.0"></div><div class="range-item"><span class="range-label">核采样 Top-p (0.75~1.25)</span><input type="number" id="topPRange" min="0.75" max="1.25" step="0.01" value="0.92"></div><div class="range-item"><span class="range-label">存在惩罚 (0.0~1.5)</span><input type="number" id="presRange" min="0" max="1.5" step="0.1" value="0.5"></div><div class="range-item"><span class="range-label">频率惩罚 (0.0~1.0)</span><input type="number" id="freqRange" min="0" max="1" step="0.1" value="0.4"></div><div class="range-item"><span class="range-label">重复惩罚 (1.00~1.25)</span><input type="number" id="repPenaltyRange" min="1" max="1.25" step="0.05" value="1.15"></div><div class="range-item"><span class="range-label">前文摘要 (1-50)</span><input type="number" id="ctxRange" min="1" max="50" step="1" value="5"></div></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="maxTokensInp" min="3000" max="90000" value="60000" style="width:390px;margin-left:auto;margin-bottom:0;"></div><div class="range-row"><span style="width:auto;white-space:nowrap;">推理强度（思考模式）</span><input type="range" id="reasoningRange" min="0" max="2" step="1" value="1"><span id="reasoningVal">high</span></div><div class="range-row" style="align-items:center;"><span>💭 思考模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="thinkingCheck" style="width:auto;margin:0;"> 开启后创意参数失效，且增加耗时，请谨慎开启</label></div><div class="range-row" style="align-items:center;"><span>🧭 续写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="branchAutoSendCheck" style="width:auto;margin:0;"> 开启后自动续写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>🔄 重写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="rewriteAutoSendCheck" style="width:auto;margin:0;"> 开启后自动重写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>📚 连发章数</span><label style="display:flex;align-items:center;gap:6px;"> 一次性连续生成多个章节的数目（2~10）<input type="number" id="multiChapCountInp" min="2" max="10" step="1" value="3" style="width:70px;margin:0;"></label></div></div><div id="apiPane-polish" style="display:none;"><div style="background:#2A3A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#7AC0A8;"><i class="fas fa-search"></i> 审稿 API 用于润色审查（DeepSeek：默认开启思考模式，仅推理强度可调，对同人内容宽松）</div><input type="text" id="polishUrlInp" placeholder="审稿 API 地址"><input type="password" id="polishKeyInp" placeholder="审稿 API Key"><input type="text" id="polishModelInp" placeholder="模型（如 deepseek-v4-flash）"><div class="range-row" style="align-items:center;"><span>⚙️ 参数模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="polishParamCheck" style="width:auto;margin:0;"> 开启后思考模式失效，随机性增加，请谨慎开启</label></div><div id="polishParamGrid" class="range-grid" style="display:none;"><div class="range-item"><span class="range-label">温度 (0~2)</span><input type="number" id="polishTempRange" min="0" max="2" step="0.1" value="0.5"></div><div class="range-item"><span class="range-label">核采样 Top-p (0~1)</span><input type="number" id="polishTopPRange" min="0" max="1" step="0.01" value="0.87"></div><div class="range-item"><span class="range-label">存在惩罚 (0~2)</span><input type="number" id="polishPresRange" min="0" max="2" step="0.1" value="0"></div><div class="range-item"><span class="range-label">频率惩罚 (0~2)</span><input type="number" id="polishFreqRange" min="0" max="2" step="0.1" value="0.1"></div><div class="range-item"><span class="range-label">重复惩罚 (0~2)</span><input type="number" id="polishRepRange" min="0" max="2" step="0.1" value="1"></div></div><div class="range-row"><span>🧠 推理强度</span><input type="range" id="polishReasoningRange" min="0" max="2" step="1" value="2"><span id="polishReasoningVal">max</span></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="polishMaxTokensInp" min="3000" max="90000" value="50000" style="width:390px;margin-left:auto;margin-bottom:0;"></div></div><div id="apiPane-image" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:24px;text-align:center;color:#8A84A8;font-size:0.8rem;"><i class="fas fa-palette" style="font-size:1.4rem;display:block;margin-bottom:8px;"></i>🎨 生图功能规划中（仅 EXE 版实装），敬请期待</div></div><div id="apiPane-act" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#B8B4D0;"><i class="fas fa-masks-theater"></i> 🎭 扮演 API 用于角色试演（默认 deepseek-v4-flash；对话 10 轮上限防 token 失控；摘要请求复用本 API）</div><input type="text" id="actUrlInp" placeholder="扮演 API 地址"><input type="password" id="actKeyInp" placeholder="扮演 API Key"><input type="text" id="actModelInp" placeholder="模型（默认 deepseek-v4-flash）"><div class="range-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="actTempRange" min="0.1" max="2" step="0.1" value="0.7"></div><div class="range-item"><span class="range-label">台词长度 (500~1500)</span><input type="number" id="actMaxTokensInp" min="500" max="1500" step="1" value="800" title="单轮回复输出上限（token）"></div><div class="range-item"><span class="range-label">对话轮数 (5~30)</span><input type="number" id="actRoundsInp" min="5" max="30" step="1" value="10" title="一来一回算一轮，达上限自动结束试演"></div></div><div class="range-row" style="align-items:center;"><span>🧬 人设注入</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actPersonaCheck" style="width:auto;margin:0;" checked> 注入本书背景与 A/B 精准人设</label></div><div class="range-row" style="align-items:center;"><span>🎭 口吻约束</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actToneCheck" style="width:auto;margin:0;" checked> 强制纯台词+人设口吻（关闭可带少量旁白）</label></div></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="testApiBtn" class="glass-btn">测试连接</button><button id="saveApiBtn" class="glass-btn">保存</button><button id="closeApiBtn" class="glass-btn">取消</button></div></div></div>
+<div id="apiModal" class="modal"><div class="modal-card" style="max-width:680px;"><h3>⚙️ API 调参</h3><div style="background:#3A2A2A;border-radius:12px;padding:8px 12px;margin-bottom:10px;font-size:0.65rem;color:#FFA070;"><i class="fas fa-shield-alt"></i> ⚠️ API Key 仅存储在浏览器本地，不会上传到任何服务器。请妥善保管，勿分享给他人。</div><div class="api-tabs" style="display:flex;gap:6px;margin-bottom:12px;"><button class="api-tab glass-btn active" data-apitab="main" style="flex:1;padding:8px 0;">✍️ 正文 API</button><button class="api-tab glass-btn" data-apitab="polish" style="flex:1;padding:8px 0;">🔍 审稿 API</button><button class="api-tab glass-btn" data-apitab="image" style="flex:1;padding:8px 0;opacity:0.45;cursor:not-allowed;" title="生图功能规划中（仅 EXE 版实装）">🎨 生图 API</button><button class="api-tab glass-btn" data-apitab="act" style="flex:1;padding:8px 0;">🎭 扮演 API</button></div><div id="apiPane-main"><input type="text" id="apiUrlInp" placeholder="API地址"><input type="password" id="apiKeyInp" placeholder="API Key"><input type="text" id="modelInp" placeholder="模型"><input type="text" id="stopWordsInp" placeholder="停止词（逗号分隔，可选）"><div class="range-grid"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="tempRange" min="0.1" max="2" step="0.1" value="1.0"></div><div class="range-item"><span class="range-label">核采样 Top-p (0.75~1.25)</span><input type="number" id="topPRange" min="0.75" max="1.25" step="0.01" value="0.92"></div><div class="range-item"><span class="range-label">存在惩罚 (0.0~1.5)</span><input type="number" id="presRange" min="0" max="1.5" step="0.1" value="0.5"></div><div class="range-item"><span class="range-label">频率惩罚 (0.0~1.0)</span><input type="number" id="freqRange" min="0" max="1" step="0.1" value="0.4"></div><div class="range-item"><span class="range-label">重复惩罚 (1.00~1.25)</span><input type="number" id="repPenaltyRange" min="1" max="1.25" step="0.05" value="1.15"></div><div class="range-item"><span class="range-label">前文摘要 (1-50)</span><input type="number" id="ctxRange" min="1" max="50" step="1" value="5"></div></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="maxTokensInp" min="3000" max="90000" value="60000" style="width:390px;margin-left:auto;margin-bottom:0;"></div><div class="range-row"><span style="width:auto;white-space:nowrap;">推理强度（思考模式）</span><input type="range" id="reasoningRange" min="0" max="2" step="1" value="1"><span id="reasoningVal">high</span></div><div class="range-row" style="align-items:center;"><span>💭 思考模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="thinkingCheck" style="width:auto;margin:0;"> 开启后创意参数失效，且增加耗时，请谨慎开启</label></div><div class="range-row" style="align-items:center;"><span>🧭 续写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="branchAutoSendCheck" style="width:auto;margin:0;"> 开启后自动续写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>🔄 重写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="rewriteAutoSendCheck" style="width:auto;margin:0;"> 开启后自动重写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>📚 连发章数</span><label style="display:flex;align-items:center;gap:6px;"> 一次性连续生成多个章节的数目（2~10）<input type="number" id="multiChapCountInp" min="2" max="10" step="1" value="3" style="width:70px;margin:0;"></label></div></div><div id="apiPane-polish" style="display:none;"><div style="background:#2A3A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#7AC0A8;"><i class="fas fa-search"></i> 审稿 API 用于润色审查（DeepSeek：默认开启思考模式，仅推理强度可调，对同人内容宽松）</div><input type="text" id="polishUrlInp" placeholder="审稿 API 地址"><input type="password" id="polishKeyInp" placeholder="审稿 API Key"><input type="text" id="polishModelInp" placeholder="模型（如 deepseek-v4-flash）"><div class="range-row" style="align-items:center;"><span>⚙️ 参数模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="polishParamCheck" style="width:auto;margin:0;"> 开启后思考模式失效，随机性增加，请谨慎开启</label></div><div id="polishParamGrid" class="range-grid" style="display:none;"><div class="range-item"><span class="range-label">温度 (0~2)</span><input type="number" id="polishTempRange" min="0" max="2" step="0.1" value="0.5"></div><div class="range-item"><span class="range-label">核采样 Top-p (0~1)</span><input type="number" id="polishTopPRange" min="0" max="1" step="0.01" value="0.87"></div><div class="range-item"><span class="range-label">存在惩罚 (0~2)</span><input type="number" id="polishPresRange" min="0" max="2" step="0.1" value="0"></div><div class="range-item"><span class="range-label">频率惩罚 (0~2)</span><input type="number" id="polishFreqRange" min="0" max="2" step="0.1" value="0.1"></div><div class="range-item"><span class="range-label">重复惩罚 (0~2)</span><input type="number" id="polishRepRange" min="0" max="2" step="0.1" value="1"></div></div><div class="range-row"><span>🧠 推理强度</span><input type="range" id="polishReasoningRange" min="0" max="2" step="1" value="2"><span id="polishReasoningVal">max</span></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="polishMaxTokensInp" min="3000" max="90000" value="50000" style="width:390px;margin-left:auto;margin-bottom:0;"></div></div><div id="apiPane-image" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:24px;text-align:center;color:#8A84A8;font-size:0.8rem;"><i class="fas fa-palette" style="font-size:1.4rem;display:block;margin-bottom:8px;"></i>🎨 生图功能规划中（仅 EXE 版实装），敬请期待</div></div><div id="apiPane-act" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#B8B4D0;"><i class="fas fa-masks-theater"></i> 🎭 扮演 API 用于角色试演（默认 deepseek-v4-flash；对话 10 轮上限防 token 失控；摘要请求复用本 API）</div><input type="text" id="actUrlInp" placeholder="扮演 API 地址"><input type="password" id="actKeyInp" placeholder="扮演 API Key"><input type="text" id="actModelInp" placeholder="模型（默认 deepseek-v4-flash）"><div class="range-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="actTempRange" min="0.1" max="2" step="0.1" value="0.7"></div><div class="range-item"><span class="range-label">台词长度 (500~1500)</span><input type="number" id="actMaxTokensInp" min="500" max="1500" step="1" value="800" title="单轮回复输出上限（token）"></div><div class="range-item"><span class="range-label">对话轮数 (5~30)</span><input type="number" id="actRoundsInp" min="5" max="30" step="1" value="10" title="一来一回算一轮，达上限自动结束试演"></div></div><div class="range-row" style="align-items:center;"><span>🧬 人设注入</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actPersonaCheck" style="width:auto;margin:0;" checked> 注入本书背景与 A/B 精准人设</label></div><div class="range-row" style="align-items:center;"><span>🎭 口吻约束</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actToneCheck" style="width:auto;margin:0;" checked> 强制纯台词+人设口吻（关闭可带少量旁白）</label></div></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="testApiBtn" class="glass-btn">测试连接</button><button id="saveApiBtn" class="glass-btn">保存</button><button id="closeApiBtn" class="glass-btn">取消</button></div></div></div>
 <div id="sbOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:1500;"></div>
 <div class="sb-progress" id="sbProgressWrap" style="display:none;"><div class="sb-progress-bar"><div class="sb-progress-fill" id="sbProgressFill"></div></div><div class="sb-progress-text" id="sbProgressText"></div><div class="sb-progress-warn" id="sbProgressWarn">⚠️ 请勿关闭网页，等待AI生成中...</div><div class="sb-progress-retry" id="sbProgressRetry"></div><div class="sb-progress-multi" id="sbProgressMulti"></div><div class="sb-progress-close" id="sbProgressClose" style="display:none;"><button class="glass-btn" id="sbProgressCloseBtn">关闭</button></div></div>
 <div id="startBookModal" class="modal"><div class="modal-card start-book-card">
@@ -1174,7 +1174,15 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch(e) {
             clearTimeout(timer);
             const why = e.name === 'AbortError' ? (roleplayState.stoppedByUser ? '已停止' : '超时(60s)') : e.message; // v7.9f：主动停止与超时区分提示
-            const last = roleplayState.rounds[roleplayState.rounds.length - 1]; if(last) last.b = '⚠️ 回复失败：' + why;
+            // v8.6-r10：首轮失败解锁场景框与 A/B 选角（原锁死只能关面板重开），且不把失败占位写进对话记录（防污染后续轮次上下文）
+            if(roleplayState.roundNo === 0) {
+                const sceneEl2 = $('roleplayScene'); if(sceneEl2) sceneEl2.disabled = false;
+                const tip2 = $('roleplaySceneLockTip'); if(tip2) tip2.style.display = 'none';
+                roleplayState.sceneLocked = false; unlockRoleplayPicks();
+                roleplayState.rounds.pop(); // v8.6-fix8：首轮失败弹掉空回合（{a,b:''}），防悬空台词注入后续上下文
+            } else {
+                const last = roleplayState.rounds[roleplayState.rounds.length - 1]; if(last) last.b = '⚠️ 回复失败：' + why;
+            }
             renderRoleplayChat();
             pushLog('❌ 试演回复失败：' + (roleplayState.stoppedByUser ? '已停止' : (e.name === 'AbortError' ? '超时' : e.message)));
             toast('试演回复失败：' + why);
@@ -1269,7 +1277,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ===== v7.0：日志系统（记录全部 toast，持久化 localStorage，最多 30 条） =====
     let appLogs = [];
-    try { const _l = JSON.parse(localStorage.getItem('app_logs_v1') || '[]'); if(Array.isArray(_l)) appLogs = _l.slice(-30); } catch(e) {}
+    try { const _l = JSON.parse(localStorage.getItem('app_logs_v1') || '[]'); if(Array.isArray(_l)) appLogs = _l.slice(-50); } catch(e) {} // v8.6-fix15：读取上限与 pushLog 保留 50 条一致（原 30/50 不一致；注释移行尾防吞 catch）
     function pushLog(msg) { appLogs.push({ t: Date.now(), msg }); if(appLogs.length > 50) appLogs = appLogs.slice(-50); try { localStorage.setItem('app_logs_v1', JSON.stringify(appLogs)); } catch(e) {} renderLogList(); } // v7.5：pushLog 实时刷新日志列表（不依赖切页签）
     function fmtLogTime(ts) { const d = new Date(ts), p = n => String(n).padStart(2,'0'); return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds()); }
     function renderLogList() {
@@ -1416,7 +1424,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateStorageIndicator() {
         try {
             let totalSize = 0;
-            const keys = ['books_v2', 'api_config_v2', 'api_config_v3', 'global_characters_v2', 'global_actions_v2', 'global_costumes_v2', 'scratchpad_v1', 'currentBookId_v2'];
+            const keys = ['books_v2', 'api_config_v2', 'api_config_v3', 'global_characters_v2', 'global_actions_v2', 'global_costumes_v2', 'scratchpad_v1', 'scratchpad_pages_v1', 'custom_tags_v1', 'sb_draft_v1', 'app_logs_v1', 'cost_stats_v1', 'daily_input_stats_v1', 'currentBookId_v2']; // v8.6-fix13：容量统计补全（原遗漏导致显示恒偏低、5MB 告警失真）
             for (let key of keys) {
                 const val = localStorage.getItem(key);
                 if (val) totalSize += val.length * 2;
@@ -1481,8 +1489,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // contentEditable=false 拦不住它们；生成期间放行则 AI 返回后用户操作会被覆盖丢失
         ['saveChapBtn','regenerateBtn','continueBtn','checkConflictBtn','banterBtn','findBtn','rollbackBtn','replaceOneBtn','replaceAllBtn'].forEach(id => {
             const el = $(id); if(!el) return;
-            if(locked) { writingLockPrev[id] = el.disabled; el.disabled = true; }
-            else if(id in writingLockPrev) { el.disabled = writingLockPrev[id]; }
+            // v8.6-fix24：锁定只保存首次快照（防连发每章重复锁定覆盖为"已禁用"），解锁后删除快照——原逻辑连发结束后 8 个按钮永久灰死
+            if(locked) { if(!(id in writingLockPrev)) writingLockPrev[id] = el.disabled; el.disabled = true; }
+            else if(id in writingLockPrev) { el.disabled = writingLockPrev[id]; delete writingLockPrev[id]; }
         });
         const tip = $('writingLockTip'); if(tip) tip.style.display = locked ? 'block' : 'none';
     }
@@ -1490,7 +1499,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function initCharactersIfNeeded(book) { if(!Array.isArray(book.characters)) book.characters=[]; }
     function initForbiddenWordsIfNeeded(book) { if(!Array.isArray(book.forbiddenWords)) book.forbiddenWords=[]; }
     function initCharRelations(book) { if(!Array.isArray(book.characters)) book.characters=[]; book.characters.forEach(c=>{if(!c.relationships)c.relationships=[];}); if(!book.relationPositions) book.relationPositions={}; }
-    function escapeHtml(s) { if(!s) return ''; return s.replace(/[&<>"'`]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[m])); }
+    function escapeHtml(s) { if(s == null) return ''; s = String(s); return s.replace(/[&<>"'`]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[m])); } // v8.6-r19：String 兜底——数字 id（存量数据）无 .replace 会 TypeError 崩弹窗
     function uuid() {
         if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
         return 'id-'+Date.now()+'-'+Math.random().toString(36).substring(2,8)+'-'+(uuidCounter++);
@@ -1622,7 +1631,7 @@ document.addEventListener('DOMContentLoaded', function() {
         api.repetition_penalty = snapToStep(api.repetition_penalty, 0.05);
         api.freqPenalty = snapToStep(api.freqPenalty, 0.1);
         api.presPenalty = snapToStep(api.presPenalty, 0.1);
-        const elMap = { apiUrlInp: api.url, apiKeyInp: api.key, modelInp: api.model,
+        const elMap = { apiUrlInp: api.url, apiKeyInp: api.key, modelInp: api.model, stopWordsInp: api.stopWords, // v8.6-fix18：停止词回填
             tempRange: api.temp, topPRange: api.top_p,
             repPenaltyRange: api.repetition_penalty,
             maxTokensInp: api.maxTokens, freqRange: api.freqPenalty,
@@ -1782,8 +1791,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function saveApi(keepOpen) {
-        const elMap = { apiUrlInp: 'url', apiKeyInp: 'key', modelInp: 'model',
+    function saveApi(keepOpen, skipAutoRetry) { // v8.6-fix26：skipAutoRetry——失焦自动保存不触发挂起任务重试（防 Key 未配好误启动、401 后任务被消费丢失）
+        const elMap = { apiUrlInp: 'url', apiKeyInp: 'key', modelInp: 'model', stopWordsInp: 'stopWords', // v8.6-fix18：停止词保存
             tempRange: 'temp', topPRange: 'top_p', repPenaltyRange: 'repetition_penalty',
             maxTokensInp: 'maxTokens', freqRange: 'freqPenalty', presRange: 'presPenalty',
             ctxRange: 'ctxChapters' };
@@ -1869,7 +1878,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return; // 保留 pendingGeneration，空间腾出后重新保存会自动重试
         }
         toast("API 配置已保存");
-        if (pendingGeneration) {
+        if (pendingGeneration && !skipAutoRetry) { // v8.6-fix26：自动保存（失焦）不消费挂起任务；显式「保存」按钮才重试
             const gen = pendingGeneration;
             pendingGeneration = null;
             // 按来源书籍恢复：用户配置 API 期间可能已切换小说，重试必须生成回原书
@@ -1915,8 +1924,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const tc = $('thinkingCheck'); if(tc) tc.onchange = () => { const rr = $('reasoningRange'); if(rr) rr.disabled = !tc.checked; };
         const rr = $('reasoningRange'); if(rr) rr.oninput = () => { const levels=['low','high','max']; const rv = $('reasoningVal'); if(rv) rv.innerText = levels[parseInt(rr.value)]; };
         // v7.9 参数输入框：失焦/回车即自动保存（手动输入与上下增减均生效，无需再点保存按钮）
-        ['tempRange','topPRange','repPenaltyRange','freqRange','presRange','ctxRange','maxTokensInp','polishMaxTokensInp','actTempRange','actMaxTokensInp','actRoundsInp'].forEach(id => {
-            const pe = $(id); if(pe) pe.onchange = () => saveApi(true);
+        // v8.6-fix14：URL/Key/Model 文本字段一并纳入失焦自动保存（原只改文本后直接关面板/Esc 会静默丢弃）
+        ['tempRange','topPRange','repPenaltyRange','freqRange','presRange','ctxRange','maxTokensInp','polishMaxTokensInp','actTempRange','actMaxTokensInp','actRoundsInp','apiUrlInp','apiKeyInp','modelInp','polishUrlInp','polishKeyInp','polishModelInp','actUrlInp','actKeyInp','actModelInp'].forEach(id => {
+            const pe = $(id); if(pe) pe.onchange = () => saveApi(true, true); // v8.6-fix26：自动保存不触发挂起任务重试
         });
         const apiModal = $('apiModal');
         if(apiModal) apiModal.style.display = 'flex';
@@ -1947,7 +1957,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     isContinuation: !!chap.isContinuation,
                     isInterlude: !!chap.isInterlude,
                     checkResult: JSON.parse(JSON.stringify(chap.checkResult || [])),
-                    checkState: chap.checkState || 'never'
+                    checkState: chap.checkState || 'never',
+                    checkReport: chap.checkReport ? JSON.parse(JSON.stringify(chap.checkReport)) : null // v8.6-r12：快照补 checkReport——防回滚后冲突面板评级/hits 与新正文错配
                 };
                 // v7.2：silent=true 只存快照不亮按钮——重写发起时存快照，但回滚按钮
                 // 必须在重写真正生成文字后才亮起（由 doRegenerateWithInstr 成功回调启用）
@@ -1973,7 +1984,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if(rollbackSnapshot.isInterlude !== undefined) chap.isInterlude = rollbackSnapshot.isInterlude;
                 if(rollbackSnapshot.checkResult !== undefined) chap.checkResult = JSON.parse(JSON.stringify(rollbackSnapshot.checkResult));
                 if(rollbackSnapshot.checkState !== undefined) chap.checkState = rollbackSnapshot.checkState;
-                saveAll(); loadCurChapter(); clearRollbackSnapshot();
+                if(rollbackSnapshot.checkReport !== undefined) chap.checkReport = rollbackSnapshot.checkReport ? JSON.parse(JSON.stringify(rollbackSnapshot.checkReport)) : null; // v8.6-r12
+                saveAll(); loadCurChapter(); renderChapters(); clearRollbackSnapshot(); // v8.6-r12：renderChapters 刷新侧栏标题（回滚后标题残留修复）
                 toast("已回滚");
             }
         } else { toast("快照已失效（章节已改变）"); clearRollbackSnapshot(); }
@@ -2124,7 +2136,11 @@ document.addEventListener('DOMContentLoaded', function() {
         currentEditingGlobalCharId = null; clearGlobalCharForm(); if(!persistOrWarn()) return; renderGlobalCharList();
         toast("素材角色已保存");
     }
-    function deleteGlobalCharacter(id) { globalCharacters = globalCharacters.filter(c=>c.id!=id); if(currentEditingGlobalCharId==id) clearGlobalCharForm(); if(!persistOrWarn()) return; renderGlobalCharList(); toast("素材角色已删除"); }
+    function deleteGlobalCharacter(id) { // v8.6-r21：仿 deleteCharacter 清理其他角色指向它的悬空 relationships（防导出/导入扩散无主边）
+        globalCharacters = globalCharacters.filter(c=>c.id!=id);
+        const sid = String(id);
+        globalCharacters.forEach(c => { if(Array.isArray(c.relationships)) c.relationships = c.relationships.filter(r => String(r && r.targetId) !== sid); });
+        if(currentEditingGlobalCharId==id) clearGlobalCharForm(); if(!persistOrWarn()) return; renderGlobalCharList(); toast("素材角色已删除"); }
     function clearGlobalCharForm() {
         ['globalCharName','globalCharAppearance','globalCharPersonality','globalCharSpecial','globalCharRelation'].forEach(id => { let el=$(id); if(el) el.value=''; });
         tagState.globalChar = []; renderTagRow('globalChar'); // v7.7 清空标签
@@ -2243,12 +2259,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function exportGlobalCostumesToJson() { if(!globalCostumes.length) { toast("服装库为空"); return; } const blob = new Blob([JSON.stringify(globalCostumes,null,2)], {type:"application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `global_costumes_${Date.now()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("已导出"); }
     function importGlobalCostumesFromJson(file) { const reader = new FileReader(); reader.onload = e => { try { const imported = JSON.parse(e.target.result); if(!Array.isArray(imported)) throw new Error(); let added=0; imported.forEach(item => { if(item.name && typeof item.name==='string') { globalCostumes.push({ id:uuid(), name:item.name, styleDetail:item.styleDetail||'', descriptionTips:item.descriptionTips||'' }); added++; } }); if(added) { saveAll(); renderCostumeList(); toast(`已导入 ${added} 个服装`); } else toast("无有效服装"); } catch(err) { toast("解析失败"); } }; reader.readAsText(file); }
 
-    function batchImport() { if(!globalCharacters.length) { toast("素材角色库为空"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>从素材库导入角色</h3><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="batchImportSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="batchImportSearchClear"></i></div><div class="batch-import-list" id="importListContainer"></div><div class="modal-buttons"><button id="confirmBatchImport" class="glass-btn">确认导入</button><button id="cancelBatchImport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#importListContainer'); globalCharacters.forEach(item => { const label = document.createElement('label'); const safeId = item.id.replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); // v7.4：弹窗搜索（CSS 过滤，选中状态保留）
+    function batchImport() { if(!globalCharacters.length) { toast("素材角色库为空"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>从素材库导入角色</h3><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="batchImportSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="batchImportSearchClear"></i></div><div class="batch-import-list" id="importListContainer"></div><div class="modal-buttons"><button id="confirmBatchImport" class="glass-btn">确认导入</button><button id="cancelBatchImport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#importListContainer'); globalCharacters.forEach(item => { const label = document.createElement('label'); const safeId = String(item.id).replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); // v7.4：弹窗搜索（CSS 过滤，选中状态保留）
         const impSearch = modalDiv.querySelector('#batchImportSearch'); const impClear = modalDiv.querySelector('#batchImportSearchClear');
         if(impSearch) impSearch.addEventListener('input', () => { const kw = impSearch.value.trim(); const items = container.querySelectorAll('label'); let shown = 0; items.forEach(l => { const nm = l.querySelector('.item-name'); const hit = !kw || (nm ? nm.textContent.includes(kw) : false); l.style.display = hit ? '' : 'none'; if(hit) shown++; }); let tip = container.querySelector('.batch-empty-tip'); if(!shown) { if(!tip) { tip = document.createElement('div'); tip.className='batch-empty-tip'; tip.style.cssText='padding:12px;color:#6A627A;font-size:0.7rem;'; tip.textContent='无匹配角色'; container.appendChild(tip); } } else if(tip) tip.remove(); });
         if(impClear) impClear.onclick = () => { if(impSearch) { impSearch.value=''; impSearch.dispatchEvent(new Event('input')); } }; modalDiv.querySelector('#confirmBatchImport').onclick = () => { const book = getCurrentBook(); if(!book) { toast("请先选择小说"); modalDiv.remove(); return; } let imported=0; const idMap = new Map(); const copies = []; modalDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => { const id = cb.getAttribute('data-id'); const original = globalCharacters.find(s => String(s.id) === String(id)); if(original) { const copy = JSON.parse(JSON.stringify(original)); const oldId = copy.id; const newId = uuid(); idMap.set(String(oldId), newId); copy.id = newId; copy.relationships = Array.isArray(copy.relationships) ? copy.relationships : []; copies.push(copy); } }); copies.forEach(copy => { // v7.3 用户拍板：关系无脑带走——targetId 在本次导入/导出集合内则重映射到新 ID，不在则保留原值（不因目标角色未选中而过滤删除）
                 copy.relationships = Array.isArray(copy.relationships) ? copy.relationships.map(r => (r && idMap.has(String(r.targetId))) ? ({ ...r, targetId: idMap.get(String(r.targetId)) }) : r).filter(Boolean) : []; }); if(copies.length) { initCharactersIfNeeded(book); copies.forEach(c => book.characters.push(c)); imported = copies.length; } if(imported) { saveAll(); renderCharacterList(); toast(`已导入 ${imported} 个角色`); } else toast("未选择任何项"); modalDiv.remove(); }; modalDiv.querySelector('#cancelBatchImport').onclick = () => modalDiv.remove(); }
-    function batchExport() { const book = getCurrentBook(); if(!book || !book.characters.length) { toast("当前小说无角色可导出"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>导出到素材角色库</h3><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="batchExportSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="batchExportSearchClear"></i></div><div class="batch-import-list" id="exportListContainer"></div><div class="modal-buttons"><button id="confirmBatchExport" class="glass-btn">确认导出</button><button id="cancelBatchExport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#exportListContainer'); book.characters.forEach(item => { const label = document.createElement('label'); const safeId = item.id.replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); // v7.4：弹窗搜索（CSS 过滤，选中状态保留）
+    function batchExport() { const book = getCurrentBook(); if(!book || !book.characters.length) { toast("当前小说无角色可导出"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>导出到素材角色库</h3><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="batchExportSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="batchExportSearchClear"></i></div><div class="batch-import-list" id="exportListContainer"></div><div class="modal-buttons"><button id="confirmBatchExport" class="glass-btn">确认导出</button><button id="cancelBatchExport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#exportListContainer'); book.characters.forEach(item => { const label = document.createElement('label'); const safeId = String(item.id).replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); // v7.4：弹窗搜索（CSS 过滤，选中状态保留）
         const expSearch = modalDiv.querySelector('#batchExportSearch'); const expClear = modalDiv.querySelector('#batchExportSearchClear');
         if(expSearch) expSearch.addEventListener('input', () => { const kw = expSearch.value.trim(); const items = container.querySelectorAll('label'); let shown = 0; items.forEach(l => { const nm = l.querySelector('.item-name'); const hit = !kw || (nm ? nm.textContent.includes(kw) : false); l.style.display = hit ? '' : 'none'; if(hit) shown++; }); let tip = container.querySelector('.batch-empty-tip'); if(!shown) { if(!tip) { tip = document.createElement('div'); tip.className='batch-empty-tip'; tip.style.cssText='padding:12px;color:#6A627A;font-size:0.7rem;'; tip.textContent='无匹配角色'; container.appendChild(tip); } } else if(tip) tip.remove(); });
         if(expClear) expClear.onclick = () => { if(expSearch) { expSearch.value=''; expSearch.dispatchEvent(new Event('input')); } }; modalDiv.querySelector('#confirmBatchExport').onclick = () => { let exported=0; const idMap = new Map(); const copies = []; modalDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => { const id = cb.getAttribute('data-id'); const original = book.characters.find(s => String(s.id) === String(id)); if(original) { const copy = JSON.parse(JSON.stringify(original)); const oldId = String(copy.id); const newId = uuid(); idMap.set(oldId, newId); copy.id = newId; copy.relationships = Array.isArray(copy.relationships) ? copy.relationships : []; copies.push(copy); } }); copies.forEach(copy => { // v7.3 用户拍板：关系无脑带走——targetId 在本次导入/导出集合内则重映射到新 ID，不在则保留原值（不因目标角色未选中而过滤删除）
@@ -2765,7 +2781,7 @@ document.addEventListener('DOMContentLoaded', function() {
         edgeMeta.forEach(e=>{ const from = relationNodePositions[e.from], to = relationNodePositions[e.to]; if(!from||!to) return; const color = getRelationColor(e.type); let fx = from.x, fy = from.y, tx = to.x, ty = to.y; if(e.offsetSide && e.isBidirectional) { const pairKey = [e.from, e.to].sort().join('|'); const pp = pairPerp[pairKey]; if(pp) { fx += pp.px * e.offsetSide; fy += pp.py * e.offsetSide; tx += pp.px * e.offsetSide; ty += pp.py * e.offsetSide; } } const ep1 = edgeIntersect(fx, fy, tx, ty); const ep2 = edgeIntersect(tx, ty, fx, fy); const g = document.createElementNS('http://www.w3.org/2000/svg','g'); const line = document.createElementNS('http://www.w3.org/2000/svg','line'); line.setAttribute('x1',ep1.x); line.setAttribute('y1',ep1.y); line.setAttribute('x2',ep2.x); line.setAttribute('y2',ep2.y); line.setAttribute('stroke',color); line.setAttribute('stroke-width','3'); line.setAttribute('stroke-linecap','round'); line.setAttribute('marker-end','url(#arr-'+color.replace('#','')+')'); g.appendChild(line); const label = document.createElementNS('http://www.w3.org/2000/svg','text'); const midX = (fx+tx)/2, midY = (fy+ty)/2; label.setAttribute('x',midX); label.setAttribute('y',midY-10); label.setAttribute('class','graph-line-label'); label.setAttribute('fill',color); label.setAttribute('font-size','12'); label.setAttribute('text-anchor','middle'); label.setAttribute('font-weight','500'); label.textContent = e.type; g.appendChild(label); lineGroup.appendChild(g); });
         chars.forEach(c=>{ const pos = relationNodePositions[c.id]; if(!pos) return; const x = pos.x - NODE_W/2, y = pos.y - NODE_H/2; const g = document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('data-id',c.id); g.style.cursor = 'pointer'; g.addEventListener('click',()=>{ graphNodeClick(c.id); }); g.addEventListener('contextmenu',(ev)=>{ ev.preventDefault(); toggleGraphHighlight(book.id, c.id); renderRelationGraph(); }); // v8.6-④：右键切换白底黑字高亮
         g.addEventListener('mousedown',(ev)=>{ graphNodeDragStart(ev,c.id); }); const isHl = getGraphHighlights(book.id).indexOf(c.id) !== -1; // v8.6-④：按高亮状态着色
-        const rect = document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',NODE_W); rect.setAttribute('height',NODE_H); rect.setAttribute('rx','10'); rect.setAttribute('ry','10'); rect.setAttribute('fill', isHl ? '#FFFFFF' : '#1C1A28'); rect.setAttribute('stroke', isHl ? '#E0C85A' : '#3B8ED4'); rect.setAttribute('stroke-width','1.5'); g.appendChild(rect); const name = document.createElementNS('http://www.w3.org/2000/svg','text'); name.setAttribute('x',pos.x); name.setAttribute('y',pos.y-4); name.setAttribute('class','graph-node-text'); name.setAttribute('fill', isHl ? '#000000' : '#EDEAF2'); name.setAttribute('font-size', isHl ? '14' : '12'); name.setAttribute('text-anchor','middle'); name.setAttribute('pointer-events','none'); name.textContent = (c.name||'?').substring(0, 5); g.appendChild(name); const relCount = (c.relationships||[]).length; const sub = document.createElementNS('http://www.w3.org/2000/svg','text'); sub.setAttribute('x',pos.x); sub.setAttribute('y',pos.y+16); sub.setAttribute('class','graph-node-sub'); sub.setAttribute('fill', isHl ? '#333333' : '#8A84A8'); sub.setAttribute('font-size', isHl ? '11' : '9'); name.setAttribute('text-anchor','middle'); name.setAttribute('pointer-events','none'); sub.textContent = relCount ? relCount+'个关系' : '无关系'; g.appendChild(sub); nodeGroup.appendChild(g); });
+        const rect = document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',NODE_W); rect.setAttribute('height',NODE_H); rect.setAttribute('rx','10'); rect.setAttribute('ry','10'); rect.setAttribute('fill', isHl ? '#FFFFFF' : '#1C1A28'); rect.setAttribute('stroke', isHl ? '#E0C85A' : '#3B8ED4'); rect.setAttribute('stroke-width','1.5'); g.appendChild(rect); const name = document.createElementNS('http://www.w3.org/2000/svg','text'); name.setAttribute('x',pos.x); name.setAttribute('y',pos.y-4); name.setAttribute('class','graph-node-text'); name.setAttribute('fill', isHl ? '#000000' : '#EDEAF2'); name.setAttribute('font-size', isHl ? '14' : '12'); name.setAttribute('text-anchor','middle'); name.setAttribute('pointer-events','none'); name.textContent = (c.name||'?').substring(0, 5); g.appendChild(name); const relCount = (c.relationships||[]).length; const sub = document.createElementNS('http://www.w3.org/2000/svg','text'); sub.setAttribute('x',pos.x); sub.setAttribute('y',pos.y+16); sub.setAttribute('class','graph-node-sub'); sub.setAttribute('fill', isHl ? '#333333' : '#8A84A8'); sub.setAttribute('font-size', isHl ? '11' : '9'); sub.setAttribute('text-anchor','middle'); sub.setAttribute('pointer-events','none'); sub.textContent = relCount ? relCount+'个关系' : '无关系'; g.appendChild(sub); nodeGroup.appendChild(g); });
         // v6.4：区域底层绘制（先于人物/关系，置于最底层；半透明底色 + 框线 + 名称双线框居中）
         if(graphRegions.length) {
             const regionGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
@@ -3216,9 +3232,9 @@ ${chapter.content}`;
                 addChat('assistant', current.checkResult.length ? `✅ 检测完成${gradeTxt}，发现 ${current.checkResult.length} 处冲突${cCostTxt}` : `✅ 检测完成${gradeTxt}，未检测到明显冲突${cCostTxt}`);
                 if(conflictVisible) renderConflictPanel(current); // v8.4-③-b：面板开着时刷新渲染 + 重新标色
             } else {
-                current.checkResult = []; current.checkState = 'error';
+                // v8.6-r13：失败不再清空既有检测结果（原无条件清空+落盘，一次瞬时失败就抹掉上一轮有效结果并持久化为"检测失败"，用户需重新付费检测）——保留旧结果仅提示
                 if(checkBtn) checkBtn.style.background = "#3A3A6A";
-                toast(result.error || "冲突检测失败");
+                toast((result.error || "冲突检测失败") + (current.checkResult && current.checkResult.length ? '，已保留上一轮检测结果' : ''));
                 startTabBlink('❌ 冲突检测失败');
                 if(conflictVisible) renderConflictPanel(current); // v8.5.1-P2：失败也刷新面板，清除「自动重测中」占位
             }
@@ -3259,6 +3275,7 @@ ${chapter.content}`;
     }
     async function generateSummaryGrowth(book, chap, chatId, opts) {
         const manual = !!(opts && opts.manual);
+        const sgContentAtRequest = chap.content || ''; // v8.6-r11：正文快照（字符串值拷贝）——请求期间用户编辑/重写，写入时比对丢弃旧摘要
         if(!api.key || !apiUrlValid(api.url)) { if(manual) toast('请先配置 API Key'); return; }
         if(!chap || !(chap.content || '').trim()) { if(manual) toast('章节正文为空，无法生成摘要和经历'); return; }
         if(summaryGenerating) {
@@ -3268,8 +3285,8 @@ ${chapter.content}`;
                 if(multiChapRunning) summarySkippedChaps.push(chap.title || ('第' + ((book.chapters || []).findIndex(c => c.id === chap.id) + 1) + '章')); // v8.6-②：仅连发场景记录跳过章节（单章跳过只留痕）
                 // v8.5.3-P2：本次自动摘要被跳过——若本章正文已完成（summaryGrowthPending 挂起），
                 // 需释放挂起标志与锁，防"手动摘要在途 + 发正文"路径下写作锁永久卡死（原 v7.8 遗留，仅刷新可恢复）
+                summaryGrowthPending = false; // v8.6-fix25：无条件清挂起标志（原仅非连发清理）——手动摘要 finally 不清自动标志，连发跳过后残留导致后续失败生成时 isGenerating 永久卡死
                 if(!multiChapRunning) {
-                    summaryGrowthPending = false;
                     isGenerating = false;
                     setWritingLockTip('');
                     setWritingLock(false);
@@ -3338,6 +3355,11 @@ ${chapter.content}`;
             }
             const current = book.chapters.find(c => c.id === chap.id);
             if(!current) return;
+            // v8.6-r11：写入前 content 快照校验——请求期间用户编辑/重写正文则丢弃本次摘要（防旧正文摘要覆盖新正文、成长按旧文本写入角色库）
+            if(current.content !== sgContentAtRequest) {
+                pushLog('⚠️ 摘要生成期间正文已变更，本次摘要与成长已丢弃（请重新生成）');
+                return;
+            }
             if(summaryText) current.summary = summaryText;
             if(growthParsed.length) { removeChapterGrowthFromAll(book, current.id); applyGrowthToBook(book, current, growthParsed); }
             saveAll();
@@ -3591,7 +3613,7 @@ ${chapter.content}`;
                 const tRegular = (book.chapters || []).slice(0, idx).filter(c => !c.isInterlude).length + 1;
                 title = '第' + tRegular + '章 ' + title;
             }
-            let newChap = { id: uuid(), title, content, prompt: isCont ? (instr||'续写指令') : instr, checkResult: [], isContinuation: isCont ? true : false, isInterlude: false, summary: '' }; // v7.8：摘要由正文后合并请求生成
+            let newChap = { id: uuid(), title, content, prompt: isCont ? (instr||'续写指令') : instr, checkResult: [], isContinuation: isCont ? true : false, isInterlude: false, summary: '', savedAt: Date.now() }; // v8.6-r9：建章即带 savedAt（统计写作日/日均字依赖）
             // v5.8 修复（严重回归）：saved 必须在 if(!isDual) 块外声明——
             // 之前在块内 let 声明、块外访问会抛 ReferenceError: saved is not defined，
             // 导致单版（章节已写入但反馈失败）与双版（A/B 全失败）同时崩溃
@@ -3626,7 +3648,7 @@ ${chapter.content}`;
                     summaryGrowthPending = true;
                     setWritingLockTip('📝 正文已生成，摘要与经历生成中…');
                     const sgBook = book, sgChap = newChap;
-                    setTimeout(() => { void generateSummaryGrowth(sgBook, sgChap, null, { fromGeneration: true }).catch(() => { summaryGrowthPending = false; setWritingLock(false); }); }, 0);
+                    setTimeout(() => { void generateSummaryGrowth(sgBook, sgChap, null, { fromGeneration: true }).catch(() => { summaryGrowthPending = false; if(!multiChapRunning) isGenerating = false; setWritingLock(false); }); }, 0); // v8.6-r16：摘要异常 catch 补 isGenerating 释放（新逻辑保持锁，防永久卡死）
                 }
                 // v7.6：精准模式生成成功后，累计本次勾选的角色/动作/服装引用次数（统计看板三库 TOP10 数据源；旧书无历史数据）
                 if(((!isCont && !isRegen) || book.precisionMode) && book.precisionMode && ((book.precisionChars||[]).length + (book.precisionActions||[]).length + ((book.precisionCostumes||[]).length) > 0)) {
@@ -3654,7 +3676,7 @@ ${chapter.content}`;
                 // v8.5.2-P1：连发内部任务（fromMultiChap）且连发未结束 → 保持全局锁与写作锁，
                 // 防第 N 章摘要/正文 finally 误释放第 N+1 章正文生成中的锁（原 v8.3 遗留：锁被解、用户编辑被 AI 结果覆盖）
                 const keepLock = fromMultiChap && multiChapRunning;
-                if(!keepLock) isGenerating = false;
+                if(!keepLock && !summaryGrowthPending) isGenerating = false; // v8.6-r16：有摘要待启动（summaryGrowthPending）则保持 isGenerating——原无条件置 false，宏任务窗口内用户可并发启动新任务、新章摘要被静默跳过
                 const stopBtn = $('stopGenBtn'); if(stopBtn) stopBtn.disabled = true;
                 currentAbortController = null;
                 stopSbStages(); resetSbProgress(); // v8.0.14：清理进度窗口
@@ -3903,6 +3925,7 @@ ${chapter.content}`;
             );
         }
         sbMultiRunning = false;
+        summaryGrowthPending = false; // v8.6-fix25：连发收尾清挂起标志（防手动摘要 finally 不清导致的残留卡死）
         multiChapRunning = false; // v8.5.2-P1：连发结束，统一释放全局锁与写作锁（摘要 finally 若仍挂起会再释放一次，幂等无害）
         isGenerating = false;
         setWritingLockTip('');
@@ -4081,6 +4104,13 @@ ${chapter.content}`;
             // v7.8：成长不再随正文请求生成、无 growthPending 挂载；选中版本后保持锁定，
             // 由合并请求（generateSummaryGrowth）生成摘要+经历，完成/超时后解锁
             const savedOk = saveAll();
+            // v8.6-fix31：双版选中也累计精准统计（原仅单版 executeGeneration 累计，双版路径 TOP10 排行缺失）
+            if(book.precisionMode && ((book.precisionChars||[]).length + (book.precisionActions||[]).length + ((book.precisionCostumes||[]).length) > 0)) {
+                if(!book.precisionStats) book.precisionStats = { chars: {}, actions: {}, costumes: {} };
+                (book.precisionChars||[]).forEach(pid => { book.precisionStats.chars[String(pid)] = (book.precisionStats.chars[String(pid)]||0) + 1; });
+                (book.precisionActions||[]).forEach(pid => { book.precisionStats.actions[String(pid)] = (book.precisionStats.actions[String(pid)]||0) + 1; });
+                (book.precisionCostumes||[]).forEach(pid => { book.precisionStats.costumes[String(pid)] = (book.precisionStats.costumes[String(pid)]||0) + 1; });
+            }
             lastGenCostRef = { bookId: book.id, chapId: chap.id, cost: cost }; // v8.4.4-P2.1：双版选版补正文成本快照——摘要完成合并展示「正文 x，摘要经历 y，共 z」（对齐单版）
             // v7.3：冲突检测改为仅手动——双版选中同样不再自动检测
             // const chIdx = book.chapters.length - 1;
@@ -4094,7 +4124,7 @@ ${chapter.content}`;
             setWritingLock(true);
             setWritingLockTip('📝 正文已生成，摘要与经历生成中…');
             const sgBook = book, sgChap = chap;
-            setTimeout(() => { void generateSummaryGrowth(sgBook, sgChap, null, { fromGeneration: true }).catch(() => { summaryGrowthPending = false; setWritingLock(false); }); }, 0);
+            setTimeout(() => { void generateSummaryGrowth(sgBook, sgChap, null, { fromGeneration: true }).catch(() => { summaryGrowthPending = false; if(!multiChapRunning) isGenerating = false; setWritingLock(false); }); }, 0); // v8.6-r16：摘要异常 catch 补 isGenerating 释放（新逻辑保持锁，防永久卡死）
             // 反馈消息与精准关闭：独立保护，任何异常都不阻塞锁释放
             try {
                 if(lid) {
@@ -4289,16 +4319,16 @@ ${chapter.content}`;
         if(pendingPolish || polishMode) { toast(pendingPolish ? "润色进行中，请先等待完成" : "润色预览中，请先应用或取消"); return; }
         if(pendingBranch) { toast("走向生成中，请稍候"); return; }
         if(!ensureCurrentChapterSaved()) return;
-        // v7.8：续写常态锁定——点击先自动跳转最新章节，弹窗确认「是否生成续写剧情导向」，确认才生成走向卡牌，取消则关闭
+        // v7.8：续写常态锁定——先弹窗确认，确认后才跳转最新章节（v8.6-r14：原逻辑先跳章再确认，取消后不跳回，用户输入落入错误章节）
         if(book.chapters.length) {
             const last = book.chapters[book.chapters.length - 1];
             const changed = book.currentChapterId !== last.id;
+            if(!confirm('是否生成续写剧情导向？' + (changed ? '\n将跳转至最新章节《' + (last.title || '未命名') + '》。' : '\n将基于最新章节《' + (last.title || '未命名') + '》生成 3 个剧情走向卡片。') + '\n确认后生成走向，选中卡片后才会续写。')) return;
             if(changed) {
                 book.currentChapterId = last.id;
                 setRewriteMode(false, null); branchContinuePending = false; branchBookId = null;
                 loadCurChapter(); renderChapters(); saveAll();
             }
-            if(!confirm('是否生成续写剧情导向？' + (changed ? '\n已自动跳转至最新章节《' + (last.title || '未命名') + '》。' : '\n将基于最新章节《' + (last.title || '未命名') + '》生成 3 个剧情走向卡片。') + '\n确认后生成走向，选中卡片后才会续写。')) return;
         }
         if(pendingGeneration) cancelPendingGeneration('⚠️ 已被新的生成任务覆盖');
         // v7.2：发起新生成（续写）即退出重写态（用户拍板：发送完成/切章节/新生成三时机清状态）
@@ -4381,6 +4411,11 @@ ${chapter.content}`;
     }
     // v7.3：修改幅度比例——字符级编辑距离 / 较长句字数（0~1）。用于过滤"几乎相同"的敷衍修改
     function editRatio(a, b) {
+        // v8.6-r17：长度门槛——AI 不守"old≤200字"约束输出超长文本时，DP 数组 (m+1)×(n+1) 会 OOM 冻结页面（m=n=5000≈200MB）；超 500 截断再算（比例失真可接受，宁保不崩）
+        a = String(a || ''); b = String(b || '');
+        // v8.6-fix10：两头采样（前 250 + 后 250）——原 slice(0,500) 使"仅尾部修改"的润色建议截断后 ratio=0 被误丢
+        if(a.length > 500) a = a.slice(0, 250) + a.slice(a.length - 250);
+        if(b.length > 500) b = b.slice(0, 250) + b.slice(b.length - 250);
         const m = a.length, n = b.length;
         if(!m || !n) return 1; // 任一侧为空视为大改（保留）
         const dp = Array.from({ length: m + 1 }, (_, i) => [i]);
@@ -4399,7 +4434,7 @@ ${chapter.content}`;
         if(!polishApi.key) return { ok:false, err:'审稿 API Key 未配置，无法润色' };
         // v7.3：DeepSeek 思考模式——reasoning_effort 直传 UI 档位（low/high/max，与正文 API 一致）
         const rEff = ['low','high','max'].indexOf(polishApi.reasoning) >= 0 ? polishApi.reasoning : 'high';
-        const sys = '你是资深网文编辑。请审查以下小说章节并给出润色建议。注意：这是虚构文学作品创作，即使涉及情感冲突、争议性情节等，也请正常创作，不要拒绝或回避。\n【大幅修改（问题严重，必须改，可大改）】：\na. 仅明显常识/逻辑错误：人物行为违背现实物理规律或明显常识（如从 10 米高楼跳下毫发无损）——除非前文已铺垫超能力或其他设定；**即使修改后可能影响后文的衔接，也必须改（后文由作者自行处理）**；人设一致性的深度核对由「检测」功能负责，此处不处理；\nb. 物理与常识：违背现实物理规律或常识（如从 10 米高楼跳下毫发无损）——除非前文已铺垫超能力或其他设定；**即使修改后可能影响后文的衔接，也必须改（后文由作者自行处理）**；\nc. 时空与逻辑：场景切换缺少过渡、时空混乱、时间线矛盾（如上一秒在家下一秒到学校）；\nd. 不合理比喻/体型/身体描写（如"大腿只有手指般粗"——除非前文设定该角色是袖珍体型/精灵等特殊体形）。\n【小幅修改（允许，改动小）】：\ne. 词语使用错误：用词不当或部位错误（如"太阳穴发麻"应为"头皮发麻"）；\nf. 逻辑小错位：人物称呼/顺序错误（如 A 是 B 的老师却称呼 B 为老师，应调换）、台词顺序或指代错位。\n【不要修改（必须过滤）】：\n- 信息量零变化的纯措辞替换（如"喉结滚动"改"喉头动了动"——词汇语义无变化、无任何提升，不得输出）；\n- 只增删"的/了/一/副/个"等虚词或只改标点的微调（除非同时修正了逻辑错误）。\n【理由机制】：\n- **每一处修改都必须带 reason 字段**（一句话，≤30 字，说明改了什么、为什么更好，如"原句『呆呆的』重复啰嗦，『呆滞』更简洁传神"）——**无论修改幅度大小，大段更换和小幅修改都需要理由**；\n- **没有理由的修改不要输出**（宁可少改，不改无意义）。\n【优先级】：30 处上限内先改最严重的（大幅 a-d），其次小幅修正（e-f），低比例小改排最末；宁缺毋滥。\n【输出格式】：必须只输出一个 JSON 对象：{"edits":[{"old":"原文完整句子 或 连续小段（≤200字，可跨行）","new":"润色后内容","reason":"（仅低幅度修改时必填，一句话≤30字）"}]}，old 必须与原文逐字一致（含标点、换行），供前端精确替换；支持整段/跨行替换；一次最多输出 30 处；没有值得修改的则输出空数组 []。不要输出任何其他文字。\n\n【去AI味要求】\n1. 增加口语与语气词，让人物多说人话（如“啧”“得了吧”“行行行”“算了算了”），避免通篇书面腔。\n2. 加入“废话”动作细节：刻意穿插日常无意义小动作（中途擦桌子、翻白眼、蹲下系鞋带、把笔帽咬得坑坑洼洼），增强真实感。\n3. 善用错位描写：表达情绪时不直接写“他很难过”，改写成具体动作（“他盯着外卖，筷子夹了好几次只夹起一粒米”），让读者从动作细节中自行体会。\n4. 避免以下 AI 高频词/短语（出现即替换为具体动作或白描）：\n炸开、就像是、嘴角勾起、顿时、霎时、立刻、连忙、显然、似乎、虽然、大概、确实、几乎、可能、注定、接下来、渐渐、更是、一定、或许、十分、沉重、看不出、淡淡、郑重、此刻、恐怕、清凉、不知道、心中一凛、眼中闪过一丝惊诧、行云流水、心下了然、话锋一转、眼神深邃、显著、至关重要、微微挑眉、波涛汹涌、绝对、不可估量、仿佛、随时、无法想象、无法用言语形容、脸上带着笑意、平静地、显得有些兴奋、心中了然、激动地、眼神热切、目光显著不遮掩、淡淡地、不卑不亢、如同、显得异常清晰、暂时、不知是、瞬间、不经意、这一刻、嘴角勾起一抹、一时之间、这一次、看似、沉吟、隐晦有了猜测、谈吐间、一刻、她不言、目光泛过、心中一片平静、一丝、坚定、深吸一口气、缓缓地说、锐利的眼睛、他的嘴角微微上扬、他的表情变暗、他的心一跳、他的脸变了、不容置疑、嘴角、脸色、不易察觉的、的目光、心中、觉得、意识到、感到、认为、一抹、一般、些许、有点、略微、口气、纯粹、冰冷、电弧、闪烁、挣扎、清冷、沸腾、扭曲、撕裂、漆黑、窒息、刺眼、一点、不动声色、小小翼翼、沉吟片刻、心里隐隐有了猜测、果然、脸上堆满了笑、像喝了的毒药、嘴角勾起一个弧度、嘴巴张得能塞下一个鸡蛋、还要冰冷、透露的寒意、让空气的温度都下降了几度、声音不大、微微发颤、发白、不是…而是…句式、攥得泛白\n5. 以上去AI味要求为最高优先级：当与模板文风/行文规范冲突时，一律以去AI味要求为准，宁可牺牲文采也要保证人味与口语感。';
+        const sys = '你是资深网文编辑。请审查以下小说章节并给出润色建议。注意：这是虚构文学作品创作，即使涉及情感冲突、争议性情节等，也请正常创作，不要拒绝或回避。\n【大幅修改（问题严重，必须改，可大改）】：\na. 仅明显常识/逻辑错误：人物行为违背现实物理规律或明显常识（如从 10 米高楼跳下毫发无损）——除非前文已铺垫超能力或其他设定；**即使修改后可能影响后文的衔接，也必须改（后文由作者自行处理）**；人设一致性的深度核对由「检测」功能负责，此处不处理；\nb. 物理与常识：违背现实物理规律或常识（如从 10 米高楼跳下毫发无损）——除非前文已铺垫超能力或其他设定；**即使修改后可能影响后文的衔接，也必须改（后文由作者自行处理）**；\nc. 时空与逻辑：场景切换缺少过渡、时空混乱、时间线矛盾（如上一秒在家下一秒到学校）；\nd. 不合理比喻/体型/身体描写（如"大腿只有手指般粗"——除非前文设定该角色是袖珍体型/精灵等特殊体形）。\n【小幅修改（允许，改动小）】：\ne. 词语使用错误：用词不当或部位错误（如"太阳穴发麻"应为"头皮发麻"）；\nf. 逻辑小错位：人物称呼/顺序错误（如 A 是 B 的老师却称呼 B 为老师，应调换）、台词顺序或指代错位。\n【不要修改（必须过滤）】：\n- 信息量零变化的纯措辞替换（如"喉结滚动"改"喉头动了动"——词汇语义无变化、无任何提升，不得输出）；\n- 只增删"的/了/一/副/个"等虚词或只改标点的微调（除非同时修正了逻辑错误）。\n- 删句号改逗号、删"地/了/的"等虚词、删"入"字（如"走入了"改"走进"）等为求"利落/流畅/干脆"的措辞精简——信息量零变化，不得输出；\n- 强行加语气词（啧/得了吧/行行行/算了算了等）或硬塞"废话动作"（擦桌子/翻白眼/系鞋带等）——原句无问题不得硬套，此类改动视为无实质提升。\n【理由机制】：\n- **每一处修改都必须带 reason 字段**（一句话，≤30 字，说明改了什么、为什么更好，如"原句『呆呆的』重复啰嗦，『呆滞』更简洁传神"）——**无论修改幅度大小，大段更换和小幅修改都需要理由**；\n- **没有理由的修改不要输出**（宁可少改，不改无意义）。\n【优先级与分配】：修改数量 0~30 处，不设下限、不强制按位置分配——只修改真正需要修改的句子；先通读全文识别所有真正的问题（包括后半篇），再按严重度排序取舍；宁缺毋滥，绝不为了凑数强行修改；没有值得修改的句子就少改或不改，可输出空数组 []。\n【禁止输出无效项】：\n- 严禁输出 old 与 new 相同的条目（不得以"原句无问题，保留"等理由占位）；无值得修改的句子直接跳过，宁缺毋滥；\n- old 与 new 仅差"的/了/一/副/个"等虚词或仅标点不同的条目同样禁止输出（视为无实质提升）；\n- 输出前自查每一条：old 与 new 必须存在实质内容差异。\n【输出格式】：必须只输出一个 JSON 对象：{"edits":[{"old":"原文完整句子 或 连续小段（≤200字，可跨行）","new":"润色后内容","reason":"一句话≤30字（每处必填）"}]}，old 必须与原文逐字一致（含标点、换行），供前端精确替换；支持整段/跨行替换；一次最多输出 30 处；没有值得修改的则输出空数组 []。不要输出任何其他文字。\n\n【去AI味要求】（仅针对含 AI 高频词/明显书面腔的句子，正常句子一律不动）：\n1. 出现以下 AI 高频词/短语时，替换为具体动作或白描：\n炸开、就像是、嘴角勾起、顿时、霎时、立刻、连忙、显然、似乎、虽然、大概、确实、几乎、可能、注定、接下来、渐渐、更是、一定、或许、十分、沉重、看不出、淡淡、郑重、此刻、恐怕、清凉、不知道、心中一凛、眼中闪过一丝惊诧、行云流水、心下了然、话锋一转、眼神深邃、显著、至关重要、微微挑眉、波涛汹涌、绝对、不可估量、仿佛、随时、无法想象、无法用言语形容、脸上带着笑意、平静地、显得有些兴奋、心中了然、激动地、眼神热切、目光显著不遮掩、淡淡地、不卑不亢、如同、显得异常清晰、暂时、不知是、瞬间、不经意、这一刻、嘴角勾起一抹、一时之间、这一次、看似、沉吟、隐晦有了猜测、谈吐间、一刻、她不言、目光泛过、心中一片平静、一丝、坚定、深吸一口气、缓缓地说、锐利的眼睛、他的嘴角微微上扬、他的表情变暗、他的心一跳、他的脸变了、不容置疑、嘴角、脸色、不易察觉的、的目光、心中、觉得、意识到、感到、认为、一抹、一般、些许、有点、略微、口气、纯粹、冰冷、电弧、闪烁、挣扎、清冷、沸腾、扭曲、撕裂、漆黑、窒息、刺眼、一点、不动声色、小小翼翼、沉吟片刻、心里隐隐有了猜测、果然、脸上堆满了笑、像喝了的毒药、嘴角勾起一个弧度、嘴巴张得能塞下一个鸡蛋、还要冰冷、透露的寒意、让空气的温度都下降了几度、声音不大、微微发颤、发白、不是…而是…句式、攥得泛白\n\n2. 仅当原句确实生硬书面腔/套话重时，才可适度口语化或改错位描写；日常叙述、正常对话保持原样——不得强行加语气词、硬塞"废话动作"、虚词增减、同义替换或改标点（此类无实质提升）\n3. 去 AI 味不得以牺牲文采/准确性为代价——宁缺毋滥，宁可少改\n4. 以上要求适用全文，后半篇同样适用——但只改真正需要改的句子，不凑数保证人味与口语感。';
         const context = buildPolishContext(book, chap);
         const user = '待润色内容：\n' + context + '\n\n请输出润色 diff 的 JSON。';
         const t0 = Date.now();
@@ -4456,7 +4491,7 @@ ${chapter.content}`;
                 if(end > bs) { try { obj = JSON.parse(text.slice(bs, end + 1)); } catch(_) {} }
             }
             if(!obj) { try { obj = JSON.parse(text); } catch(_) {} }
-            const edits = (obj && Array.isArray(obj.edits)) ? obj.edits.filter(e => e && e.old && e.new) : [];
+            const edits = (obj && Array.isArray(obj.edits)) ? obj.edits.filter(e => { if(!e || !e.old || !e.new) return false; const _o = String(e.old).trim(), _n = String(e.new).trim(); if(_o === _n || editRatio(_o, _n) * 100 < 3) return false; const VOIDRE = /[ 的了地得着过,，。.!！?？;；:：（）()]/g; return _o.replace(VOIDRE, '') !== _n.replace(VOIDRE, ''); }) : []; // v8.6-fix2：再剔除仅虚词/标点差异的微调（删地/了/的、改逗号等）
             // v7.3：滑块从"过滤"改为"理由触发标记"——不再丢弃任何修改，每个 edit 附带字符变动比例 ratio（前端据此判定是否渲染黄色理由）
             const mapped = edits.map(e => {
                 const old = String(e.old).trim(), nw = String(e.new).trim();
@@ -4795,8 +4830,9 @@ ${chapter.content}`;
         const copy = JSON.parse(JSON.stringify(book));
         copy.id = uuid();
         copy.name = newName.trim();
-        // 章节 id 重映射
-        (copy.chapters || []).forEach(ch => { ch.id = uuid(); });
+        // 章节 id 重映射（v8.6-fix27：含角色成长记录 chapterId 引用）
+        const chapIdMap = new Map();
+        (copy.chapters || []).forEach(ch => { const oldId = String(ch.id); ch.id = uuid(); chapIdMap.set(oldId, ch.id); });
         // 角色 id 重映射
         const charIdMap = new Map();
         (copy.characters || []).forEach(c => { const oldId = String(c.id); const newId = uuid(); charIdMap.set(oldId, newId); c.id = newId; });
@@ -4817,6 +4853,16 @@ ${chapter.content}`;
                 if(charIdMap.has(String(k))) newPos[charIdMap.get(String(k))] = v;
             }
             copy.relationPositions = newPos;
+        }
+        // v8.6-fix27：角色成长 chapterId 按章节映射重指（原副本删章后成长无法清理）
+        (copy.characters || []).forEach(c => { if(Array.isArray(c.growth)) c.growth.forEach(g => { if(g && chapIdMap.has(String(g.chapterId))) g.chapterId = chapIdMap.get(String(g.chapterId)); }); });
+        // v8.6-fix27：精准统计键按角色映射重指（原副本 stats.chars 键仍指向旧角色 id，统计看板 TOP10 恒为 0）
+        if(copy.precisionStats && copy.precisionStats.chars && typeof copy.precisionStats.chars === 'object') {
+            const newChars = {};
+            for(const [k, v] of Object.entries(copy.precisionStats.chars)) {
+                if(charIdMap.has(String(k))) newChars[charIdMap.get(String(k))] = v;
+            }
+            copy.precisionStats.chars = newChars;
         }
         // 当前章节指向副本第一章节
         copy.currentChapterId = (copy.chapters && copy.chapters.length) ? copy.chapters[0].id : null;
@@ -4996,7 +5042,7 @@ ${chapter.content}`;
         let content = (p.chapterContent || '').trim();
         content = content.split('\n').map(l => l.replace(/\s+$/, '')).join('\n');
         const summary = (p.chapterSummary || p.summary || '').trim().slice(0, 300);
-        b.chapters.push({ id:uuid(), title, content, summary, prompt:'', checkResult:[], isContinuation:false, isInterlude:false });
+        b.chapters.push({ id:uuid(), title, content, summary, prompt:'', checkResult:[], isContinuation:false, isInterlude:false, savedAt: Date.now() }); // v8.6-r9：起书首章带 savedAt
         b.currentChapterId = b.chapters[0].id;
         // v8.0.10：起书成功消息合并精简（1 总结 + 4 引导）
         const wordCount = content.replace(/\s/g, '').length;
@@ -5152,7 +5198,12 @@ ${chapter.content}`;
         html = html.replace(/<\/div>/gi, '\n');
         html = html.replace(/<\/p>/gi, '\n');
         html = html.replace(/<[^>]+>/g, '');
-        return html.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ').replace(/&quot;/g,'"').replace(/&#x27;/g,"'").replace(/&#39;/g,"'").replace(/&#x2F;/g,'/');
+        // v8.6-fix27：单次完整解码——原链式 replace 会把正文中字面实体文本二次解码篡改（数据损坏）；textarea RCDATA 只解一层
+        try {
+            const ta = document.createElement('textarea');
+            ta.innerHTML = html;
+            return ta.value;
+        } catch(e) { return html; }
     }
     function updateWord() {
         const novelContent = $('novelContent'); const wordCount = $('wordCount');
@@ -5210,7 +5261,7 @@ ${chapter.content}`;
             div.innerHTML = `<span style="cursor:pointer;flex:1;">${chapTitle}</span><div class="chap-actions"><i class="fas fa-pen" data-action="rename" data-id="${ch.id}"></i><i class="fas fa-trash" data-action="delete" data-id="${ch.id}"></i><i class="fas fa-exchange-alt" data-action="toggleInterlude" data-id="${ch.id}" title="正章⇄间章"></i></div>`;
             div.addEventListener('click', (e) => { if(e.target.tagName==='I') return; if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再切换章节"); return; } if(!ensureCurrentChapterSaved()) return; b.currentChapterId=ch.id; setRewriteMode(false, null); branchContinuePending = false; branchBookId = null; loadCurChapter(); renderChapters(); saveAll(); });
             div.querySelector('[data-action="rename"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再重命名"); return; } let nt=prompt('新章节标题',ch.title); if(nt&&nt.trim()){ ch.title=nt.trim(); renderChapters(); if(!persistOrWarn()) return; if(b.currentChapterId===ch.id) { const curChapName = $('curChapName'); if(curChapName) curChapName.innerText = ch.title.substring(0,25); } } });
-            div.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再删除"); return; } const deletingCurrent = b.currentChapterId===ch.id; if(!deletingCurrent && !ensureCurrentChapterSaved()) { toast("当前章节保存失败，已取消删除操作"); return; } if(!confirm(`确认删除章节「${ch.title}」？`)) return; const idx=b.chapters.findIndex(c=>c.id===ch.id); if(idx!==-1) { const removed=b.chapters[idx]; const oldCurrentId=b.currentChapterId; const oldLen=b.chapters.length; b.chapters.splice(idx,1); if(b.chapters.length===0) { b.chapters.push({ id:uuid(), title:"新章节", content:"# 新章节\n\n在这里开始写作...", prompt:"", checkResult:[], isContinuation:false, isInterlude:false }); b.currentChapterId=b.chapters[0].id; toast("已清空所有章节，自动创建空白章节"); } else { if(b.currentChapterId===ch.id) b.currentChapterId=b.chapters[0]?.id||null; toast(`已删除「${ch.title}」`); } if(!persistOrWarn()) { if(oldLen===1) b.chapters.pop(); b.chapters.splice(idx,0,removed); b.currentChapterId=oldCurrentId; renderChapters(); loadCurChapter(); toast('保存失败，已恢复章节'); return; } removeChapterGrowthFromAll(b, ch.id); renderChapters(); loadCurChapter(); } });
+            div.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再删除"); return; } const deletingCurrent = b.currentChapterId===ch.id; if(!deletingCurrent && !ensureCurrentChapterSaved()) { toast("当前章节保存失败，已取消删除操作"); return; } if(!confirm(`确认删除章节「${ch.title}」？`)) return; const idx=b.chapters.findIndex(c=>c.id===ch.id); if(idx!==-1) { const removed=b.chapters[idx]; const oldCurrentId=b.currentChapterId; const oldLen=b.chapters.length; b.chapters.splice(idx,1); if(b.chapters.length===0) { b.chapters.push({ id:uuid(), title:"新章节", content:"# 新章节\n\n在这里开始写作...", prompt:"", checkResult:[], isContinuation:false, isInterlude:false, savedAt: Date.now() }); b.currentChapterId=b.chapters[0].id; toast("已清空所有章节，自动创建空白章节"); } else { if(b.currentChapterId===ch.id) b.currentChapterId=b.chapters[0]?.id||null; toast(`已删除「${ch.title}」`); } if(!persistOrWarn()) { if(oldLen===1) b.chapters.pop(); b.chapters.splice(idx,0,removed); b.currentChapterId=oldCurrentId; renderChapters(); loadCurChapter(); toast('保存失败，已恢复章节'); return; } removeChapterGrowthFromAll(b, ch.id); renderChapters(); loadCurChapter(); } });
             div.querySelector('[data-action="toggleInterlude"]')?.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再切换间章"); return; }
@@ -5264,7 +5315,7 @@ ${chapter.content}`;
         if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再新增章节"); return; }
         if(!ensureCurrentChapterSaved()) return;
         // 默认创建普通正章（与"新增章节"文案语义一致）；需要间章可点击 ⬌ 切换
-        b.chapters.push({ id:uuid(), title:'新章节', content:"# 新章节\n\n在这里书写...", prompt:"", checkResult:[], isContinuation:false, isInterlude:false });
+        b.chapters.push({ id:uuid(), title:'新章节', content:"# 新章节\n\n在这里书写...", prompt:"", checkResult:[], isContinuation:false, isInterlude:false, savedAt: Date.now() }); // v8.6-r9：新建空章带 savedAt
         b.currentChapterId = b.chapters[b.chapters.length-1].id;
         const saved = saveAll(); renderChapters(); loadCurChapter();
         toast(saved ? "新章节已添加（如需间章可点 ⬌ 切换）" : "⚠️ 章节已创建但保存失败，请检查存储空间");
@@ -5393,11 +5444,12 @@ ${chapter.content}`;
                 else if(books.length) switchBook(books[0].id);
                 else { const curBookName = $('curBookName'); if(curBookName) curBookName.innerText='未选择'; const novelContent = $('novelContent'); if(novelContent) novelContent.innerText='✨ 左侧按钮，一键起书，创作你的第一本小说吧！'; }
                 isImporting = false;
+                applyLibEditorWidth(); // v8.6-fix32：导入后立即应用库编辑栏宽（原仅下次打开弹窗时恢复）
                 // 导入的 API 配置需走 loadApi 统一兜底与刷新（数值校验/dualMode/notify 按钮高亮），
                 // 否则异常备份的数值直接生效、按钮状态与功能脱节
                 loadApi();
                 // v7.0：恢复日志（兼容旧备份无 appLogs 字段）
-                if(Array.isArray(data.appLogs)) { appLogs = data.appLogs.slice(-30); try { localStorage.setItem('app_logs_v1', JSON.stringify(appLogs)); } catch(e) {} }
+                if(Array.isArray(data.appLogs)) { appLogs = data.appLogs.slice(-50); try { localStorage.setItem('app_logs_v1', JSON.stringify(appLogs)); } catch(e) {} }
                 // v8.1：恢复累计消耗金额（按存档金额覆盖；老备份无该字段时保持现值不动）
                 if(data.costStats && typeof data.costStats === 'object') { try { localStorage.setItem('cost_stats_v1', JSON.stringify(data.costStats)); } catch(e) {} }
                 // v8.2：恢复自定义标签库（数组时覆盖；老备份无该字段时保持现值不动）
@@ -5559,7 +5611,7 @@ ${chapter.content}`;
         { name:'细心的粉丝', style:'注意细节伏笔：捕捉呼应、暗示、小细节并解读' }
     ];
     let banterVisible = false;
-    function banterCacheKey() { const b = getCurrentBook(); if(!b || !b.currentChapterId) return null; return 'banter_cache_v1_' + b.id + '_' + b.currentChapterId; }
+    function banterCacheKey() { const b = getCurrentBook(); if(!b || !b.currentChapterId) return null; const ch = b.chapters.find(c=>c.id===b.currentChapterId); let fp = 0; const ct = (ch && ch.content) || ''; for(let i = 0; i < ct.length; i++) fp = (fp * 31 + ct.charCodeAt(i)) | 0; return 'banter_cache_v1_' + b.id + '_' + b.currentChapterId + '_' + fp; } // v8.6-r8：缓存键加正文内容指纹——重写/修改后指纹变→旧点评自然失效（原仅书+章id，重写后仍展示旧正文点评）
     function getBanterCache() { const k = banterCacheKey(); if(!k) return null; try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch(e) { return null; } }
     function setBanterCache(list) { const k = banterCacheKey(); if(!k) return; try { localStorage.setItem(k, JSON.stringify(list)); } catch(e) {} }
     function pickBanterRoles() { const pool = BANTER_ROLES.slice(); for(let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; } return pool.slice(0, 3); }
@@ -5737,11 +5789,14 @@ ${chapter.content}`;
         const el = $('novelContent'), inp = $('findInput'); if(!el || !inp) return;
         const q = inp.value; if(!q) { resetFindState(); return; }
         unwrapHighlights(); findQuery = q;
+        // v8.6-r15：跨节点匹配——冲突标色 <mark> 把文本切成多段，跨段词匹配不到；先剥离合并文本，查找完成后再按需重标
+        const marks = el.querySelectorAll('mark.check-mark');
+        if(marks.length) { marks.forEach(mk => mk.replaceWith(document.createTextNode(mk.textContent))); el.normalize(); }
         const parts = [];
         const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
         while(walker.nextNode()) { const node = walker.currentNode, text = node.textContent; let pos = 0, idx = text.indexOf(q, pos); while(idx !== -1) { parts.push({node, start:idx, end:idx+q.length}); pos = idx+1; idx = text.indexOf(q, pos); } }
         findTotal = parts.length;
-        if(findTotal===0) { const c=$('findCount'); if(c)c.textContent='无结果'; return; }
+        if(findTotal===0) { const c=$('findCount'); if(c)c.textContent='无结果'; const cur0 = getCurrentBook(); const ch0 = cur0 && cur0.currentChapterId ? cur0.chapters.find(x=>x.id===cur0.currentChapterId) : null; if(conflictVisible && ch0 && ch0.checkResult && ch0.checkResult.length) applyCheckMarks(ch0); return; } // v8.6-r15：无结果也恢复冲突标色
         if(findIndex>=findTotal) findIndex=0;
         // 从尾部循环包裹（避免前置节点位置失效）；surroundContents 可能失败（跨节点/结构），
         // 成功后重新编号（弃用原始 i），保证 data-idx 连续、findTotal 与实际高亮一致
@@ -5751,12 +5806,17 @@ ${chapter.content}`;
         findTotal = highlights.length;
         if(findIndex>=findTotal && findTotal>0) findIndex=findTotal-1;
         const c=$('findCount'); if(c)c.textContent=`${findIndex+1}/${findTotal}`; scrollToMatch();
+        // v8.6-r15：查找完成恢复冲突标色（若面板开着且剥离过）
+        const cur2 = getCurrentBook(); const chap2 = cur2 && cur2.currentChapterId ? cur2.chapters.find(x=>x.id===cur2.currentChapterId) : null;
+        if(conflictVisible && chap2 && chap2.checkResult && chap2.checkResult.length) applyCheckMarks(chap2);
     }
     function scrollToMatch() { const el=$('novelContent'); if(!el)return; const all=el.querySelectorAll('.find-highlight'); all.forEach(s=>s.classList.remove('active')); const cur=el.querySelector(`.find-highlight[data-idx="${findIndex}"]`); if(cur){ cur.classList.add('active'); cur.scrollIntoView({block:'center',behavior:'smooth'}); } }
     function findNext() { if(!findTotal) { doFind(); return; } findIndex=(findIndex+1)%findTotal; scrollToMatch(); const c=$('findCount'); if(c)c.textContent=`${findIndex+1}/${findTotal}`; }
     function findPrev() { if(!findTotal) { doFind(); return; } findIndex=(findIndex-1+findTotal)%findTotal; scrollToMatch(); const c=$('findCount'); if(c)c.textContent=`${findIndex+1}/${findTotal}`; }
-    function replaceOne() { if(isGenerating) return; const repInp=$('replaceInput'); if(!repInp||!findTotal||!findQuery) return; const replacement=repInp.value; if(!replacement && !confirm('替换为空串将删除匹配内容，确定继续？')) return; unwrapHighlights(); const el=$('novelContent'); if(!el)return; let count=0; const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null,false); while(walker.nextNode()) { const node=walker.currentNode, text=node.textContent; let pos=0, idx=text.indexOf(findQuery,pos); while(idx!==-1) { if(count===findIndex) { node.textContent=text.slice(0,idx)+replacement+text.slice(idx+findQuery.length); markContentDirty(); findIndex = count; if(findQuery === replacement) { findIndex++; } doFind(); return; } count++; pos=idx+1; idx=text.indexOf(findQuery,pos); } } }
-    function replaceAll() { if(isGenerating) return; const repInp=$('replaceInput'); if(!repInp||!findTotal||!findQuery) return; const replacement=repInp.value; if(!replacement && !confirm('替换为空串将删除全部匹配内容，确定继续？')) return; unwrapHighlights(); const el=$('novelContent'); if(!el)return; let total=0; const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null,false); while(walker.nextNode()) { const node=walker.currentNode, text=node.textContent; let count=0, pos=0, idx=text.indexOf(findQuery,pos); while(idx!==-1) { count++; pos=idx+1; idx=text.indexOf(findQuery,pos); } if(count>0) { node.textContent=text.split(findQuery).join(replacement); total+=count; } } markContentDirty(); findIndex=0; doFind(); toast(`已替换 ${total} 处`); }
+    function replaceOne() { if(isGenerating || polishMode) { if(polishMode) toast('润色预览中，请先应用或取消'); return; } const repInp=$('replaceInput'); if(!repInp||!findTotal||!findQuery) return; const replacement=repInp.value; if(!replacement && !confirm('替换为空串将删除匹配内容，确定继续？')) return; unwrapHighlights(); const el=$('novelContent'); if(!el)return; const marks = el.querySelectorAll('mark.check-mark'); if(marks.length) { marks.forEach(mk => mk.replaceWith(document.createTextNode(mk.textContent))); el.normalize(); } // v8.6-补15'：替换前剥离冲突标色 mark 合并文本（防跨节点漏替换），替换完成后 doFind 会重新标色
+        let count=0; const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null,false); while(walker.nextNode()) { const node=walker.currentNode, text=node.textContent; let pos=0, idx=text.indexOf(findQuery,pos); while(idx!==-1) { if(count===findIndex) { node.textContent=text.slice(0,idx)+replacement+text.slice(idx+findQuery.length); markContentDirty(); findIndex = count; if(findQuery === replacement) { findIndex++; } doFind(); return; } count++; pos=idx+1; idx=text.indexOf(findQuery,pos); } } }
+    function replaceAll() { if(isGenerating || polishMode) { if(polishMode) toast('润色预览中，请先应用或取消'); return; } const repInp=$('replaceInput'); if(!repInp||!findTotal||!findQuery) return; const replacement=repInp.value; if(!replacement && !confirm('替换为空串将删除全部匹配内容，确定继续？')) return; unwrapHighlights(); const el=$('novelContent'); if(!el)return; const marks = el.querySelectorAll('mark.check-mark'); if(marks.length) { marks.forEach(mk => mk.replaceWith(document.createTextNode(mk.textContent))); el.normalize(); } // v8.6-补15'：替换前剥离冲突标色 mark 合并文本（防跨节点漏替换），替换完成后 doFind 会重新标色
+        let total=0; const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null,false); while(walker.nextNode()) { const node=walker.currentNode, text=node.textContent; let count=0, pos=0, idx=text.indexOf(findQuery,pos); while(idx!==-1) { count++; pos=idx+1; idx=text.indexOf(findQuery,pos); } if(count>0) { node.textContent=text.split(findQuery).join(replacement); total+=count; } } markContentDirty(); findIndex=0; doFind(); toast(`已替换 ${total} 处`); }
     function initFindKeys() {
         document.addEventListener('keydown', (e) => {
             const ae = document.activeElement;
@@ -5938,10 +5998,10 @@ ${chapter.content}`;
         const clearChatBtn = $('clearChatBtn'); if(clearChatBtn) clearChatBtn.onclick = clearChatHistory;
         const chatInp = $('chatInp'); if(chatInp) { chatInp.addEventListener('keydown', (e) => { if((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); onSend(); } if((e.ctrlKey || e.metaKey) && e.key === 'g') { e.preventDefault(); onContinue(); } }); }
         // Ctrl+G 全局续写快捷键（即使焦点不在聊天框也生效）
-        document.addEventListener('keydown', (e) => { const aeG = document.activeElement; const inInputG = aeG && (aeG.tagName==='INPUT' || aeG.tagName==='TEXTAREA' || aeG.isContentEditable); if((e.ctrlKey || e.metaKey) && e.key === 'g' && !inInputG) { const anyModalOpen = ['apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','precisionModal','scratchpadModal','branchModal','roleplayModal'].some(id => { const m = $(id); return m && m.style.display === 'flex'; }); if(anyModalOpen) return; e.preventDefault(); onContinue(); } });
+        document.addEventListener('keydown', (e) => { const aeG = document.activeElement; const inInputG = aeG && (aeG.tagName==='INPUT' || aeG.tagName==='TEXTAREA' || aeG.isContentEditable); if((e.ctrlKey || e.metaKey) && e.key === 'g' && !inInputG) { const anyModalOpen = ['apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','precisionModal','scratchpadModal','branchModal','roleplayModal','genModeModal','exportChoiceModal','statsModal','batchTagModal','regionModal','startBookModal'].some(id => { const m = $(id); return m && m.style.display === 'flex'; }); if(anyModalOpen) return; e.preventDefault(); onContinue(); } }); // v8.6-fix16：守卫补全弹窗
         document.addEventListener('keydown', (e) => { if((e.ctrlKey || e.metaKey) && e.key === 's' && document.activeElement?.id !== 'chatInp' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') { e.preventDefault(); const ok = saveCurChapter(); toast(ok ? '已保存' : '❌ 保存失败'); } });
         document.addEventListener('mouseup', () => { if(!isGenerating) saveLibEditorWidth(); });
-        document.addEventListener('keydown', (e) => { if(e.key === 'Escape') { if(privacyActive) { togglePrivacy(); return; } saveLibEditorWidth(); const findBar = $('findBar'); if(findBar && findBar.style.display !== 'none') { hideFindBar(); return; } ['precisionModal','scratchpadModal','exportChoiceModal','genModeModal','regionModal','branchModal','apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','statsModal','batchTagModal'].forEach(id => { let m = $(id); if(m && m.style.display === 'flex') { m.style.display = 'none'; if(id === 'apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } }); const relationEditModal = $('relationEditModal'); if(relationEditModal && relationEditModal.style.display === 'flex') closeRelationEdit(); } });
+        document.addEventListener('keydown', (e) => { if(e.key === 'Escape') { if(privacyActive) { togglePrivacy(); return; } saveLibEditorWidth(); const findBar = $('findBar'); if(findBar && findBar.style.display !== 'none') { hideFindBar(); return; } ['precisionModal','scratchpadModal','exportChoiceModal','genModeModal','regionModal','branchModal','apiModal','roleModal','actionModal','costumeModal','globalRoleModal','forbiddenWordsModal','relationGraphModal','guideModal','fullGuideModal','statsModal','batchTagModal','startBookModal'].forEach(id => { let m = $(id); if(m && m.style.display === 'flex') { if(id === 'startBookModal' && sbBusy) { toast('起书进行中，请等待完成'); return; } m.style.display = 'none'; if(id === 'apiModal') cancelPendingGeneration('⏹ 已取消：未配置 API Key'); } }); const relationEditModal = $('relationEditModal'); if(relationEditModal && relationEditModal.style.display === 'flex') closeRelationEdit(); } }); // v8.6-fix16：Esc 列表补 startBookModal；起书生成中（sbBusy）禁止 Esc 关闭（注释移行尾防吞代码）
         const notifyBtn = $('notifyBtn'); if(notifyBtn) notifyBtn.onclick = () => {
             api.notify = !api.notify;
             if(api.notify) { notifyBtn.classList.add('guide-highlight'); toast('页签提醒已开启：生成完成时页签将闪烁 30 秒'); }
@@ -6539,7 +6599,7 @@ ${chapter.content}`;
         const items = batchTagItems(key).filter(it => it && it.name && (!kw || it.name.indexOf(kw) >= 0));
         if(!items.length) { listEl.innerHTML = '<div style="padding:12px;color:#6A627A;font-size:0.72rem;text-align:center;">' + (kw ? '无匹配项' : '本库暂无数据') + '</div>'; updateBatchTagCount(); return; }
         // v7.9j 修复：搜索/重建时保留已勾选（checkedSet 驱动）
-        listEl.innerHTML = items.map(it => '<label style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;margin-bottom:2px;"><input type="checkbox" data-id="' + escapeHtml(it.id) + '"' + (batchTagCtx.checkedSet.has(it.id) ? ' checked' : '') + ' style="width:auto;margin:0;accent-color:#3B8ED4;"> <span style="flex:1;font-size:0.75rem;color:#EDEAF2;">' + escapeHtml(it.name) + '</span><span style="font-size:0.62rem;color:#6A627A;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (((it.tags || []).length) ? '已有：' + escapeHtml(normTags(it.tags).join('、')) : '无标签') + '</span></label>').join('');
+        listEl.innerHTML = items.map(it => '<label style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;margin-bottom:2px;"><input type="checkbox" data-id="' + escapeHtml(it.id) + '"' + (batchTagCtx.checkedSet.has(String(it.id)) ? ' checked' : '') + ' style="width:auto;margin:0;accent-color:#3B8ED4;"> <span style="flex:1;font-size:0.75rem;color:#EDEAF2;">' + escapeHtml(it.name) + '</span><span style="font-size:0.62rem;color:#6A627A;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (((it.tags || []).length) ? '已有：' + escapeHtml(normTags(it.tags).join('、')) : '无标签') + '</span></label>').join(''); // v8.6-fix29：checkedSet.has(String(it.id))——存量数字 id 下勾选丢失
         updateBatchTagCount();
     }
     function batchTagApply() {
@@ -6551,7 +6611,7 @@ ${chapter.content}`;
         const items = batchTagItems(key);
         let changed = 0;
         batchTagCtx.checkedSet.forEach(id => {
-            const it = items.find(x => x.id === id);
+            const it = items.find(x => String(x.id) === String(id)); // v8.6-fix29：String 归一——存量数字 id 下严格 === 匹配不到，批量打标静默失效
             if(!it) return;
             const tags = normTags(it.tags);
             if(del) {
@@ -6571,10 +6631,10 @@ ${chapter.content}`;
             toast(del ? '所选项均无此标签' : '所选项均已带该标签');
         }
         renderBatchTagList();
-        // 同步当前编辑项标签行（若在受影响库）
-        if(key === 'char' && currentEditingCharId) { const b = getCurrentBook(); const c = ((b && b.characters) || []).find(x => x.id === currentEditingCharId); if(c) tagState.char = normTags(c.tags); renderTagRow('char'); }
-        if(key === 'globalChar' && currentEditingGlobalCharId) { const c = (globalCharacters || []).find(x => x.id === currentEditingGlobalCharId); if(c) tagState.globalChar = normTags(c.tags); renderTagRow('globalChar'); }
-        if(key === 'costume' && currentEditingGlobalCostumeId) { const c = (globalCostumes || []).find(x => x.id === currentEditingGlobalCostumeId); if(c) tagState.costume = normTags(c.tags); renderTagRow('costume'); }
+        // 同步当前编辑项标签行（若在受影响库）——v8.6-r20：与 tagState 合并保留未保存点选（原整体覆盖，用户先点选未保存的标签会静默丢失）
+        if(key === 'char' && currentEditingCharId) { const b = getCurrentBook(); const c = ((b && b.characters) || []).find(x => x.id === currentEditingCharId); if(c) { let m = normTags([...(tagState.char || []), ...c.tags]); if(m.includes('原设')) m = m.filter(x => x !== '自设'); if(m.includes('自设')) m = m.filter(x => x !== '原设'); tagState.char = m; renderTagRow('char'); } } // v8.6-fix9：合并后复跑互斥
+        if(key === 'globalChar' && currentEditingGlobalCharId) { const c = (globalCharacters || []).find(x => x.id === currentEditingGlobalCharId); if(c) { let m = normTags([...(tagState.globalChar || []), ...c.tags]); if(m.includes('原设')) m = m.filter(x => x !== '自设'); if(m.includes('自设')) m = m.filter(x => x !== '原设'); tagState.globalChar = m; renderTagRow('globalChar'); } } // v8.6-fix9
+        if(key === 'costume' && currentEditingGlobalCostumeId) { const c = (globalCostumes || []).find(x => x.id === currentEditingGlobalCostumeId); if(c) { let m = normTags([...(tagState.costume || []), ...c.tags]); if(m.includes('原设')) m = m.filter(x => x !== '自设'); if(m.includes('自设')) m = m.filter(x => x !== '原设'); tagState.costume = m; renderTagRow('costume'); } } // v8.6-fix9
     }
     function closeBatchTag() { const m = $('batchTagModal'); if(m) m.style.display = 'none'; }
     function bctBind() {
@@ -6594,7 +6654,7 @@ ${chapter.content}`;
             updateBatchTagCount();
         });
         const pBox = $('batchTagPresets'); if(pBox) pBox.addEventListener('click', (e) => { const b = e.target.closest('[data-bt]'); if(b) { const nm = $('batchTagName'); if(nm) { nm.value = b.dataset.bt; nm.focus(); } } });
-        const nmEl = $('batchTagName'); if(nmEl) nmEl.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); batchTagApply(); } });
+        const nmEl = $('batchTagName'); if(nmEl) nmEl.addEventListener('keydown', (e) => { if(e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); batchTagApply(); } }); // v8.6-fix5：isComposing 守卫
     }
     function bindLibSearch() {
         const bind = (inpId, clearId, type) => {
@@ -6617,7 +6677,7 @@ ${chapter.content}`;
         // 同步卡片高亮
         document.querySelectorAll('.precision-card').forEach(c => {
             const cb = c.querySelector('input');
-            if(cb && cb.dataset.id === id) c.classList.toggle('selected', checked);
+            if(cb && String(cb.dataset.id) === String(id)) c.classList.toggle('selected', checked); // v8.6-fix17：String 比较——存量数字 id 下高亮失效
         });
     }
 
@@ -6894,8 +6954,13 @@ ${chapter.content}`;
         if(!confirm('⚠️ 此操作将清空所有数据（包括所有小说、角色、动作库、API配置、草稿本等），且不可恢复！\n\n建议先点击「备份」导出数据。\n\n确定要继续吗？')) return;
         
         // 清空所有 localStorage 数据
-        const coreKeys = ['books_v2', 'currentBookId_v2', 'api_config_v2', 'api_config_v3', 'global_characters_v2', 'global_actions_v2', 'global_costumes_v2', 'scratchpad_v1'];
+        const coreKeys = ['books_v2', 'currentBookId_v2', 'api_config_v2', 'api_config_v3', 'global_characters_v2', 'global_actions_v2', 'global_costumes_v2', 'scratchpad_v1', 'custom_tags_v1', 'sb_draft_v1']; // v8.6-r4：补清自定义标签库/起书草稿（原漏清与弹窗文案"清空所有数据"不符）
         coreKeys.forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
+        // v8.6-fix11：补清累计金额与日志（与"清空所有数据"文案一致）
+        ['cost_stats_v1', 'app_logs_v1'].forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
+        // v8.6-fix30：补清每日输入统计与统计重置基线（原残留导致初始化后看板仍展示历史输入字数）
+        ['daily_input_stats_v1', 'stats_global_reset_v1'].forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
+        appLogs = []; // v8.6-fix11：内存日志同步清空
         ['left_width','right_width','chat_width','chat_input_height','editor_font_size'].forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
         try { localStorage.removeItem('scratchpad_pages_v1'); } catch(e) {}
         ['role','globalRole','action','costume'].forEach(k => { try { localStorage.removeItem('lib_editor_w_' + k); } catch(e) {} });
@@ -6980,7 +7045,7 @@ ${chapter.content}`;
         } catch(e) {
             console.error("数据解析失败，已重置", e);
             toast("⚠️ 存储数据损坏，已自动重置。如有备份请恢复。");
-            const coreKeys = ['books_v2','currentBookId_v2','api_config_v2','api_config_v3','global_characters_v2','global_actions_v2','global_costumes_v2']; coreKeys.forEach(k => { try { localStorage.removeItem(k); } catch(_) {} });
+            const coreKeys = ['books_v2','currentBookId_v2','api_config_v2','api_config_v3','global_characters_v2','global_actions_v2','global_costumes_v2','custom_tags_v1','sb_draft_v1']; coreKeys.forEach(k => { try { localStorage.removeItem(k); } catch(_) {} }); // v8.6-r4：补清自定义标签库/起书草稿
             books = [];
         }
         if(!books) books = [];
