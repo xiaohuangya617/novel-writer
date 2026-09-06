@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AI小说生成器 | v8.6</title>
+    <title>AI小说生成器 | v8.7</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📖%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
     <style>
@@ -24,6 +24,12 @@
         .version-badge{background:#1A3A5A;padding:2px 8px;border-radius:20px;font-size:0.55rem;color:#80B8E0;}
         .storage-indicator{background:#1A1825;padding:2px 8px;border-radius:20px;font-size:0.6rem;color:#A99FCA;margin-left:8px;}
         .storage-warning{color:#FFA070;font-weight:bold;}
+        /* v8.7-L20：容量 ≥90% 警告区——右栏日志页签内，占满日志列表与统计小面板之间空档；样式与统计面板同款形状语言（半透明底+细框+圆角+毛玻璃），警示色系 */
+        /* 三行短文案，各占一行（nowrap 不换行），字号 clamp 随视口自适应，内容垂直居中；flex:1 占满空档，min-height 兜底不被裁切 */
+        #storageWarnBar{display:none;flex:1;min-height:92px;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:rgba(58,34,26,.5);border:1px solid rgba(255,160,112,.45);border-radius:14px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:10px 12px;text-align:center;overflow:hidden;}
+        #storageWarnBar .sw-main{font-size:clamp(14px,1.3vw,20px);font-weight:bold;color:#FFA070;line-height:1.3;white-space:nowrap;}
+        #storageWarnBar .sw-mid{font-size:clamp(13px,1.15vw,17px);color:#FFB48A;line-height:1.3;white-space:nowrap;}
+        #storageWarnBar .sw-sub{font-size:clamp(12px,1.05vw,15px);color:#E8C9B0;line-height:1.3;white-space:nowrap;}
         .current-book-badge{background:#1A1825;padding:4px 12px;border-radius:40px;font-size:0.7rem;border:1px solid #3A3452;}
         .glass-btn{background:#1A1825;border:1px solid #3A3452;color:#DBD4E8;padding:5px 12px;border-radius:30px;cursor:pointer;font-size:0.7rem;display:inline-flex;align-items:center;gap:6px;transition:0.2s;}
         .glass-btn:hover{background:#3D3457;border-color:#3B8ED4;color:#6EC6F8;}
@@ -262,9 +268,12 @@
         .guide-card p{margin:0;font-size:0.78rem;line-height:1.7;color:#A8A4C0;}
         .full-guide{max-height:70vh;overflow-y:auto;padding-right:8px;}
         .full-guide h4{margin-top:1.2em;}
-        .graph-node-text{font-size:12px;fill:#EDEAF2;text-anchor:middle;pointer-events:none;}
-        .graph-node-sub{font-size:9px;fill:#8A84A8;text-anchor:middle;pointer-events:none;}
-        .graph-line-label{font-size:12px;fill:#3B8ED4;text-anchor:middle;font-weight:500;}
+        /* v8.6-fix36：删除 .graph-* 的 fill/font-size——SVG 中 CSS 规则优先级高于 presentation attribute，
+        原样式把内联的高亮黑字（#000000）覆盖成白色（白底白字看不清）、关系线颜色统一成蓝（遮蔽按类型着色）；
+        屏幕渲染与导出不一致的根源。样式完全交给内联属性（导出 clone 仅带内联，两者天然一致） */
+        .graph-node-text{text-anchor:middle;pointer-events:none;}
+        .graph-node-sub{text-anchor:middle;pointer-events:none;}
+        .graph-line-label{text-anchor:middle;}
         .find-bar{display:none;padding:6px 10px;background:#13121C;border-bottom:1px solid #22202C;gap:6px;align-items:center;flex-wrap:wrap;}
         .find-bar input{background:#0E0D14;border:1px solid #3A3452;border-radius:14px;padding:3px 10px;color:#EDEAF2;font-size:0.7rem;width:160px;}
         .find-bar input:focus{outline:none;border-color:#3B8ED4;}
@@ -343,7 +352,7 @@
     .icon-btn.send-btn.rewrite-mode:hover { background:#C05A32; }
     @keyframes pulse-rewrite { 0%,100%{ box-shadow:0 0 8px rgba(164,74,42,0.4);} 50%{ box-shadow:0 0 18px rgba(164,74,42,0.8);} }
     /* v7.3：润色 diff 标记（红=被改原文，绿=新增文字）与预览操作条 */
-    mark.polish-del { background:#FF6B6B33; color:#FF9C9C; border-radius:3px; padding:0 1px; }
+    mark.polish-del { background:#FF6B6B33; color:#FF9C9C; text-decoration:line-through; border-radius:3px; padding:0 1px; } /* v8.7-P-友4：删除线增强——润色对照"红删绿增"更直觉（句级细分的字符级 diff 按友商取舍不引入，避免打散网文可读性与破坏 applyPolish 红绿配对编辑语义） */
     mark.polish-ins { background:#4ECB7133; color:#7CE8A5; border-radius:3px; padding:0 1px; }
     /* v7.3：低幅度修改的理由标记（黄色，显示在绿标之后）——用户据此判断是否采纳 */
     mark.polish-reason { background:#FFD7002E; color:#FFD700; border-radius:3px; padding:0 2px; font-size:0.72rem; }
@@ -462,7 +471,7 @@
     <div class="top-bar">
         <div class="logo">
             <h2 style="user-select:none;cursor:default;" title="双击隐藏正文（防窥屏），再双击或按 Esc 恢复"><i class="fas fa-pen-fancy"></i> AI小说生成器</h2>
-            <span class="version-badge">v8.6</span>
+            <span class="version-badge">v8.7</span>
             <div class="current-book-badge"><i class="fas fa-book"></i> <span id="curBookName">未选择</span></div>
             <span id="storageIndicator" class="storage-indicator">💾 0MB / 5MB</span>
         </div>
@@ -562,7 +571,7 @@
                 <div class="tabs"><button class="tab" data-tab="world">📖 世界书</button><button class="tab" data-tab="global">🌍 全局提示</button><button class="tab active" data-tab="log">📜 日志</button></div>
                 <div class="tab-pane" id="pane-world"><div class="section-label">🌍 世界观名词</div><textarea id="worldview" rows="10"></textarea><div class="section-label">⚙️ 主线大纲</div><textarea id="plotSet" rows="10"></textarea></div>
                 <div class="tab-pane" id="pane-global"><div class="section-label">🎭 全局提示词</div><textarea id="globalPrompt" rows="10" placeholder="你是一位擅长细腻情感的言情小说家。"></textarea><div class="section-label">✍️ 行文规范</div><textarea id="writingStyle" rows="10" placeholder="文风细腻，多用心理描写。"></textarea></div>
-<div class="tab-pane active" id="pane-log"><div class="section-label">📜 日志 · 提示历史（最多 50 条）<button id="clearLogBtn" class="glass-btn" style="margin-left:8px;padding:2px 8px;font-size:0.6rem;"><i class="fas fa-trash"></i> 清空</button></div><div id="logList"></div><div id="sysPanel">
+<div class="tab-pane active" id="pane-log"><div class="section-label">📜 日志 · 提示历史（最多 50 条）<button id="clearLogBtn" class="glass-btn" style="margin-left:8px;padding:2px 8px;font-size:0.6rem;"><i class="fas fa-trash"></i> 清空</button></div><div id="logList"></div><div id="storageWarnBar" role="alert"><div class="sw-main">⚠️ 存储空间已达（<span id="swPct">0</span>%）！</div><div class="sw-mid">请尽快迁移数据！</div><div class="sw-sub">否则将无法保存！</div></div><div id="sysPanel">
         <div class="sys-row"><span class="sys-k">🕐 当前日期时间</span><span class="sys-v" id="sysClock">—</span></div>
         <div class="sys-row"><span class="sys-k">⏱ 当前计费时段</span><span class="sys-v" id="sysTier">—</span></div>
         <div class="sys-row"><span class="sys-k">💰 本次消费金额</span><span class="sys-v" id="sysCost">¥0.00</span></div>
@@ -578,7 +587,7 @@
 
 <!-- 模态框 -->
 <div id="branchModal" class="modal"><div class="modal-card" style="width:1240px;max-width:96vw;max-height:none;overflow:visible;"><h3><i class="fas fa-code-branch"></i> 续写走向 · 选择一条继续</h3><div id="branchCardWrap"></div><div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;"><button id="closeBranchBtn" class="glass-btn">取消</button></div></div></div>
-<div id="apiModal" class="modal"><div class="modal-card" style="max-width:680px;"><h3>⚙️ API 调参</h3><div style="background:#3A2A2A;border-radius:12px;padding:8px 12px;margin-bottom:10px;font-size:0.65rem;color:#FFA070;"><i class="fas fa-shield-alt"></i> ⚠️ API Key 仅存储在浏览器本地，不会上传到任何服务器。请妥善保管，勿分享给他人。</div><div class="api-tabs" style="display:flex;gap:6px;margin-bottom:12px;"><button class="api-tab glass-btn active" data-apitab="main" style="flex:1;padding:8px 0;">✍️ 正文 API</button><button class="api-tab glass-btn" data-apitab="polish" style="flex:1;padding:8px 0;">🔍 审稿 API</button><button class="api-tab glass-btn" data-apitab="image" style="flex:1;padding:8px 0;opacity:0.45;cursor:not-allowed;" title="生图功能规划中（仅 EXE 版实装）">🎨 生图 API</button><button class="api-tab glass-btn" data-apitab="act" style="flex:1;padding:8px 0;">🎭 扮演 API</button></div><div id="apiPane-main"><input type="text" id="apiUrlInp" placeholder="API地址"><input type="password" id="apiKeyInp" placeholder="API Key"><input type="text" id="modelInp" placeholder="模型"><input type="text" id="stopWordsInp" placeholder="停止词（逗号分隔，可选）"><div class="range-grid"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="tempRange" min="0.1" max="2" step="0.1" value="1.0"></div><div class="range-item"><span class="range-label">核采样 Top-p (0.75~1.25)</span><input type="number" id="topPRange" min="0.75" max="1.25" step="0.01" value="0.92"></div><div class="range-item"><span class="range-label">存在惩罚 (0.0~1.5)</span><input type="number" id="presRange" min="0" max="1.5" step="0.1" value="0.5"></div><div class="range-item"><span class="range-label">频率惩罚 (0.0~1.0)</span><input type="number" id="freqRange" min="0" max="1" step="0.1" value="0.4"></div><div class="range-item"><span class="range-label">重复惩罚 (1.00~1.25)</span><input type="number" id="repPenaltyRange" min="1" max="1.25" step="0.05" value="1.15"></div><div class="range-item"><span class="range-label">前文摘要 (1-50)</span><input type="number" id="ctxRange" min="1" max="50" step="1" value="5"></div></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="maxTokensInp" min="3000" max="90000" value="60000" style="width:390px;margin-left:auto;margin-bottom:0;"></div><div class="range-row"><span style="width:auto;white-space:nowrap;">推理强度（思考模式）</span><input type="range" id="reasoningRange" min="0" max="2" step="1" value="1"><span id="reasoningVal">high</span></div><div class="range-row" style="align-items:center;"><span>💭 思考模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="thinkingCheck" style="width:auto;margin:0;"> 开启后创意参数失效，且增加耗时，请谨慎开启</label></div><div class="range-row" style="align-items:center;"><span>🧭 续写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="branchAutoSendCheck" style="width:auto;margin:0;"> 开启后自动续写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>🔄 重写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="rewriteAutoSendCheck" style="width:auto;margin:0;"> 开启后自动重写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>📚 连发章数</span><label style="display:flex;align-items:center;gap:6px;"> 一次性连续生成多个章节的数目（2~10）<input type="number" id="multiChapCountInp" min="2" max="10" step="1" value="3" style="width:70px;margin:0;"></label></div></div><div id="apiPane-polish" style="display:none;"><div style="background:#2A3A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#7AC0A8;"><i class="fas fa-search"></i> 审稿 API 用于润色审查（DeepSeek：默认开启思考模式，仅推理强度可调，对同人内容宽松）</div><input type="text" id="polishUrlInp" placeholder="审稿 API 地址"><input type="password" id="polishKeyInp" placeholder="审稿 API Key"><input type="text" id="polishModelInp" placeholder="模型（如 deepseek-v4-flash）"><div class="range-row" style="align-items:center;"><span>⚙️ 参数模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="polishParamCheck" style="width:auto;margin:0;"> 开启后思考模式失效，随机性增加，请谨慎开启</label></div><div id="polishParamGrid" class="range-grid" style="display:none;"><div class="range-item"><span class="range-label">温度 (0~2)</span><input type="number" id="polishTempRange" min="0" max="2" step="0.1" value="0.5"></div><div class="range-item"><span class="range-label">核采样 Top-p (0~1)</span><input type="number" id="polishTopPRange" min="0" max="1" step="0.01" value="0.87"></div><div class="range-item"><span class="range-label">存在惩罚 (0~2)</span><input type="number" id="polishPresRange" min="0" max="2" step="0.1" value="0"></div><div class="range-item"><span class="range-label">频率惩罚 (0~2)</span><input type="number" id="polishFreqRange" min="0" max="2" step="0.1" value="0.1"></div><div class="range-item"><span class="range-label">重复惩罚 (0~2)</span><input type="number" id="polishRepRange" min="0" max="2" step="0.1" value="1"></div></div><div class="range-row"><span>🧠 推理强度</span><input type="range" id="polishReasoningRange" min="0" max="2" step="1" value="2"><span id="polishReasoningVal">max</span></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="polishMaxTokensInp" min="3000" max="90000" value="50000" style="width:390px;margin-left:auto;margin-bottom:0;"></div></div><div id="apiPane-image" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:24px;text-align:center;color:#8A84A8;font-size:0.8rem;"><i class="fas fa-palette" style="font-size:1.4rem;display:block;margin-bottom:8px;"></i>🎨 生图功能规划中（仅 EXE 版实装），敬请期待</div></div><div id="apiPane-act" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#B8B4D0;"><i class="fas fa-masks-theater"></i> 🎭 扮演 API 用于角色试演（默认 deepseek-v4-flash；对话 10 轮上限防 token 失控；摘要请求复用本 API）</div><input type="text" id="actUrlInp" placeholder="扮演 API 地址"><input type="password" id="actKeyInp" placeholder="扮演 API Key"><input type="text" id="actModelInp" placeholder="模型（默认 deepseek-v4-flash）"><div class="range-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="actTempRange" min="0.1" max="2" step="0.1" value="0.7"></div><div class="range-item"><span class="range-label">台词长度 (500~1500)</span><input type="number" id="actMaxTokensInp" min="500" max="1500" step="1" value="800" title="单轮回复输出上限（token）"></div><div class="range-item"><span class="range-label">对话轮数 (5~30)</span><input type="number" id="actRoundsInp" min="5" max="30" step="1" value="10" title="一来一回算一轮，达上限自动结束试演"></div></div><div class="range-row" style="align-items:center;"><span>🧬 人设注入</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actPersonaCheck" style="width:auto;margin:0;" checked> 注入本书背景与 A/B 精准人设</label></div><div class="range-row" style="align-items:center;"><span>🎭 口吻约束</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actToneCheck" style="width:auto;margin:0;" checked> 强制纯台词+人设口吻（关闭可带少量旁白）</label></div></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="testApiBtn" class="glass-btn">测试连接</button><button id="saveApiBtn" class="glass-btn">保存</button><button id="closeApiBtn" class="glass-btn">取消</button></div></div></div>
+<div id="apiModal" class="modal"><div class="modal-card" style="max-width:680px;"><h3>⚙️ API 调参</h3><div style="background:#3A2A2A;border-radius:12px;padding:8px 12px;margin-bottom:10px;font-size:0.65rem;color:#FFA070;"><i class="fas fa-shield-alt"></i> ⚠️ API Key 仅存储在浏览器本地；调用 AI 功能时，Key 与正文/设定会随请求发送到你配置的 API 服务商（默认 DeepSeek）。请妥善保管，勿分享给他人。</div><div class="api-tabs" style="display:flex;gap:6px;margin-bottom:12px;"><button class="api-tab glass-btn active" data-apitab="main" style="flex:1;padding:8px 0;">✍️ 正文 API</button><button class="api-tab glass-btn" data-apitab="polish" style="flex:1;padding:8px 0;">🔍 审稿 API</button><button class="api-tab glass-btn" data-apitab="image" style="flex:1;padding:8px 0;opacity:0.45;cursor:not-allowed;" title="生图功能规划中（仅 EXE 版实装）">🎨 生图 API</button><button class="api-tab glass-btn" data-apitab="act" style="flex:1;padding:8px 0;">🎭 扮演 API</button></div><div id="apiPane-main"><input type="text" id="apiUrlInp" placeholder="API地址"><input type="password" id="apiKeyInp" placeholder="API Key"><input type="text" id="modelInp" placeholder="模型"><input type="text" id="stopWordsInp" placeholder="停止词（逗号分隔，可选）"><div class="range-grid"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="tempRange" min="0.1" max="2" step="0.1" value="1.0"></div><div class="range-item"><span class="range-label">核采样 Top-p (0.75~1.25)</span><input type="number" id="topPRange" min="0.75" max="1.25" step="0.01" value="0.92"></div><div class="range-item"><span class="range-label">存在惩罚 (0.0~1.5)</span><input type="number" id="presRange" min="0" max="1.5" step="0.1" value="0.5"></div><div class="range-item"><span class="range-label">频率惩罚 (0.0~1.0)</span><input type="number" id="freqRange" min="0" max="1" step="0.1" value="0.4"></div><div class="range-item"><span class="range-label">重复惩罚 (1.00~1.25)</span><input type="number" id="repPenaltyRange" min="1" max="1.25" step="0.05" value="1.15"></div><div class="range-item"><span class="range-label">前文摘要 (1-50)</span><input type="number" id="ctxRange" min="1" max="50" step="1" value="5"></div></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="maxTokensInp" min="3000" max="90000" value="60000" style="width:390px;margin-left:auto;margin-bottom:0;"></div><div class="range-row"><span style="width:auto;white-space:nowrap;">推理强度（思考模式）</span><input type="range" id="reasoningRange" min="0" max="2" step="1" value="1"><span id="reasoningVal">high</span></div><div class="range-row" style="align-items:center;"><span>💭 思考模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="thinkingCheck" style="width:auto;margin:0;"> 开启后创意参数失效，且增加耗时，请谨慎开启</label></div><div class="range-row" style="align-items:center;"><span>🧭 续写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="branchAutoSendCheck" style="width:auto;margin:0;"> 开启后自动续写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>🔄 重写自动</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="rewriteAutoSendCheck" style="width:auto;margin:0;"> 开启后自动重写生文（默认关，自动回填消息栏）</label></div><div class="range-row" style="align-items:center;"><span>📚 连发章数</span><label style="display:flex;align-items:center;gap:6px;"> 一次性连续生成多个章节的数目（2~10）<input type="number" id="multiChapCountInp" min="2" max="10" step="1" value="3" style="width:70px;margin:0;"></label></div></div><div id="apiPane-polish" style="display:none;"><div style="background:#2A3A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#7AC0A8;"><i class="fas fa-search"></i> 审稿 API 用于润色审查（DeepSeek：默认开启思考模式，仅推理强度可调，对同人内容宽松）</div><input type="text" id="polishUrlInp" placeholder="审稿 API 地址"><input type="password" id="polishKeyInp" placeholder="审稿 API Key"><input type="text" id="polishModelInp" placeholder="模型（如 deepseek-v4-flash）"><div class="range-row" style="align-items:center;"><span>⚙️ 参数模式</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="polishParamCheck" style="width:auto;margin:0;"> 开启后思考模式失效，随机性增加，请谨慎开启</label></div><div id="polishParamGrid" class="range-grid" style="display:none;"><div class="range-item"><span class="range-label">温度 (0~2)</span><input type="number" id="polishTempRange" min="0" max="2" step="0.1" value="0.5"></div><div class="range-item"><span class="range-label">核采样 Top-p (0~1)</span><input type="number" id="polishTopPRange" min="0" max="1" step="0.01" value="0.87"></div><div class="range-item"><span class="range-label">存在惩罚 (0~2)</span><input type="number" id="polishPresRange" min="0" max="2" step="0.1" value="0"></div><div class="range-item"><span class="range-label">频率惩罚 (0~2)</span><input type="number" id="polishFreqRange" min="0" max="2" step="0.1" value="0.1"></div><div class="range-item"><span class="range-label">重复惩罚 (0~2)</span><input type="number" id="polishRepRange" min="0" max="2" step="0.1" value="1"></div></div><div class="range-row"><span>🧠 推理强度</span><input type="range" id="polishReasoningRange" min="0" max="2" step="1" value="2"><span id="polishReasoningVal">max</span></div><div class="range-row"><span style="width:auto;white-space:nowrap;">Maxtokens (3000~90000)</span><input type="number" id="polishMaxTokensInp" min="3000" max="90000" value="50000" style="width:390px;margin-left:auto;margin-bottom:0;"></div></div><div id="apiPane-image" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:24px;text-align:center;color:#8A84A8;font-size:0.8rem;"><i class="fas fa-palette" style="font-size:1.4rem;display:block;margin-bottom:8px;"></i>🎨 生图功能规划中（仅 EXE 版实装），敬请期待</div></div><div id="apiPane-act" style="display:none;"><div style="background:#2A2A3A;border-radius:12px;padding:6px 10px;margin-bottom:10px;font-size:0.65rem;color:#B8B4D0;"><i class="fas fa-masks-theater"></i> 🎭 扮演 API 用于角色试演（默认 deepseek-v4-flash；对话 10 轮上限防 token 失控；摘要请求复用本 API）</div><input type="text" id="actUrlInp" placeholder="扮演 API 地址"><input type="password" id="actKeyInp" placeholder="扮演 API Key"><input type="text" id="actModelInp" placeholder="模型（默认 deepseek-v4-flash）"><div class="range-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;"><div class="range-item"><span class="range-label">温度 (0.1~2.0)</span><input type="number" id="actTempRange" min="0.1" max="2" step="0.1" value="0.7"></div><div class="range-item"><span class="range-label">台词长度 (500~1500)</span><input type="number" id="actMaxTokensInp" min="500" max="1500" step="1" value="800" title="单轮回复输出上限（token）"></div><div class="range-item"><span class="range-label">对话轮数 (5~30)</span><input type="number" id="actRoundsInp" min="5" max="30" step="1" value="10" title="一来一回算一轮，达上限自动结束试演"></div></div><div class="range-row" style="align-items:center;"><span>🧬 人设注入</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actPersonaCheck" style="width:auto;margin:0;" checked> 注入本书背景与 A/B 精准人设</label></div><div class="range-row" style="align-items:center;"><span>🎭 口吻约束</span><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="actToneCheck" style="width:auto;margin:0;" checked> 强制纯台词+人设口吻（关闭可带少量旁白）</label></div></div><div style="display:flex;gap:10px;margin-top:16px;"><button id="testApiBtn" class="glass-btn">测试连接</button><button id="saveApiBtn" class="glass-btn">保存</button><button id="closeApiBtn" class="glass-btn">取消</button></div></div></div>
 <div id="sbOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:1500;"></div>
 <div class="sb-progress" id="sbProgressWrap" style="display:none;"><div class="sb-progress-bar"><div class="sb-progress-fill" id="sbProgressFill"></div></div><div class="sb-progress-text" id="sbProgressText"></div><div class="sb-progress-warn" id="sbProgressWarn">⚠️ 请勿关闭网页，等待AI生成中...</div><div class="sb-progress-retry" id="sbProgressRetry"></div><div class="sb-progress-multi" id="sbProgressMulti"></div><div class="sb-progress-close" id="sbProgressClose" style="display:none;"><button class="glass-btn" id="sbProgressCloseBtn">关闭</button></div></div>
 <div id="startBookModal" class="modal"><div class="modal-card start-book-card">
@@ -718,7 +727,7 @@
 
 <div id="fullGuideModal" class="modal">
     <div class="modal-card" style="max-width:1100px;">
-        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v8.6 完整说明</h3>
+        <h3><i class="fas fa-file-alt"></i> AI小说生成器 v8.7 完整说明</h3>
         <div class="full-guide">
             <h4>一、快速上手</h4>
             <p><b>方式 A · 一键起书（新手向）</b>：左侧面板点绿色「⚡ 一键起书」→ 填 API Key → 选模板（玄幻升级/异界规则/都市逆袭/日式轻文）与目标平台（起点/番茄/刺猬猫/飞卢/七猫）→ 点「开始起书」，AI 从零生成书名、世界观·专有名词、主线大纲、第一章完整正文（3500~5000 字）与本章摘要。</p>
@@ -854,10 +863,10 @@
             <hr>
             
             <h4>十七、🛡️ 数据与安全</h4>
-            <p><b>存储位置</b>：所有数据存储在浏览器 localStorage 中，<b>不会上传到任何服务器</b>。清除浏览器数据会导致数据丢失。</p>
+            <p><b>存储位置</b>：所有数据存储在浏览器 localStorage 中，<b>不会上传到本项目以外的任何自有服务器</b>。但请注意：使用生成/检测/润色/吐槽/摘要等 AI 功能时，相关正文、章节前文、人物设定与 API Key 会<b>发送到你配置的 API 服务商</b>（默认 DeepSeek，可在「API 调参」修改为自定义端点）用于处理请求——请勿在内容中包含不愿对外披露的信息。清除浏览器数据会导致本地数据丢失。导出/备份文件（含 API Key 明文）默认保存到<b>浏览器下载目录</b>（网页受浏览器安全限制无法自选保存路径）——如需数据跟随文件夹，请在浏览器设置中将下载位置改为你的数据文件夹后再导出。</p>
             <p><b>容量上限</b>：约 5MB，顶部实时显示使用量。超过 80% 时会变橙色警告，建议及时导出备份。</p>
             <p><b>自动保存</b>：每 30 秒自动保存一次；切换章节、切换小说、关闭页面时也会自动保存。</p>
-            <p><b>API Key 安全</b>：仅存储在本地浏览器，仅用于调用 DeepSeek API，不会发送到其他地方。</p>
+            <p><b>API Key 安全</b>：Key 仅存储在本地浏览器（不设自有服务器）；调用 AI 功能时随请求发送到你配置的 API 地址（默认 DeepSeek；若改为自定义端点，Key 将发送到该端点）。请勿在不受信任的自定义端点使用真实 Key。</p>
             <hr>
             <h4>十八、📜 日志与统计</h4>
             <p>侧栏「📜 日志」页签记录全部提示历史（HH:MM:SS 时间戳），最多 50 条，固定高度可滚动。下方为<b>实时统计小面板</b>：当前日期时间、计费时段（高峰/空闲）、本次消费金额、本次使用时长、本次输入字数、本次生成字数（1 秒自动刷新）。完整备份/恢复包含日志。</p>
@@ -931,6 +940,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let pendingRewrite = null;
     // v7.2：走向卡片加载态——续写入口锁定（防重复点击），请求完成/失败后解锁
     let pendingBranch = false;
+    let banterBusy = false; // v8.7-F06：吐槽进行中标志——防吐槽期间切书导致结果/缓存/费用错绑到新书（原 generateBanter 无独立 pending 状态）
     // v7.2：走向已填入消息栏待发送——Ctrl+Enter 走续写而非新建（用户拍板：填入后手动发送）
     let branchContinuePending = false;
     let branchBookId = null; // v7.3 C1 修复：走向所属书（防走向生成中切书后，用旧书走向续写新书）
@@ -971,6 +981,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     let currentFontSize = 16;
     let isImporting = false;
+    let importPending = false; // v8.9-F011：备份导入排他锁——确认获准→读取/解析/提交全生命周期置位；load/error/abort 统一收尾复位。防双 FileReader 并发（慢 A 晚回覆盖快 B）与读取期间删除/重置被迟到回调复活（项目零 v4 复审 F-011 残余/EXE-V8-F04）
 
     // v7.9m：按模型计费（DeepSeek 官方价，峰谷定价：空闲为基准，高峰 ×2）
     // 高峰时段（北京时间）：9:00-12:00、14:00-18:00，其余为空闲
@@ -991,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function addDailyInputStats(n) {
         if(!n) return;
         try {
-            const key = new Date().toISOString().slice(0,10);
+            const key = fmtDayDash(); // v8.7-N2 修正：每日统计用本地日期键（YYYY-MM-DD）——勿用秒级 fmtStamp（天粒度统计会碎成秒键）
             const map = JSON.parse(localStorage.getItem('daily_input_stats_v1') || '{}');
             map[key] = (map[key] || 0) + n;
             localStorage.setItem('daily_input_stats_v1', JSON.stringify(map));
@@ -1047,7 +1058,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const list = filtered; // v7.9g：渲染全部匹配角色，列表高度3个候选+滚动查看
         listEl.innerHTML = list.map(c => {
             const sel = selId === c.id;
-            return '<div data-rid="' + c.id + '" data-slot="' + slot + '" style="display:flex;align-items:center;gap:6px;padding:5px 9px;border-radius:6px;' + (locked ? '' : 'cursor:pointer;') + (sel ? 'background:#2A6EA4;' : '') + '"' + (locked ? '' : ' onmouseover="this.style.background=' + (sel ? "'#2A6EA4'" : "'#1A1825'") + '" onmouseout="this.style.background=' + (sel ? "'#2A6EA4'" : "'transparent'") + '"') + '><span style="flex:1;font-size:0.75rem;color:#EDEAF2;">' + escapeHtml(c.name) + '</span><span style="color:#6EC6F8;font-size:0.75rem;">' + (sel ? '✓' : '') + '</span></div>';
+            return '<div data-rid="' + escapeHtml(c.id) + '" data-slot="' + escapeHtml(slot) + '" style="display:flex;align-items:center;gap:6px;padding:5px 9px;border-radius:6px;' + (locked ? '' : 'cursor:pointer;') + (sel ? 'background:#2A6EA4;' : '') + '"' + (locked ? '' : ' onmouseover="this.style.background=' + (sel ? "'#2A6EA4'" : "'#1A1825'") + '" onmouseout="this.style.background=' + (sel ? "'#2A6EA4'" : "'transparent'") + '"') + '><span style="flex:1;font-size:0.75rem;color:#EDEAF2;">' + escapeHtml(c.name) + '</span><span style="color:#6EC6F8;font-size:0.75rem;">' + (sel ? '✓' : '') + '</span></div>'; // v8.7-F01b：data-rid/data-slot 属性插值转义（复审 F-01：角色试演 ID 可被备份控制，字符串拼接型属性此前漏转义）
         }).join('');
     }
     function pickRoleplayChar(slot, id) { if(roleplayState.picksLocked) return; if(slot === 'A') roleplayState.charA = id; else roleplayState.charB = id; renderRoleplayPicker('A'); renderRoleplayPicker('B'); }
@@ -1120,6 +1131,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const stp = $('roleplayStop'); if(stp) stp.disabled = true;
     }
     async function sendRoleplay() {
+        if(importPending) { toast('备份导入进行中，请等待完成后再试演'); return; } // v8.10-F011
         const book = getCurrentBook(); if(!book) { toast('请先选择小说'); return; }
         if(!roleplayState.charA || !roleplayState.charB) { toast('请先选择扮演角色 A 和 B'); return; }
         const a = roleplayChar(book, roleplayState.charA), b = roleplayChar(book, roleplayState.charB);
@@ -1156,13 +1168,15 @@ document.addEventListener('DOMContentLoaded', function() {
         renderRoleplayChat();
         roleplayState.generating = true;
         const stopBtn = $('roleplayStop'); if(stopBtn) stopBtn.disabled = false;
+        const endBtnSend = $('roleplayEnd'); if(endBtnSend) endBtnSend.disabled = true; // v8.9-F06：回复生成中禁用「结束对话」——原生成中点结束：endRoleplay abort 后立即渲染结束态，旧 catch 随后重绘回合/弹失败文本，结束卡与摘要内容竞争不可靠（EXE-V8-F06 同源）
         const controller = new AbortController(); roleplayState.controller = controller;
         const timer = setTimeout(() => controller.abort(), 60000);
         try {
             const res = await fetch(actApi.url, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer ' + actApi.key}, body: JSON.stringify({ model: actApi.model, messages:[{role:'system',content:buildRoleplaySys(book, a, b)},{role:'user',content:user}], temperature: actApi.temp, max_tokens: actApi.maxTokens }), signal: controller.signal });
-            clearTimeout(timer);
+            // v8.7-F014：clearTimeout 移到 res.json() 之后——原 fetch 返回即清，正文悬挂时 60s 超时失效，roleplayState.generating 永久卡死（项目零复审 F-014）
             if(!res.ok) throw new Error(res.status === 401 ? 'API Key 无效' : res.status === 429 ? '请求频率过高' : 'HTTP ' + res.status);
             const data = await res.json();
+            clearTimeout(timer);
             const text = ((data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '').trim();
             if(!text) throw new Error('返回内容为空');
             const c = calcCost(actApi.model, data.usage); if(c > 0) recordCost(c);
@@ -1173,6 +1187,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if(roleplayState.roundNo >= (actApi.rounds || 10)) { endRoleplay(); return; }
         } catch(e) {
             clearTimeout(timer);
+            if(!roleplayState.active) return; // v8.10-F07：窗口已关闭（closeRoleplay 主动 abort）→ 静默收尾——原把主动关闭误报"超时(60s)"并弹错提示（EXE-V9-F07，HTML 同源一并修）
             const why = e.name === 'AbortError' ? (roleplayState.stoppedByUser ? '已停止' : '超时(60s)') : e.message; // v7.9f：主动停止与超时区分提示
             // v8.6-r10：首轮失败解锁场景框与 A/B 选角（原锁死只能关面板重开），且不把失败占位写进对话记录（防污染后续轮次上下文）
             if(roleplayState.roundNo === 0) {
@@ -1189,6 +1204,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             roleplayState.generating = false; roleplayState.controller = null;
             const stp = $('roleplayStop'); if(stp) stp.disabled = true;
+            if(!roleplayState.finished) { const ebF = $('roleplayEnd'); if(ebF) ebF.disabled = false; } // v8.9-F06：请求收尾（成功/失败/停止）且未结束时恢复「结束对话」可用；finished 由 endRoleplay 置位并保持禁用
         }
     }
     function endRoleplay() {
@@ -1227,18 +1243,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const sys = '你是小说编辑助手，负责总结一段角色互动试演。这是虚构文学作品的创作场景，请正常创作，不要拒绝或回避。';
         const user = '以下是一段角色互动试演（用户扮演「' + a.name + '」，AI 扮演「' + b.name + '」）：\n' + dialogs + '\n\n请输出：\n1.【互动摘要】该段互动的过程回顾（场景、对话脉络、关键转折，150字内）\n2.【人设评价】' + b.name + '的表现是否符合其设定人设（举例说明，80字内）';
         // v7.9f：摘要请求挂 abort 句柄，关窗时中止（防止摘要写回新一轮会话）
+        // v8.8-F016：加 60s 定时中止——原只有关窗 abort，响应体悬挂时"正在生成互动摘要"永久停留、summaryController 不释放（项目零终极版复审 F-016）
         const sc = new AbortController(); roleplayState.summaryController = sc;
+        const sTimer = setTimeout(() => sc.abort(), 60000);
         try {
             const res = await fetch(actApi.url, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer ' + actApi.key}, body: JSON.stringify({ model: actApi.model, messages:[{role:'system',content:sys},{role:'user',content:user}], temperature: 0.4, max_tokens: 800 }), signal: sc.signal });
             if(!res.ok) throw new Error('HTTP ' + res.status);
             const data = await res.json();
+            clearTimeout(sTimer);
             const text = ((data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '').trim();
             const c = calcCost(actApi.model, data.usage); if(c > 0) recordCost(c);
             costTotal += c;
             renderRoleplayEndPanel(n, costTotal, text, '', a, b);
         } catch(e) {
-            if(roleplayState.active) renderRoleplayEndPanel(n, costTotal, '', '摘要生成失败：' + (e.name === 'AbortError' ? '已中止' : e.message), a, b);
+            clearTimeout(sTimer);
+            // 窗口仍开启时的 AbortError 只可能来自 60s 超时（关窗 abort 时 active 已为 false，不渲染）
+            if(roleplayState.active) renderRoleplayEndPanel(n, costTotal, '', '摘要生成失败：' + (e.name === 'AbortError' ? '超时(60s)' : e.message), a, b);
         } finally {
+            clearTimeout(sTimer);
             if(roleplayState.summaryController === sc) roleplayState.summaryController = null;
         }
     }
@@ -1269,6 +1291,96 @@ document.addEventListener('DOMContentLoaded', function() {
         const out = usage.completion_tokens || 0;
         const mul = isPeakHour() ? 2 : 1; // v7.9m：高峰时段价格翻倍
         return (hit * p.hit + miss * p.miss + out * p.out) * mul / 1_000_000;
+    }
+
+    // ======================== v8.7 规则层：AI 味词库 + 扫描器（8.7 清单 G1/G2/G4，友商 dsh-novel-writer 方案移植） ========================
+    // 5 类 ~230 词：connector 转折/口头禅 / action 万能动作 / psychology 心理腔 / adjective 形容词堆砌 / tone 语气感叹
+    // 每项 [词, 类, 策略, 建议替换?]；策略 replace=可替换 / delete=建议删除 / rewrite=需改写句子；三链（润色/检测/吐槽）共用同一份词表与扫描器（G4 词表统一）
+    const AI_TASTE_DICT = [
+        // ① connector 转折连接词/口头禅（delete）
+        ['不禁','connector','delete'],['不由','connector','delete'],['不由得','connector','delete'],['于是','connector','delete'],['然而','connector','delete'],['不过','connector','delete'],['没想到','connector','delete'],['出乎意料','connector','delete'],['意料之外','connector','delete'],['总而言之','connector','delete'],['综上所述','connector','delete'],['众所周知','connector','delete'],['毋庸置疑','connector','delete'],['值得一提的是','connector','delete'],['不难发现','connector','delete'],['显而易见','connector','delete'],['事实上','connector','delete'],['实际上','connector','delete'],['换句话说','connector','delete'],['也就是说','connector','delete'],['与此同时','connector','delete'],['另一方面','connector','delete'],['总的来说','connector','delete'],['归根结底','connector','delete'],['说到底','connector','delete'],['毕竟','connector','delete'],['终究','connector','delete'],['最终','connector','delete'],['终于','connector','delete'],['总算','connector','delete'],['旋即','connector','delete'],['随即','connector','delete'],['顿时','connector','delete'],['骤然','connector','delete'],['猛然','connector','delete'],['忽然','connector','delete'],
+        // ① rewrite（→具体动作/事件）
+        ['忽然之间','connector','rewrite'],['突然之间','connector','rewrite'],['下一秒','connector','rewrite'],['下一刻','connector','rewrite'],['下一瞬','connector','rewrite'],['然而就在这时','connector','rewrite'],['可就在这时','connector','rewrite'],['但就在这时','connector','rewrite'],['恰在此时','connector','rewrite'],['正在此时','connector','rewrite'],['偏偏在这时','connector','rewrite'],['偏偏此时','connector','rewrite'],['万万没想到','connector','rewrite'],
+        // ② action 万能动作（replace → 具体动作）
+        ['缓缓','action','replace'],['微微','action','replace'],['轻轻','action','replace'],['慢慢','action','replace'],['深深','action','replace'],['淡淡','action','replace'],['静静','action','replace'],['默默','action','replace'],['悄悄','action','replace'],['渐渐','action','replace'],['逐渐','action','replace'],['隐隐','action','replace'],['幽幽','action','replace'],['嘴角上扬','action','replace'],['勾起嘴角','action','replace'],['点了点头','action','replace'],['摇了摇头','action','replace'],['皱了皱眉','action','replace'],['挑了挑眉','action','replace'],['深吸一口气','action','replace'],['呼出一口气','action','replace'],['闭上双眼','action','replace'],['睁开双眼','action','replace'],['抬起头来','action','replace'],['低下头去','action','replace'],['转过身来','action','replace'],['迈开步伐','action','replace'],['愣了一愣','action','replace'],['怔了怔','action','replace'],['回过神来','action','replace'],['回过神','action','replace'],['若有所思','action','replace'],['似笑非笑','action','replace'],['意味深长','action','replace'],['轻轻一笑','action','replace'],['微微一笑','action','replace'],
+        // ② rewrite（说话方式）
+        ['轻轻地说','action','rewrite'],['淡淡地说','action','rewrite'],['缓缓道','action','rewrite'],['悠悠道','action','rewrite'],['轻声道','action','rewrite'],['低声道','action','rewrite'],['沉声道','action','rewrite'],['冷声道','action','rewrite'],['柔声道','action','rewrite'],['呢喃','action','rewrite'],['喃喃自语','action','rewrite'],['语气平淡','action','rewrite'],['语气冷漠','action','rewrite'],['语带深意','action','rewrite'],['若有所思地说','action','rewrite'],
+        // ② rewrite（起身/点头/开口）
+        ['缓缓起身','action','rewrite'],['慢慢站起身','action','rewrite'],['轻轻放下','action','rewrite'],['微微颔首','action','rewrite'],['轻轻颔首','action','rewrite'],['微微点头','action','rewrite'],['轻轻点头','action','rewrite'],['淡淡开口','action','rewrite'],['缓缓开口','action','rewrite'],['轻声开口','action','rewrite'],
+        // ② rewrite（沉默）
+        ['沉默片刻','action','rewrite'],['沉默良久','action','rewrite'],['沉默半晌','action','rewrite'],['沉默了许久','action','rewrite'],['半晌无言','action','rewrite'],['良久无言','action','rewrite'],['一时无言','action','rewrite'],['无言以对','action','rewrite'],
+        // ③ psychology 心理腔（rewrite → 动作/对话呈现）
+        ['心底','psychology','rewrite'],['心中','psychology','rewrite'],['心里','psychology','rewrite'],['内心','psychology','rewrite'],['涌起','psychology','rewrite'],['升起','psychology','rewrite'],['泛起','psychology','rewrite'],['浮现','psychology','rewrite'],['掠过','psychology','rewrite'],['闪过','psychology','rewrite'],['滋生','psychology','rewrite'],['蔓延','psychology','rewrite'],['油然而生','psychology','rewrite'],['一股暖流','psychology','rewrite'],['一丝寒意','psychology','rewrite'],['莫名','psychology','rewrite'],['莫名其妙','psychology','rewrite'],['鬼使神差','psychology','rewrite'],['不由自主','psychology','rewrite'],['情不自禁','psychology','rewrite'],['下意识','psychology','rewrite'],['本能地','psychology','rewrite'],['不自觉','psychology','rewrite'],['暗自','psychology','rewrite'],['暗暗','psychology','rewrite'],['心底深处','psychology','rewrite'],['内心深处','psychology','rewrite'],['潜意识里','psychology','rewrite'],['暗自心惊','psychology','rewrite'],['心中暗想','psychology','rewrite'],['心想','psychology','rewrite'],['暗道','psychology','rewrite'],['暗暗想到','psychology','rewrite'],['不禁想到','psychology','rewrite'],['脑海中浮现','psychology','rewrite'],['眼前浮现','psychology','rewrite'],['耳边响起','psychology','rewrite'],['心中一动','psychology','rewrite'],['心头一紧','psychology','rewrite'],['心头一跳','psychology','rewrite'],['心中一震','psychology','rewrite'],['心底一沉','psychology','rewrite'],['心里咯噔','psychology','rewrite'],['内心挣扎','psychology','rewrite'],['思绪万千','psychology','rewrite'],['心念电转','psychology','rewrite'],['脑中灵光一闪','psychology','rewrite'],['一个念头浮现','psychology','rewrite'],
+        // ④ adjective 形容词堆叠/万能句式（rewrite → 具体细节）
+        ['深邃','adjective','rewrite'],['幽深','adjective','rewrite'],['清澈','adjective','rewrite'],['明亮','adjective','rewrite'],['修长','adjective','rewrite'],['纤细','adjective','rewrite'],['精致','adjective','rewrite'],['俊美','adjective','rewrite'],['英俊','adjective','rewrite'],['绝美','adjective','rewrite'],['绝色','adjective','rewrite'],['倾国倾城','adjective','rewrite'],['惊为天人','adjective','rewrite'],['宛如','adjective','rewrite'],['好似','adjective','rewrite'],['犹如','adjective','rewrite'],['仿佛','adjective','rewrite'],['像是','adjective','rewrite'],['透着','adjective','rewrite'],['泛着','adjective','rewrite'],['闪着','adjective','rewrite'],['带着一丝','adjective','rewrite'],['露出一抹','adjective','rewrite'],['划过一丝','adjective','rewrite'],['闪现一丝','adjective','rewrite'],['藏着一丝','adjective','rewrite'],['掩饰不住的','adjective','rewrite'],['难以掩饰的','adjective','rewrite'],['无法言喻','adjective','rewrite'],['难以言说','adjective','rewrite'],['妙不可言','adjective','rewrite'],['无可挑剔','adjective','rewrite'],['眼底闪过一丝','adjective','rewrite'],['眼中闪过一丝','adjective','rewrite'],['嘴角勾起一抹','adjective','rewrite'],['脸上露出一抹','adjective','rewrite'],['眼神中透着','adjective','rewrite'],['目光深邃','adjective','rewrite'],['气质出尘','adjective','rewrite'],['风采绝世','adjective','rewrite'],['气势如虹','adjective','rewrite'],['杀气凛然','adjective','rewrite'],['气势磅礴','adjective','rewrite'],['威压如山','adjective','rewrite'],['恐怖如斯','adjective','rewrite'],['竟恐怖如斯','adjective','rewrite'],
+        // ⑤ tone 语气/句末（rewrite / delete）
+        ['罢了','tone','rewrite'],['而已','tone','rewrite'],['呢喃着','tone','rewrite'],['轻叹一声','tone','rewrite'],['叹了口气','tone','rewrite'],['长叹一声','tone','rewrite'],['苦笑一声','tone','rewrite'],['冷笑一声','tone','rewrite'],['轻笑一声','tone','rewrite'],['低笑一声','tone','rewrite'],['哑然失笑','tone','rewrite'],['忍不住笑了','tone','rewrite'],['无奈地笑了笑','tone','rewrite'],['啊！','tone','delete'],['啊。','tone','delete'],['呢……','tone','delete'],['吧……','tone','delete'],['罢了罢了','tone','delete'],['算了算了','tone','delete'],['无妨无妨','tone','delete'],['无碍无碍','tone','delete']
+    ].map(t => ({ w: t[0], c: t[1], s: t[2], ...(t[3] ? { r: t[3] } : {}) }));
+    const AI_TASTE_CAT_LABEL = { connector: '转折/口头禅', action: '万能动作', psychology: '心理腔', adjective: '形容词堆砌', tone: '语气感叹' };
+    const AI_TASTE_STRATEGY_LABEL = { replace: '可替换', delete: '建议删除', rewrite: '需改写' };
+    // 扫描器：长词优先（防"微微"先命中"微微一笑"）；子串匹配累计（词中词也算命中，无语义——规则层定位）；切句按中英文句末标点+换行
+    function aiTasteSplitSentences(text) {
+        const out = [];
+        let buffer = '', start = 0;
+        for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+            buffer += ch;
+            if (ch === '。' || ch === '！' || ch === '？' || ch === '!' || ch === '?' || ch === '\n') {
+                const t = buffer.trim();
+                if (t) out.push({ sentence: t, start });
+                buffer = ''; start = i + 1;
+            }
+        }
+        const tail = buffer.trim();
+        if (tail) out.push({ sentence: tail, start });
+        return out;
+    }
+    // 扫描正文 → {score(0-100), hits, cjkChars, byCategory, details[]}；密度评分：每千字命中数×10 封顶 100（每 100 中文字 1 处命中 ≈ 10 分）
+    function scanAiTaste(text) {
+        const dict = [...AI_TASTE_DICT].sort((a, b) => b.w.length - a.w.length);
+        const details = [];
+        const byCategory = { connector: 0, action: 0, psychology: 0, adjective: 0, tone: 0 };
+        let cjkChars = 0;
+        const src = String(text || '');
+        for (const ch of src) if (/[\u4e00-\u9fff]/.test(ch)) cjkChars++;
+        for (const { sentence, start } of aiTasteSplitSentences(src)) {
+            for (const item of dict) {
+                let from = 0;
+                for (;;) {
+                    const idx = sentence.indexOf(item.w, from);
+                    if (idx === -1) break;
+                    details.push({ w: item.w, c: item.c, s: item.s, ...(item.r ? { r: item.r } : {}), sentence: (sentence.length > 70 ? sentence.slice(Math.max(0, Math.min(idx - 20, sentence.length - 70)), Math.min(sentence.length, idx + item.w.length + 50)) : sentence), at: start + idx }); // v8.9-F023：存命中上下文窗口（词前 20 + 词后至多 50，最长 70）替代句首 60 截断——长句第 60 字后的命中不再丢失（原截断后例句不含命中词，F-023）
+                    byCategory[item.c] += 1;
+                    from = idx + item.w.length;
+                }
+            }
+        }
+        const perThousand = cjkChars > 0 ? (details.length / cjkChars) * 1000 : 0;
+        const score = Math.min(100, Math.round(perThousand * 10));
+        return { score, hits: details.length, cjkChars, byCategory, details };
+    }
+    // 命中清单文本化（注入 prompt 用）：按类别汇总"词×次数"，附示例句
+    function aiTasteHitsText(report, maxLines) {
+        if (!report || !report.hits) return '';
+        const cap = maxLines || 12;
+        const byWord = {};
+        report.details.slice(0, 300).forEach(h => { byWord[h.w] = (byWord[h.w] || 0) + 1; });
+        const words = Object.keys(byWord);
+        // 类别分组排序：同类别聚拢，词频降序
+        const catOrder = ['adjective', 'action', 'psychology', 'connector', 'tone'];
+        const lines = [];
+        catOrder.forEach(c => {
+            const ws = words.filter(w => report.details.some(h => h.w === w && h.c === c)).sort((a, b) => byWord[b] - byWord[a]).slice(0, 12); // v8.9-自审：每类最多 12 词（按频次）——防极端全词库命中时单行注入爆长（实测万字 27 词注入 656 字，截断为防御上限）
+            if (ws.length) lines.push(AI_TASTE_CAT_LABEL[c] + '：' + ws.map(w => {
+                const d0 = report.details.find(h => h.w === w && h.c === c);
+                const strat = (d0 && AI_TASTE_STRATEGY_LABEL[d0.s]) || (d0 && d0.s) || '';
+                let exTxt = '';
+                if (d0 && d0.sentence) { const ex = d0.sentence; const wi = ex.indexOf(w); if (wi >= 0) { const st = wi > 8 ? wi - 8 : 0; exTxt = '例：' + ex.slice(st, st + 24) + (ex.length > st + 24 ? '…' : ''); } } // v8.9-F023：窗口内找不到词时不伪装例句（原 wi=-1 时从句首截取、例句不含命中词，F-023）
+                return w + '×' + byWord[w] + '（' + strat + '）' + (exTxt ? exTxt : '');
+            }).join('；')); // v8.8-F-021：词级策略 + 含词代表句（原只给类别词频——润色 sys 要求按词级策略处理却拿不到策略与原句；F-021）
+        });
+        if (lines.length > cap) lines.length = cap;
+        return lines.join('；') + '（每千字命中 ' + (Math.round(report.hits / Math.max(1, report.cjkChars) * 10000) / 10) + ' 处，评分 ' + report.score + '/100）'; // v8.8-F022：密度保留 1 位小数——与评分（round(密度×10)）同口径，不再出现"0 处但评分 2/100"自相矛盾
     }
 
     function $(id) { return document.getElementById(id); }
@@ -1429,6 +1541,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 const val = localStorage.getItem(key);
                 if (val) totalSize += val.length * 2;
             }
+            // v8.7-L9：补动态键占用——关系图右键高亮（graph_hl_<bookId>，按书累积可能最大未计量项）与吐槽缓存（banter_cache_v1_*）；
+            // 原只统计静态键，容量显示恒偏低、5MB 告警失真（L20 警告区依赖本口径）
+            for(let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if(k && (k.startsWith('graph_hl_') || k.startsWith('banter_cache_v1_'))) {
+                    const val = localStorage.getItem(k);
+                    if(val) totalSize += val.length * 2;
+                }
+            }
             const usedMB = (totalSize / (1024 * 1024)).toFixed(2);
             const indicator = $('storageIndicator');
             if (indicator) {
@@ -1437,6 +1558,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     indicator.classList.add('storage-warning');
                 } else {
                     indicator.classList.remove('storage-warning');
+                }
+            }
+            // v8.7-L20：容量 ≥90% 右栏日志页签内常驻警告区（占满日志列表与统计面板间空档，<90% 自动隐藏零侵占）
+            const warnBar = $('storageWarnBar');
+            if (warnBar) {
+                const pct = Math.round(totalSize / (1024 * 1024) / MAX_STORAGE_MB * 100);
+                if (pct >= 90) {
+                    const pctEl = $('swPct'); if(pctEl) pctEl.innerText = String(pct); // v8.7-L20：三行文案只展示百分比
+                    if(warnBar.style.display !== 'flex') warnBar.style.display = 'flex';
+                } else if(warnBar.style.display !== 'none') {
+                    warnBar.style.display = 'none';
                 }
             }
         } catch(e) { console.warn("容量检测失败", e); }
@@ -1491,7 +1623,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const el = $(id); if(!el) return;
             // v8.6-fix24：锁定只保存首次快照（防连发每章重复锁定覆盖为"已禁用"），解锁后删除快照——原逻辑连发结束后 8 个按钮永久灰死
             if(locked) { if(!(id in writingLockPrev)) writingLockPrev[id] = el.disabled; el.disabled = true; }
-            else if(id in writingLockPrev) { el.disabled = writingLockPrev[id]; delete writingLockPrev[id]; }
+            else if(id in writingLockPrev) {
+                el.disabled = writingLockPrev[id]; delete writingLockPrev[id];
+                // v8.6-fix34（Bug1）：rollbackBtn 状态由 enableRollbackButton 独立管理（重写成功回调点亮/清快照熄灭/回滚后清理），
+                // 写锁解锁不得用"加锁瞬间"的旧快照覆盖其最新状态——否则重写生文成功后回滚按钮被解锁重新禁用（点击无反应）
+                if(id === 'rollbackBtn') enableRollbackButton(!!(rollbackSnapshot && rollbackSnapshot.chapterId));
+            }
         });
         const tip = $('writingLockTip'); if(tip) tip.style.display = locked ? 'block' : 'none';
     }
@@ -1534,7 +1671,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ======================== API 配置 ========================
     // v6.3：API URL 合法性校验（http/https 开头）——所有 fetch 前置拦截，防脏值触发 file:// 同源报错
-    function apiUrlValid(u) { return !!u && /^https?:\/\//i.test(String(u).trim()); }
+    function apiUrlValid(u) { /*
+        v8.7-F09：远程端点强制 HTTPS——原先 /^https?:\/\//i 同时放行 http://，Bearer Key 与小说正文可在局域网/代理/被劫持节点明文传输。
+        现仅本机（localhost/127.0.0.1/[::1]）放行 HTTP（本机开发例外），其余必须 HTTPS。
+        v8.8-F015/16：HTTPS/HTTP 统一先 new URL 完整解析——原 HTTPS 分支只测前缀即返回 true，
+        'https://'、'https:///path' 等无主机值被当合法（保存成功但 fetch 解析失败，项目零终极版复审 F-015/F-016、EXE-V7-F04）。
+        v8.9-F10：拒绝内嵌凭据（user:pass@）——Fetch/Request 对含 userinfo 的 URL 抛 TypeError，保存成功必调用失败（EXE 复审 EXE-V8-F10，HTML 同源一并修）。 */
+        let s = String(u || '').trim();
+        if (!/^https?:\/\//i.test(s)) return false;
+        try {
+            const url = new URL(s);
+            const host = url.hostname;
+            if (!host) return false;
+            if (url.username || url.password) return false;
+            if (url.protocol === 'https:') return true;
+            if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]') return true;
+        } catch(e) { return false; }
+        return false;
+    }
     // v6.5：从失败的 API 响应中提取后端错误信息（HTTP 状态 + 具体原因），替代只显示状态码（res.body 只能消费一次，用 clone 读取）
     async function extractApiError(res) {
         let detail = '';
@@ -1602,8 +1756,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if(saved2) Object.assign(api, JSON.parse(saved2));
             }
         } catch(e) { console.warn("API配置解析失败，已重置", e); }
-        // url 兜底（v6.3：空值或非 http(s) 开头脏值都强制回默认，防 fetch('') 触发 file:// 同源报错）
-        if(!api.url || !/^https?:\/\//i.test(api.url.trim())) api.url = 'https://api.deepseek.com/chat/completions';
+        // url 兜底（v8.8-F015：载入契约与保存/调用统一——空值/历史远程 HTTP/错型 HTTPS 均回默认，并清空原 Key 防错投到 DeepSeek 默认端点；v6.3 旧正则放行远程 http 会"显示已保存、调用被拒"，项目零终极版复审 F-015）
+        if(!api.url || !apiUrlValid(api.url)) { if(api.key) { api.key = ''; toast('⚠️ 检测到 API 地址不符合安全规则（远程须 HTTPS），已重置为 DeepSeek 默认并清空 Key，请重新配置'); } api.url = 'https://api.deepseek.com/chat/completions'; }
         if(!api.model || !api.model.trim()) api.model = 'deepseek-v4-flash';
         if(api.top_p===undefined) api.top_p=0.92;
         if(api.repetition_penalty===undefined) api.repetition_penalty=1.15;
@@ -1649,7 +1803,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(polishApi.maxTokens===undefined || !Number.isInteger(polishApi.maxTokens) || polishApi.maxTokens<3000 || polishApi.maxTokens>90000) polishApi.maxTokens=50000;
         if(polishApi.reasoning===undefined || ['low','high','max'].indexOf(polishApi.reasoning)<0) polishApi.reasoning='max';
         if(!polishApi.model) polishApi.model='deepseek-v4-flash'; // v7.3：模型默认值兜底（DeepSeek 审稿）
-        if(!polishApi.url) polishApi.url='https://api.deepseek.com/chat/completions'; // v7.3：API 地址默认值兜底（DeepSeek 官方端点）
+        if(!polishApi.url || !apiUrlValid(polishApi.url)) { if(polishApi.key) { polishApi.key=''; toast('⚠️ 审稿 API 地址不符合安全规则（远程须 HTTPS），已重置为默认并清空 Key，请重新配置'); } polishApi.url='https://api.deepseek.com/chat/completions'; } // v8.8-F015：审稿地址载入统一 apiUrlValid + Key 联动清空（原只查空，历史远程 http 直接生效）
         if(polishApi.ratio===undefined || !Number.isFinite(polishApi.ratio) || polishApi.ratio<20 || polishApi.ratio>90) polishApi.ratio=50; // v7.3：修改幅度阈值兜底 20-90%
         const reasoningIdx = { low:0, high:1, max:2 }[polishApi.reasoning] || 2;
         const reasoningLabel = ['low','high','max'][reasoningIdx];
@@ -1668,7 +1822,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const rewriteAuto = $('rewriteAutoSendCheck'); if(rewriteAuto) rewriteAuto.checked = !!api.rewriteAutoSend; // v7.2
         const mcc = $('multiChapCountInp'); if(mcc) mcc.value = api.multiChapCount || 3; // v8.0.34
         // v7.9 扮演 API 兜底与控件填充
-        if(!actApi.url || !/^https?:\/\//i.test(actApi.url.trim())) actApi.url='https://api.deepseek.com/chat/completions';
+        if(!actApi.url || !apiUrlValid(actApi.url)) { if(actApi.key) { actApi.key=''; toast('⚠️ 扮演 API 地址不符合安全规则（远程须 HTTPS），已重置为默认并清空 Key，请重新配置'); } actApi.url='https://api.deepseek.com/chat/completions'; } // v8.8-F015：扮演地址载入统一 apiUrlValid + Key 联动清空（原旧正则放行历史远程 http）
         if(!actApi.model || !actApi.model.trim()) actApi.model='deepseek-v4-flash';
         if(!Number.isFinite(actApi.temp) || actApi.temp<0.1 || actApi.temp>2) actApi.temp=0.7;
         if(!Number.isInteger(actApi.maxTokens) || actApi.maxTokens<500 || actApi.maxTokens>1500) actApi.maxTokens=800;
@@ -1705,7 +1859,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const u = ($('polishUrlInp')||{}).value || polishApi.url;
         const k = ($('polishKeyInp')||{}).value || polishApi.key;
         const m = ($('polishModelInp')||{}).value || polishApi.model;
-        if(!u || !/^https?:\/\//i.test(String(u).trim())) { toast('请先填写审稿 API 地址（http/https 开头）'); return; }
+        if(!u || !apiUrlValid(u)) { toast('请填写审稿 API 地址（远程须 HTTPS，HTTP 仅允许本机 localhost/127.0.0.1）'); return; } // v8.7-F09b：统一走 apiUrlValid——原只查 /^https?:\/\// 放行远程 HTTP，测试连接会把审稿 Key 明文发到未加密端点（复审 F-09 实测复现）
         if(!k) { toast('请先填写审稿 API Key'); return; }
         if(!m || !m.trim()) { toast('请先填写审稿模型名称'); return; }
         toast('正在测试审稿连接...');
@@ -1734,16 +1888,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const draftModel = ($('actModelInp') || {}).value?.trim() || actApi.model;
         if(!draftKey) { toast("请先填写扮演 API Key"); return false; }
         toast("正在测试扮演连接...");
+        // v8.9-F016：controller/timeout 提升 try 外——原 try 内 const 在 catch 不可见，异常被 ReferenceError: timeout is not defined 覆盖（v8.8 引入回归，项目零 v4 复审 F-016/EXE-V8-F07）；超时覆盖 fetch+响应体，finally 判空统一清理
+        let controller = null, timeout = null;
         try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 15000);
+            controller = new AbortController();
+            timeout = setTimeout(() => controller.abort(), 15000);
             const res = await fetch(draftUrl, {
                 method:'POST',
                 headers:{'Content-Type':'application/json','Authorization':'Bearer ' + draftKey},
                 body: JSON.stringify({ model: draftModel, messages:[{role:'user',content:'你好' }], max_tokens: 5, temperature: 0.7 }),
                 signal: controller.signal
             });
-            clearTimeout(timeout);
             if(!res.ok) { toast("扮演连接失败：HTTP " + res.status); return false; }
             const data = await res.json();
             const ok = data && data.choices && data.choices[0] && data.choices[0].message;
@@ -1752,6 +1907,8 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch(e) {
             toast("扮演连接失败：" + (e.name === 'AbortError' ? '超时' : e.message));
             return false;
+        } finally {
+            if(timeout) clearTimeout(timeout);
         }
     }
     async function testApiConnection() {
@@ -1768,16 +1925,17 @@ document.addEventListener('DOMContentLoaded', function() {
             testBody.thinking = { type: 'enabled' };
             testBody.reasoning_effort = ['low','high','max'][parseInt(rv)] || 'high';
         }
+        // v8.9-F016：controller/timeout 提升 try 外 + finally 判空清理（异常路径原残留 15s 定时器）
+        let controller = null, timeout = null;
         try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 15000);
+            controller = new AbortController();
+            timeout = setTimeout(() => controller.abort(), 15000);
             const res = await fetch(draftUrl, {
                 method:'POST',
                 headers:{'Content-Type':'application/json','Authorization':`Bearer ${draftKey}`},
                 body:JSON.stringify(testBody),
                 signal: controller.signal
             });
-            clearTimeout(timeout);
             if(res.ok) { toast("基础连接成功 ✓（正式生成仍取决于模型与参数兼容性）"); return true; }
             if(res.status === 401) { toast("API Key 无效，请检查"); }
             else if(res.status === 429) { toast("API 请求频率过高，请稍后重试"); }
@@ -1788,10 +1946,24 @@ document.addEventListener('DOMContentLoaded', function() {
             if(e.name === 'AbortError') { toast("连接超时，请检查网络或API地址"); }
             else { toast(`连接失败: ${e.message}`); }
             return false;
+        } finally {
+            if(timeout) clearTimeout(timeout);
         }
     }
 
     function saveApi(keepOpen, skipAutoRetry) { // v8.6-fix26：skipAutoRetry——失焦自动保存不触发挂起任务重试（防 Key 未配好误启动、401 后任务被消费丢失）
+        // v8.10-F018：空地址明确拒绝——原 `输入 || 旧地址` 借旧值通过校验、提交却写输入框空串（"校验 A 提交 B"，HTML v5 复审 F-018 残余/EXE-V9-F06）；现候选值即提交值：非空才校验、校验通过原样落盘，语义一致
+        const preU = {
+            main:   (($('apiUrlInp')   || {}).value || '').trim(),
+            polish: (($('polishUrlInp')|| {}).value || '').trim(),
+            act:    (($('actUrlInp')   || {}).value || '').trim()
+        };
+        if(!preU.main) { toast("API 地址不能为空（远程须 HTTPS；可填写 https://api.deepseek.com/chat/completions），已取消保存（配置未改动）"); return; }
+        if(!apiUrlValid(preU.main)) { toast("API 地址无效（远程须 HTTPS；HTTP 仅允许本机 localhost/127.0.0.1），已取消保存（配置未改动）"); return; }
+        if(!preU.polish) { toast("审稿 API 地址不能为空，已取消保存（配置未改动）"); return; }
+        if(!apiUrlValid(preU.polish)) { toast("审稿 API 地址无效（远程须 HTTPS；HTTP 仅允许本机 localhost/127.0.0.1），已取消保存（配置未改动）"); return; }
+        if(!preU.act) { toast("扮演 API 地址不能为空，已取消保存（配置未改动）"); return; }
+        if(!apiUrlValid(preU.act)) { toast("扮演 API 地址无效（远程须 HTTPS；HTTP 仅允许本机 localhost/127.0.0.1），已取消保存（配置未改动）"); return; }
         const elMap = { apiUrlInp: 'url', apiKeyInp: 'key', modelInp: 'model', stopWordsInp: 'stopWords', // v8.6-fix18：停止词保存
             tempRange: 'temp', topPRange: 'top_p', repPenaltyRange: 'repetition_penalty',
             maxTokensInp: 'maxTokens', freqRange: 'freqPenalty', presRange: 'presPenalty',
@@ -1809,8 +1981,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const snapBack = { tempRange: 0.1, topPRange: 0.01, repPenaltyRange: 0.05, freqRange: 0.1, presRange: 0.1 };
         const snapVals = { tempRange: api.temp, topPRange: api.top_p, repPenaltyRange: api.repetition_penalty, freqRange: api.freqPenalty, presRange: api.presPenalty };
         for (let [id, step] of Object.entries(snapBack)) { const el = $(id); if(el) el.value = formatStep(snapVals[id], step); }
-        // 数值合法性校验（v6.3：url 非 http(s) 开头视为脏值，一并回默认——防 fetch 相对/空路径）
-        if(!api.url || !/^https?:\/\//i.test(api.url.trim())) { toast("API 地址无效（需以 http:// 或 https:// 开头），已恢复默认"); api.url = 'https://api.deepseek.com/chat/completions'; const u = $('apiUrlInp'); if(u) u.value = api.url; }
         if(!api.model || !api.model.trim()) { toast("模型名称不能为空，已恢复默认"); api.model = 'deepseek-v4-flash'; const m = $('modelInp'); if(m) m.value = api.model; }
         // v7.9 五个浮点参数校验（与 UI 规格一致；非法输入明确提示并回默认）
         if(!Number.isFinite(api.temp) || api.temp < 0.1 || api.temp > 2) { toast("温度请输入 0.1~2.0"); api.temp = 1.0; const t = $('tempRange'); if(t) t.value = 1.0; }
@@ -2003,7 +2173,7 @@ document.addEventListener('DOMContentLoaded', function() {
             div.className = `item-card ${currentEditingCharId===char.id?'active':''}`;
             div.dataset.name = char.name;
             div.dataset.tags = (char.tags || []).join(","); // v7.7 标签检索
-            div.innerHTML = `<div class="item-name">${escapeHtml(char.name)}</div><div class="item-preview">${escapeHtml(char.appearance||'').slice(0,20)}</div><div class="item-actions"><button class="small-btn edit-char" data-id="${char.id}">编辑</button><button class="small-btn del-char" data-id="${char.id}" style="background:#4A2A2A;">删除</button></div>`;
+            div.innerHTML = `<div class="item-name">${escapeHtml(char.name)}</div><div class="item-preview">${escapeHtml(char.appearance||'').slice(0,20)}</div><div class="item-actions"><button class="small-btn edit-char" data-id="${escapeHtml(char.id)}">编辑</button><button class="small-btn del-char" data-id="${escapeHtml(char.id)}" style="background:#4A2A2A;">删除</button></div>`;
             div.querySelector('.edit-char').addEventListener('click',()=> editCharacter(char.id));
             div.querySelector('.del-char').addEventListener('click',()=> { if(confirm(`删除角色「${char.name}」？`)) deleteCharacter(char.id); });
             container.appendChild(div);
@@ -2019,7 +2189,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = { bookName: book.name, exportedAt: new Date().toISOString(), characters: book.characters };
         const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-        a.download = `${sanitizeFilename(book.name)}_角色库_${new Date().toISOString().slice(0,10)}.json`;
+        a.download = `${sanitizeFilename(book.name)}_角色库_${fmtStamp()}.json`;
         a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
         toast(`已导出 ${book.characters.length} 个角色`);
     }
@@ -2103,7 +2273,7 @@ document.addEventListener('DOMContentLoaded', function() {
             div.className = `item-card ${currentEditingGlobalCharId===char.id?'active':''}`;
             div.dataset.name = char.name;
             div.dataset.tags = (char.tags || []).join(","); // v7.7 标签检索
-            div.innerHTML = `<div class="item-name">${escapeHtml(char.name)}</div><div class="item-preview">${escapeHtml(char.appearance||'').slice(0,20)}</div><div class="item-actions"><button class="small-btn edit-global-char" data-id="${char.id}">编辑</button><button class="small-btn del-global-char" data-id="${char.id}" style="background:#4A2A2A;">删除</button></div>`;
+            div.innerHTML = `<div class="item-name">${escapeHtml(char.name)}</div><div class="item-preview">${escapeHtml(char.appearance||'').slice(0,20)}</div><div class="item-actions"><button class="small-btn edit-global-char" data-id="${escapeHtml(char.id)}">编辑</button><button class="small-btn del-global-char" data-id="${escapeHtml(char.id)}" style="background:#4A2A2A;">删除</button></div>`;
             div.querySelector('.edit-global-char').addEventListener('click',()=> editGlobalCharacter(char.id));
             div.querySelector('.del-global-char').addEventListener('click',()=> { if(confirm(`删除素材角色「${char.name}」？`)) deleteGlobalCharacter(char.id); });
             container.appendChild(div);
@@ -2147,7 +2317,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentEditingGlobalCharId = null; renderGlobalCharList();
     }
     function addGlobalCharacter() { clearGlobalCharForm(); currentEditingGlobalCharId=null; $('globalCharName')?.focus(); }
-    function exportGlobalCharsToJson() { if(!globalCharacters.length) { toast("素材角色库为空"); return; } const blob = new Blob([JSON.stringify(globalCharacters,null,2)], {type:"application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `material_characters_${Date.now()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("已导出"); }
+    function exportGlobalCharsToJson() { if(!globalCharacters.length) { toast("素材角色库为空"); return; } const blob = new Blob([JSON.stringify(globalCharacters,null,2)], {type:"application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `material_characters_${fmtStamp()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("已导出"); }
     function importGlobalCharsFromJson(file) { const reader = new FileReader(); reader.onload = e => { try { const parsed = JSON.parse(e.target.result); let imported = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.characters) ? parsed.characters : null); if(!imported) throw new Error('无有效角色数组'); let added=0; const idMap = new Map(); const copies = []; imported.forEach(item => { if(item && item.name && typeof item.name==='string') { const copy = JSON.parse(JSON.stringify(item)); const oldId = String(copy.id || ''); const newId = uuid(); if(oldId) idMap.set(oldId, newId); copy.id = newId; copy.relationships = Array.isArray(copy.relationships) ? copy.relationships : []; copies.push(copy); added++; } }); copies.forEach(copy => { // v7.3 用户拍板：关系无脑带走——targetId 在本次导入/导出集合内则重映射到新 ID，不在则保留原值（不因目标角色未选中而过滤删除）
                 copy.relationships = Array.isArray(copy.relationships) ? copy.relationships.map(r => (r && idMap.has(String(r.targetId))) ? ({ ...r, targetId: idMap.get(String(r.targetId)) }) : r).filter(Boolean) : []; }); copies.forEach(c => globalCharacters.push(c)); if(added) { saveAll(); renderGlobalCharList(); toast(`已导入 ${added} 个角色`); } else toast("无有效角色"); } catch(err) { toast("解析失败"); } }; reader.readAsText(file); }
 
@@ -2159,7 +2329,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const div = document.createElement('div');
             div.className = `item-card ${currentEditingGlobalActionId===action.id?'active':''}`;
             div.dataset.name = action.name;
-            div.innerHTML = `<div class="item-name">${escapeHtml(action.name)}</div><div class="item-preview">${escapeHtml(action.keyPoints||'').slice(0,20)}</div><div class="item-actions"><button class="small-btn edit-global-action" data-id="${action.id}">编辑</button><button class="small-btn del-global-action" data-id="${action.id}" style="background:#4A2A2A;">删除</button></div>`;
+            div.innerHTML = `<div class="item-name">${escapeHtml(action.name)}</div><div class="item-preview">${escapeHtml(action.keyPoints||'').slice(0,20)}</div><div class="item-actions"><button class="small-btn edit-global-action" data-id="${escapeHtml(action.id)}">编辑</button><button class="small-btn del-global-action" data-id="${escapeHtml(action.id)}" style="background:#4A2A2A;">删除</button></div>`;
             div.querySelector('.edit-global-action').addEventListener('click',()=> editGlobalAction(action.id));
             div.querySelector('.del-global-action').addEventListener('click',()=> { if(confirm(`删除动作「${action.name}」？`)) deleteGlobalAction(action.id); });
             container.appendChild(div);
@@ -2201,7 +2371,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentEditingGlobalActionId = null; renderActionList();
     }
     function addGlobalAction() { clearGlobalActionForm(); currentEditingGlobalActionId=null; $('globalActionName')?.focus(); }
-    function exportGlobalActionsToJson() { if(!globalActions.length) { toast("动作库为空"); return; } const blob = new Blob([JSON.stringify(globalActions,null,2)], {type:"application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `global_actions_${Date.now()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("已导出"); }
+    function exportGlobalActionsToJson() { if(!globalActions.length) { toast("动作库为空"); return; } const blob = new Blob([JSON.stringify(globalActions,null,2)], {type:"application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `global_actions_${fmtStamp()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("已导出"); }
     function importGlobalActionsFromJson(file) { const reader = new FileReader(); reader.onload = e => { try { const imported = JSON.parse(e.target.result); if(!Array.isArray(imported)) throw new Error(); let added=0; imported.forEach(item => { if(item.name && typeof item.name==='string') { globalActions.push({ id:uuid(), name:item.name, keyPoints:item.keyPoints||'', linesUsage:item.linesUsage||'', descriptionTips:item.descriptionTips||'' }); added++; } }); globalActions.forEach(a => { delete a.tags; }); if(added) { saveAll(); renderActionList(); toast(`已导入 ${added} 个动作`); } else toast("无有效动作"); } catch(err) { toast("解析失败"); } }; reader.readAsText(file); }
 
     function renderCostumeList() {
@@ -2213,7 +2383,7 @@ document.addEventListener('DOMContentLoaded', function() {
             div.className = `item-card ${currentEditingGlobalCostumeId===costume.id?'active':''}`;
             div.dataset.name = costume.name;
             div.dataset.tags = (costume.tags || []).join(","); // v7.7 标签检索
-            div.innerHTML = `<div class="item-name">${escapeHtml(costume.name)}</div><div class="item-preview">${escapeHtml(costume.styleDetail||'').slice(0,20)}</div><div class="item-actions"><button class="small-btn edit-global-costume" data-id="${costume.id}">编辑</button><button class="small-btn del-global-costume" data-id="${costume.id}" style="background:#4A2A2A;">删除</button></div>`;
+            div.innerHTML = `<div class="item-name">${escapeHtml(costume.name)}</div><div class="item-preview">${escapeHtml(costume.styleDetail||'').slice(0,20)}</div><div class="item-actions"><button class="small-btn edit-global-costume" data-id="${escapeHtml(costume.id)}">编辑</button><button class="small-btn del-global-costume" data-id="${escapeHtml(costume.id)}" style="background:#4A2A2A;">删除</button></div>`;
             div.querySelector('.edit-global-costume').addEventListener('click',()=> editGlobalCostume(costume.id));
             div.querySelector('.del-global-costume').addEventListener('click',()=> { if(confirm(`删除服装「${costume.name}」？`)) deleteGlobalCostume(costume.id); });
             container.appendChild(div);
@@ -2256,21 +2426,23 @@ document.addEventListener('DOMContentLoaded', function() {
         currentEditingGlobalCostumeId = null; renderCostumeList();
     }
     function addGlobalCostume() { clearGlobalCostumeForm(); currentEditingGlobalCostumeId=null; $('globalCostumeName')?.focus(); }
-    function exportGlobalCostumesToJson() { if(!globalCostumes.length) { toast("服装库为空"); return; } const blob = new Blob([JSON.stringify(globalCostumes,null,2)], {type:"application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `global_costumes_${Date.now()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("已导出"); }
+    function exportGlobalCostumesToJson() { if(!globalCostumes.length) { toast("服装库为空"); return; } const blob = new Blob([JSON.stringify(globalCostumes,null,2)], {type:"application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `global_costumes_${fmtStamp()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("已导出"); }
     function importGlobalCostumesFromJson(file) { const reader = new FileReader(); reader.onload = e => { try { const imported = JSON.parse(e.target.result); if(!Array.isArray(imported)) throw new Error(); let added=0; imported.forEach(item => { if(item.name && typeof item.name==='string') { globalCostumes.push({ id:uuid(), name:item.name, styleDetail:item.styleDetail||'', descriptionTips:item.descriptionTips||'' }); added++; } }); if(added) { saveAll(); renderCostumeList(); toast(`已导入 ${added} 个服装`); } else toast("无有效服装"); } catch(err) { toast("解析失败"); } }; reader.readAsText(file); }
 
-    function batchImport() { if(!globalCharacters.length) { toast("素材角色库为空"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>从素材库导入角色</h3><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="batchImportSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="batchImportSearchClear"></i></div><div class="batch-import-list" id="importListContainer"></div><div class="modal-buttons"><button id="confirmBatchImport" class="glass-btn">确认导入</button><button id="cancelBatchImport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#importListContainer'); globalCharacters.forEach(item => { const label = document.createElement('label'); const safeId = String(item.id).replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); // v7.4：弹窗搜索（CSS 过滤，选中状态保留）
+    function batchImport() { if(!globalCharacters.length) { toast("素材角色库为空"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>从素材库导入角色</h3><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="batchImportSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="batchImportSearchClear"></i></div><div class="batch-import-list" id="importListContainer"></div><div class="modal-buttons"><button id="confirmBatchImport" class="glass-btn">确认导入</button><button id="cancelBatchImport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#importListContainer'); globalCharacters.forEach(item => { const label = document.createElement('label'); const safeId = escapeHtml(item.id); /* v8.7-F01：完整转义属性 ID（原先仅 .replace(/"/g,'&quot;') 不防 &/< 逃逸）；getAttribute 读取时实体解码回原文 */
+            label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); // v7.4：弹窗搜索（CSS 过滤，选中状态保留）
         const impSearch = modalDiv.querySelector('#batchImportSearch'); const impClear = modalDiv.querySelector('#batchImportSearchClear');
         if(impSearch) impSearch.addEventListener('input', () => { const kw = impSearch.value.trim(); const items = container.querySelectorAll('label'); let shown = 0; items.forEach(l => { const nm = l.querySelector('.item-name'); const hit = !kw || (nm ? nm.textContent.includes(kw) : false); l.style.display = hit ? '' : 'none'; if(hit) shown++; }); let tip = container.querySelector('.batch-empty-tip'); if(!shown) { if(!tip) { tip = document.createElement('div'); tip.className='batch-empty-tip'; tip.style.cssText='padding:12px;color:#6A627A;font-size:0.7rem;'; tip.textContent='无匹配角色'; container.appendChild(tip); } } else if(tip) tip.remove(); });
         if(impClear) impClear.onclick = () => { if(impSearch) { impSearch.value=''; impSearch.dispatchEvent(new Event('input')); } }; modalDiv.querySelector('#confirmBatchImport').onclick = () => { const book = getCurrentBook(); if(!book) { toast("请先选择小说"); modalDiv.remove(); return; } let imported=0; const idMap = new Map(); const copies = []; modalDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => { const id = cb.getAttribute('data-id'); const original = globalCharacters.find(s => String(s.id) === String(id)); if(original) { const copy = JSON.parse(JSON.stringify(original)); const oldId = copy.id; const newId = uuid(); idMap.set(String(oldId), newId); copy.id = newId; copy.relationships = Array.isArray(copy.relationships) ? copy.relationships : []; copies.push(copy); } }); copies.forEach(copy => { // v7.3 用户拍板：关系无脑带走——targetId 在本次导入/导出集合内则重映射到新 ID，不在则保留原值（不因目标角色未选中而过滤删除）
                 copy.relationships = Array.isArray(copy.relationships) ? copy.relationships.map(r => (r && idMap.has(String(r.targetId))) ? ({ ...r, targetId: idMap.get(String(r.targetId)) }) : r).filter(Boolean) : []; }); if(copies.length) { initCharactersIfNeeded(book); copies.forEach(c => book.characters.push(c)); imported = copies.length; } if(imported) { saveAll(); renderCharacterList(); toast(`已导入 ${imported} 个角色`); } else toast("未选择任何项"); modalDiv.remove(); }; modalDiv.querySelector('#cancelBatchImport').onclick = () => modalDiv.remove(); }
-    function batchExport() { const book = getCurrentBook(); if(!book || !book.characters.length) { toast("当前小说无角色可导出"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>导出到素材角色库</h3><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="batchExportSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="batchExportSearchClear"></i></div><div class="batch-import-list" id="exportListContainer"></div><div class="modal-buttons"><button id="confirmBatchExport" class="glass-btn">确认导出</button><button id="cancelBatchExport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#exportListContainer'); book.characters.forEach(item => { const label = document.createElement('label'); const safeId = String(item.id).replace(/"/g,'&quot;'); label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); // v7.4：弹窗搜索（CSS 过滤，选中状态保留）
+    function batchExport() { const book = getCurrentBook(); if(!book || !book.characters.length) { toast("当前小说无角色可导出"); return; } const modalDiv = document.createElement('div'); modalDiv.className='modal'; modalDiv.style.display='flex'; modalDiv.innerHTML = `<div class="modal-card batch-import-modal"><h3>导出到素材角色库</h3><div class="precision-search"><i class="fas fa-search"></i><input type="text" id="batchExportSearch" placeholder="搜索角色…"><i class="fas fa-times precision-clear" id="batchExportSearchClear"></i></div><div class="batch-import-list" id="exportListContainer"></div><div class="modal-buttons"><button id="confirmBatchExport" class="glass-btn">确认导出</button><button id="cancelBatchExport" class="glass-btn">取消</button></div></div>`; document.body.appendChild(modalDiv); const container = modalDiv.querySelector('#exportListContainer'); book.characters.forEach(item => { const label = document.createElement('label'); const safeId = escapeHtml(item.id); /* v8.7-F01：完整转义属性 ID（原先仅 .replace(/"/g,'&quot;') 不防 &/< 逃逸）；getAttribute 读取时实体解码回原文 */
+            label.innerHTML = `<input type="checkbox" data-id="${safeId}"> <span class="item-name">${escapeHtml(item.name)}</span>`; container.appendChild(label); }); // v7.4：弹窗搜索（CSS 过滤，选中状态保留）
         const expSearch = modalDiv.querySelector('#batchExportSearch'); const expClear = modalDiv.querySelector('#batchExportSearchClear');
         if(expSearch) expSearch.addEventListener('input', () => { const kw = expSearch.value.trim(); const items = container.querySelectorAll('label'); let shown = 0; items.forEach(l => { const nm = l.querySelector('.item-name'); const hit = !kw || (nm ? nm.textContent.includes(kw) : false); l.style.display = hit ? '' : 'none'; if(hit) shown++; }); let tip = container.querySelector('.batch-empty-tip'); if(!shown) { if(!tip) { tip = document.createElement('div'); tip.className='batch-empty-tip'; tip.style.cssText='padding:12px;color:#6A627A;font-size:0.7rem;'; tip.textContent='无匹配角色'; container.appendChild(tip); } } else if(tip) tip.remove(); });
         if(expClear) expClear.onclick = () => { if(expSearch) { expSearch.value=''; expSearch.dispatchEvent(new Event('input')); } }; modalDiv.querySelector('#confirmBatchExport').onclick = () => { let exported=0; const idMap = new Map(); const copies = []; modalDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => { const id = cb.getAttribute('data-id'); const original = book.characters.find(s => String(s.id) === String(id)); if(original) { const copy = JSON.parse(JSON.stringify(original)); const oldId = String(copy.id); const newId = uuid(); idMap.set(oldId, newId); copy.id = newId; copy.relationships = Array.isArray(copy.relationships) ? copy.relationships : []; copies.push(copy); } }); copies.forEach(copy => { // v7.3 用户拍板：关系无脑带走——targetId 在本次导入/导出集合内则重映射到新 ID，不在则保留原值（不因目标角色未选中而过滤删除）
                 copy.relationships = Array.isArray(copy.relationships) ? copy.relationships.map(r => (r && idMap.has(String(r.targetId))) ? ({ ...r, targetId: idMap.get(String(r.targetId)) }) : r).filter(Boolean) : []; }); copies.forEach(c => { globalCharacters.push(c); exported++; }); if(exported) { saveAll(); renderGlobalCharList(); toast(`已导出 ${exported} 个角色到素材库`); } else toast("未选择任何项"); modalDiv.remove(); }; modalDiv.querySelector('#cancelBatchExport').onclick = () => modalDiv.remove(); }
 
-    function renderForbiddenList() { const book = getCurrentBook(); if(!book) return; initForbiddenWordsIfNeeded(book); const container = $('forbiddenList'); if(!container) return; container.innerHTML = ''; if(book.forbiddenWords.length===0) { container.innerHTML='<div style="padding:12px;color:#6A627A;">暂无禁用词</div>'; return; } book.forbiddenWords.forEach(item => { if(!item.id) item.id = uuid(); const div = document.createElement('div'); div.className = `item-card ${currentEditingForbiddenId===item.id?'active':''}`; div.innerHTML = `<div class="item-name">${escapeHtml(item.word)}</div><div class="item-actions"><button class="small-btn edit-forbidden" data-fid="${item.id}">编辑</button><button class="small-btn del-forbidden" data-fid="${item.id}" style="background:#4A2A2A;">删除</button></div>`; div.querySelector('.edit-forbidden').addEventListener('click',()=> editForbiddenWord(item.id)); div.querySelector('.del-forbidden').addEventListener('click',()=> { if(confirm(`删除禁用词「${item.word}」？`)) deleteForbiddenWord(item.id); }); container.appendChild(div); }); }
+    function renderForbiddenList() { const book = getCurrentBook(); if(!book) return; initForbiddenWordsIfNeeded(book); const container = $('forbiddenList'); if(!container) return; container.innerHTML = ''; if(book.forbiddenWords.length===0) { container.innerHTML='<div style="padding:12px;color:#6A627A;">暂无禁用词</div>'; return; } book.forbiddenWords.forEach(item => { if(!item.id) item.id = uuid(); const div = document.createElement('div'); div.className = `item-card ${currentEditingForbiddenId===item.id?'active':''}`; div.innerHTML = `<div class="item-name">${escapeHtml(item.word)}</div><div class="item-actions"><button class="small-btn edit-forbidden" data-fid="${escapeHtml(item.id)}">编辑</button><button class="small-btn del-forbidden" data-fid="${escapeHtml(item.id)}" style="background:#4A2A2A;">删除</button></div>`; div.querySelector('.edit-forbidden').addEventListener('click',()=> editForbiddenWord(item.id)); div.querySelector('.del-forbidden').addEventListener('click',()=> { if(confirm(`删除禁用词「${item.word}」？`)) deleteForbiddenWord(item.id); }); container.appendChild(div); }); }
     function editForbiddenWord(fid) { const book = getCurrentBook(); const item = book?.forbiddenWords.find(f=>f.id===fid); if(item) { currentEditingForbiddenId = fid; const forbiddenWordInput = $('forbiddenWordInput'); if(forbiddenWordInput) forbiddenWordInput.value = item.word; renderForbiddenList(); } }
     function saveForbiddenWord() {
         const book = getCurrentBook(); if(!book) return; initForbiddenWordsIfNeeded(book);
@@ -2418,7 +2590,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderStatsTabs() {
         const tabs = $('statsTabs'); if(!tabs) return;
         let html = '<div class="stats-tab' + (curStatsTab === 'global' ? ' active' : '') + '" data-stats="global">🌐 全局</div>';
-        (books || []).forEach(b => { html += '<div class="stats-tab' + (curStatsTab === b.id ? ' active' : '') + '" data-stats="' + b.id + '">📖 ' + escapeHtml(b.name) + '</div>'; });
+        (books || []).forEach(b => { html += '<div class="stats-tab' + (curStatsTab === b.id ? ' active' : '') + '" data-stats="' + escapeHtml(b.id) + '">📖 ' + escapeHtml(b.name) + '</div>'; }); // v8.7-F01b：data-stats 属性插值转义（复审 F-01：书 ID 可被备份控制）
         tabs.innerHTML = html;
         tabs.querySelectorAll('.stats-tab').forEach(t => t.addEventListener('click', () => { curStatsTab = t.dataset.stats; renderStatsTabs(); renderStatsBody(); })); // v7.6 修复：切页签即刷新数据
     }
@@ -2448,7 +2620,7 @@ document.addEventListener('DOMContentLoaded', function() {
             img.onload = () => {
                 const canvas = document.createElement('canvas'); canvas.width = width * 2; canvas.height = height * 2;
                 const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width * 2, height * 2);
-                const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = '写作统计_' + new Date().toISOString().slice(0, 10) + '.png'; a.click();
+                const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = '写作统计_' + fmtStamp() + '.png'; a.click();
                 toast('统计图已导出 PNG');
             };
             img.onerror = () => toast('导出失败：图片渲染异常');
@@ -2538,9 +2710,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 间隔用 0.5 单位真实值（横 40px / 纵 25px，为关系线留白）；留白 0.1 单位（8px）。
     // 优先级：空位最少 → 形状接近卡片比例(80/50≈1.6) → 面积最小（避免"单行/单列"极端导致区域超宽/超高）
     function calcRegionSize(n) {
-        // v6.4 用户实测修正：区域按 2N 卡位计算包围盒——原算法只够"挤下 N 个卡片"，
-        // 实际拖入角色 + 关系线/标签需要翻倍空间（实测舒适容纳 ≈ 数值/2），故 ×2 补偿
-        n = Math.min(n * 2, 100);
+        // v8.7-F16b：无效 size 兜底——undefined/NaN/非数值一律按默认 3 处理（原 Math.min(NaN*2,100) 使循环不执行返回 null，调用处 rsz.w 崩，v4 复审实测）
+        n = (typeof n === 'number' && isFinite(n)) ? Math.max(1, Math.min(50, Math.round(n))) : 3;
+        n = Math.min(n * 2, 100); // v6.4 用户实测修正：区域按 2N 卡位计算包围盒——原算法只够"挤下 N 个卡片"，实际拖入角色+关系线/标签需翻倍空间（实测舒适容纳 ≈ 数值/2），故 ×2 补偿
         const CW = 80, CH = 50, GAP_X = 40, GAP_Y = 25, PAD = 8;
         let best = null;
         for(let k = 1; k <= n; k++) {
@@ -2554,7 +2726,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return best;
     }
-    function loadGraphRegions(book) { graphRegions = Array.isArray(book.graphRegions) ? JSON.parse(JSON.stringify(book.graphRegions)) : []; }
+    function loadGraphRegions(book) {
+        // v8.7-F16b：区域字段级 schema 规范化——仅过滤 null/非对象不够：缺字段区域（{}/{bad:true}）会以 undefined size 进 calcRegionSize 返回 null，绘制处 rsz.w 崩（v4 复审实测）；
+        // 就地校正（深拷贝上操作）：size 有限数值 1~50 默认 3、x/y 有限数值默认 100、shape 限定枚举、color 白名单（SVG fill/stroke 与页签同口径，F-14 SVG 残余一并消除）、name/id 字符串化
+        graphRegions = Array.isArray(book.graphRegions) ? JSON.parse(JSON.stringify(book.graphRegions)).filter(r => r && typeof r === 'object').map(r => {
+            if(typeof r.id === 'number') r.id = String(r.id);
+            if(typeof r.name !== 'string') r.name = '';
+            if(['rect','ellipse','hex'].indexOf(r.shape) < 0) r.shape = 'rect';
+            if(!(typeof r.size === 'number' && isFinite(r.size))) r.size = 3; else r.size = Math.max(1, Math.min(50, Math.round(r.size)));
+            if(!(typeof r.color === 'string' && REGION_COLORS.indexOf(r.color) >= 0)) r.color = '#3B8ED4';
+            if(!(typeof r.x === 'number' && isFinite(r.x))) r.x = 100;
+            if(!(typeof r.y === 'number' && isFinite(r.y))) r.y = 100;
+            return r;
+        }) : [];
+    }
     function saveGraphRegions(book) { book.graphRegions = JSON.parse(JSON.stringify(graphRegions)); saveAll(); }
     // v7.4：关系图导出 PNG（2x 高清、暗色背景、含区域）
     function exportRelationGraph() {
@@ -2572,7 +2757,11 @@ document.addEventListener('DOMContentLoaded', function() {
             clone.insertBefore(bg, clone.firstChild);
             clone.setAttribute('viewBox', '0 0 ' + vbW + ' ' + vbH);
             clone.setAttribute('width', vbW); clone.setAttribute('height', vbH);
-            const xml = new XMLSerializer().serializeToString(clone);
+            // v8.6-fix36：内嵌 .graph-* 相关 CSS（与 exportStatsPNG 同思路）——保证导出 SVG 与屏幕样式一致
+            let graphCss = '';
+            document.querySelectorAll('style').forEach(st => { if(st.textContent.indexOf('.graph-') !== -1) graphCss += st.textContent + '\n'; });
+            const cloneBody = new XMLSerializer().serializeToString(clone).replace(/^<svg[^>]*>/, '');
+            const xml = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + vbW + ' ' + vbH + '" width="' + vbW + '" height="' + vbH + '">' + (graphCss ? '<style>' + graphCss + '</style>' : '') + cloneBody;
             const svg64 = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
             const img = new Image();
             img.onload = () => {
@@ -2584,7 +2773,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 const a = document.createElement('a');
                 a.href = canvas.toDataURL('image/png');
-                a.download = sanitizeFilename(book.name) + '_关系图_' + new Date().toISOString().slice(0,10) + '.png';
+                a.download = sanitizeFilename(book.name) + '_关系图_' + fmtStamp() + '.png';
                 a.click();
                 toast("关系图已导出为图片");
             };
@@ -2642,7 +2831,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const tabs = $('graphRegionTabs'); if(!tabs) return;
         let html = '<div class="region-tab'+(graphActiveTab===0?' active':'')+'" data-tab="0" title="拖动人物关系"><span class="region-tab-icon">👤</span><span class="region-tab-label">人物</span></div>';
         graphRegions.forEach((r,i)=>{
-            html += '<div class="region-tab'+(graphActiveTab===i+1?' active':'')+'" data-tab="'+(i+1)+'" style="border-color:'+r.color+';" title="'+escapeHtml(r.name)+'"><span class="region-tab-name" style="color:'+r.color+';">'+escapeHtml(r.name.substring(0,3))+'</span><i class="fas fa-times region-tab-del" data-idx="'+i+'"></i></div>';
+            // v8.7-F14/F16：区域颜色白名单校验 + 字段守卫——r.color 原样拼入 style（备份可控制，引号逃逸生成额外属性=S0）；
+            // 颜色仅接受 REGION_COLORS 色板值，非法回退默认色；name 非字符串时不再 .substring 崩溃（F-16 [{}] 实测）
+            const rc = (r && typeof r.color === 'string' && REGION_COLORS.indexOf(r.color) >= 0) ? r.color : '#3B8ED4';
+            const rn = (r && typeof r.name === 'string') ? r.name : '';
+            html += '<div class="region-tab'+(graphActiveTab===i+1?' active':'')+'" data-tab="'+(i+1)+'" style="border-color:'+rc+';" title="'+escapeHtml(rn)+'"><span class="region-tab-name" style="color:'+rc+';">'+escapeHtml(rn.substring(0,3))+'</span><i class="fas fa-times region-tab-del" data-idx="'+i+'"></i></div>';
         });
         tabs.innerHTML = html;
         tabs.querySelectorAll('[data-tab]').forEach(el=>{
@@ -2769,6 +2962,8 @@ document.addEventListener('DOMContentLoaded', function() {
         chars.forEach((c,i)=>{ if(!relationNodePositions[c.id]) { const angle = (2*Math.PI*i)/chars.length - Math.PI/2; const rx = W/2-120, ry = H/2-100; relationNodePositions[c.id] = { x: W/2 + rx*Math.cos(angle), y: H/2 + ry*Math.sin(angle) }; } });
         const lineGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
         const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
+        // v8.6-fix35：高亮集循环外读一次（原每节点 JSON.parse 一次 localStorage，性能与一致性隐患）
+        const hlSet = new Set(getGraphHighlights(book.id));
         const defs = document.createElementNS('http://www.w3.org/2000/svg','defs'); svg.appendChild(defs);
         const edges = []; chars.forEach(c=>{ (c.relationships||[]).forEach(r=>{ edges.push({from:c.id,to:r.targetId,type:r.type}); }); });
         const edgeMeta = edges.map(e=>{ const reverse = edges.find(r=>r.from===e.to && r.to===e.from); return {...e, isBidirectional: !!reverse, offsetSide: null}; });
@@ -2780,8 +2975,8 @@ document.addEventListener('DOMContentLoaded', function() {
         seenPairs.forEach(key=>{ const ids = key.split('|'); const refFrom = relationNodePositions[ids[0]], refTo = relationNodePositions[ids[1]]; if(!refFrom || !refTo) return; const rdx = refTo.x - refFrom.x, rdy = refTo.y - refFrom.y; const rlen = Math.sqrt(rdx*rdx+rdy*rdy) || 1; pairPerp[key] = { px: -rdy/rlen*14, py: rdx/rlen*14 }; });
         edgeMeta.forEach(e=>{ const from = relationNodePositions[e.from], to = relationNodePositions[e.to]; if(!from||!to) return; const color = getRelationColor(e.type); let fx = from.x, fy = from.y, tx = to.x, ty = to.y; if(e.offsetSide && e.isBidirectional) { const pairKey = [e.from, e.to].sort().join('|'); const pp = pairPerp[pairKey]; if(pp) { fx += pp.px * e.offsetSide; fy += pp.py * e.offsetSide; tx += pp.px * e.offsetSide; ty += pp.py * e.offsetSide; } } const ep1 = edgeIntersect(fx, fy, tx, ty); const ep2 = edgeIntersect(tx, ty, fx, fy); const g = document.createElementNS('http://www.w3.org/2000/svg','g'); const line = document.createElementNS('http://www.w3.org/2000/svg','line'); line.setAttribute('x1',ep1.x); line.setAttribute('y1',ep1.y); line.setAttribute('x2',ep2.x); line.setAttribute('y2',ep2.y); line.setAttribute('stroke',color); line.setAttribute('stroke-width','3'); line.setAttribute('stroke-linecap','round'); line.setAttribute('marker-end','url(#arr-'+color.replace('#','')+')'); g.appendChild(line); const label = document.createElementNS('http://www.w3.org/2000/svg','text'); const midX = (fx+tx)/2, midY = (fy+ty)/2; label.setAttribute('x',midX); label.setAttribute('y',midY-10); label.setAttribute('class','graph-line-label'); label.setAttribute('fill',color); label.setAttribute('font-size','12'); label.setAttribute('text-anchor','middle'); label.setAttribute('font-weight','500'); label.textContent = e.type; g.appendChild(label); lineGroup.appendChild(g); });
         chars.forEach(c=>{ const pos = relationNodePositions[c.id]; if(!pos) return; const x = pos.x - NODE_W/2, y = pos.y - NODE_H/2; const g = document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('data-id',c.id); g.style.cursor = 'pointer'; g.addEventListener('click',()=>{ graphNodeClick(c.id); }); g.addEventListener('contextmenu',(ev)=>{ ev.preventDefault(); toggleGraphHighlight(book.id, c.id); renderRelationGraph(); }); // v8.6-④：右键切换白底黑字高亮
-        g.addEventListener('mousedown',(ev)=>{ graphNodeDragStart(ev,c.id); }); const isHl = getGraphHighlights(book.id).indexOf(c.id) !== -1; // v8.6-④：按高亮状态着色
-        const rect = document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',NODE_W); rect.setAttribute('height',NODE_H); rect.setAttribute('rx','10'); rect.setAttribute('ry','10'); rect.setAttribute('fill', isHl ? '#FFFFFF' : '#1C1A28'); rect.setAttribute('stroke', isHl ? '#E0C85A' : '#3B8ED4'); rect.setAttribute('stroke-width','1.5'); g.appendChild(rect); const name = document.createElementNS('http://www.w3.org/2000/svg','text'); name.setAttribute('x',pos.x); name.setAttribute('y',pos.y-4); name.setAttribute('class','graph-node-text'); name.setAttribute('fill', isHl ? '#000000' : '#EDEAF2'); name.setAttribute('font-size', isHl ? '14' : '12'); name.setAttribute('text-anchor','middle'); name.setAttribute('pointer-events','none'); name.textContent = (c.name||'?').substring(0, 5); g.appendChild(name); const relCount = (c.relationships||[]).length; const sub = document.createElementNS('http://www.w3.org/2000/svg','text'); sub.setAttribute('x',pos.x); sub.setAttribute('y',pos.y+16); sub.setAttribute('class','graph-node-sub'); sub.setAttribute('fill', isHl ? '#333333' : '#8A84A8'); sub.setAttribute('font-size', isHl ? '11' : '9'); sub.setAttribute('text-anchor','middle'); sub.setAttribute('pointer-events','none'); sub.textContent = relCount ? relCount+'个关系' : '无关系'; g.appendChild(sub); nodeGroup.appendChild(g); });
+        g.addEventListener('mousedown',(ev)=>{ graphNodeDragStart(ev,c.id); }); const isHl = hlSet.has(c.id); // v8.6-④：按高亮状态着色；v8.6-fix35：高亮集用 Set（循环外读取）
+        const rect = document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',x); rect.setAttribute('y',y); rect.setAttribute('width',NODE_W); rect.setAttribute('height',NODE_H); rect.setAttribute('rx','10'); rect.setAttribute('ry','10'); rect.setAttribute('fill', isHl ? '#FFFFFF' : '#1C1A28'); rect.setAttribute('stroke', isHl ? '#E0C85A' : '#3B8ED4'); rect.setAttribute('stroke-width','1.5'); g.appendChild(rect); const name = document.createElementNS('http://www.w3.org/2000/svg','text'); name.setAttribute('x',pos.x); name.setAttribute('y',pos.y-4); name.setAttribute('class','graph-node-text'); name.setAttribute('fill', isHl ? '#000000' : '#EDEAF2'); name.setAttribute('font-size','12'); name.setAttribute('text-anchor','middle'); name.setAttribute('pointer-events','none'); name.textContent = (c.name||'?').substring(0, 5); g.appendChild(name); const relCount = (c.relationships||[]).length; const sub = document.createElementNS('http://www.w3.org/2000/svg','text'); sub.setAttribute('x',pos.x); sub.setAttribute('y',pos.y+16); sub.setAttribute('class','graph-node-sub'); sub.setAttribute('fill', isHl ? '#333333' : '#8A84A8'); sub.setAttribute('font-size','9'); sub.setAttribute('text-anchor','middle'); sub.setAttribute('pointer-events','none'); sub.textContent = relCount ? relCount+'个关系' : '无关系'; g.appendChild(sub); nodeGroup.appendChild(g); });
         // v6.4：区域底层绘制（先于人物/关系，置于最底层；半透明底色 + 框线 + 名称双线框居中）
         if(graphRegions.length) {
             const regionGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
@@ -2839,6 +3034,10 @@ document.addEventListener('DOMContentLoaded', function() {
             svg.appendChild(regionGroup);
         }
         svg.appendChild(lineGroup); svg.appendChild(nodeGroup);
+        // v8.6-fix35：强制重绘——Electron 软件渲染（disableHardwareAcceleration）下 SVG 全量重建后
+        // 合成层可能陈旧（DOM 已更新屏幕不重绘/部分重绘），右键切换高亮、拖拽后出现"变色渲染不完整"；
+        // toggle display 强制 layout+composite 刷屏（与标签高亮 v8.6-fix6 同款防御）
+        try { svg.style.display = 'none'; void svg.getBoundingClientRect(); svg.style.display = ''; } catch(e) {}
     }
 
     // SVG 坐标转换：方形布局 viewBox 高度 > 容器时 SVG 等比缩放，CSS 像素 ≠ viewBox 坐标，
@@ -2892,7 +3091,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let relationEditCharId = null;
     // v8.6-④：关系图角色右键高亮（白底黑字）——状态按书存 localStorage（刷新保持）
-    function getGraphHighlights(bookId) { try { const v = localStorage.getItem('graph_hl_' + bookId); return v ? JSON.parse(v) : []; } catch(e) { return []; } }
+    function getGraphHighlights(bookId) { try { const v = localStorage.getItem('graph_hl_' + bookId); if(!v) return []; const p = JSON.parse(v); return Array.isArray(p) ? p : []; } catch(e) { return []; } } // v8.7-F16：高亮键只接受数组——JSON 为对象时返回 []（原原样返回对象，new Set(obj) 抛 "object is not iterable"）
     function toggleGraphHighlight(bookId, charId) {
         const hl = getGraphHighlights(bookId);
         const i = hl.indexOf(charId);
@@ -3037,10 +3236,29 @@ document.addEventListener('DOMContentLoaded', function() {
         if(!apiUrlValid(api.url)) return { ok:false, error:"API 地址无效（需以 http:// 或 https:// 开头）" };
         // v6.3：检测内容重定义——本章正文 + 前 3 章摘要人物经历 + 精准勾选角色（v8.5-1：未开精准不注入角色）+ 勾选角色成长（v8.5-9：最近3条）
         const prevTxt = buildCheckPrev(book, chapter);
-        // v8.5-1：检测仅精准模式注入勾选角色（未开精准 → 不注入，不再全量）
+        // v8.7-C-友1/C1：规则层扫描（AI 味双通道基础）+ 未开精准时按正文出场频率注入 top 8 角色（原不注入致设定一致性维度空转）
+        const contentNow = (chapter.content || '');
         const checkPrecisionIds = (book.precisionMode && book.precisionChars && book.precisionChars.length) ? book.precisionChars : null;
-        const charsTxt = checkPrecisionIds ? buildCharacterText(book, checkPrecisionIds) : '';
-        const checkGrowthTxt = checkPrecisionIds ? buildGrowthText(book, checkPrecisionIds, 3) : ''; // v8.5.1-P1：检测成长仅精准模式注入（未开精准不注入，与角色设定一致；原 buildGrowthText null 会全量）
+        const aiScan = scanAiTaste(contentNow);
+        const aiHitsTxt = aiTasteHitsText(aiScan);
+        let charsTxt = checkPrecisionIds ? buildCharacterText(book, checkPrecisionIds) : '';
+        let checkGrowthTxt = checkPrecisionIds ? buildGrowthText(book, checkPrecisionIds, 3) : ''; // v8.5.1-P1：检测成长仅精准模式注入
+        if(!checkPrecisionIds) { // v8.7-C1：正文出场频率 top 8；v8.8-F-020 改为最长匹配非重叠计数——子串角色不再虚假计次（"林峰"文本不再同时给"林"计次）
+            const aliasOwner = new Map(); // 别名 -> 角色；同别名多角色 = 无法消歧 → null 跳过
+            (book.characters || []).forEach(c => { if(!c || !c.name) return; buildCharAliases(c.name).forEach(al => { if(!al) return; const own = aliasOwner.get(al); if (own === undefined) aliasOwner.set(al, c); else if (own !== c) aliasOwner.set(al, null); }); });
+            const candidates = [];
+            aliasOwner.forEach((owner, al) => { if (owner) candidates.push({ al, owner }); });
+            candidates.sort((a, b) => b.al.length - a.al.length); // 长别名优先（贪心最长匹配）
+            const byFirst = new Map();
+            candidates.forEach(cd => { const ch = cd.al[0]; if (!byFirst.has(ch)) byFirst.set(ch, []); byFirst.get(ch).push(cd); });
+            const charCount = new Map();
+            for (let pos = 0; pos < contentNow.length;) { const ch = contentNow[pos]; const cands = byFirst.get(ch); let matched = null; if (cands) { for (const cd of cands) { if (contentNow.startsWith(cd.al, pos)) { matched = cd; break; } } } if (matched) { charCount.set(matched.owner, (charCount.get(matched.owner) || 0) + 1); pos += matched.al.length; } else pos++; }
+            const freq = [];
+            charCount.forEach((n, c) => freq.push({ c, n }));
+            freq.sort((a, b) => b.n - a.n);
+            const top = freq.slice(0, 8).map(x => x.c);
+            if(top.length) { charsTxt = buildCharacterText(book, top.map(c => c.id)); checkGrowthTxt = buildGrowthText(book, top.map(c => c.id), 3); }
+        }
         // v8.4-③-b：检查升级——五档评级 + 4维评分 + 世界观注入（截800字）+ hits 结构化输出（v8.4.2：去语言表达维度与 fix_tickets）
         const worldviewTxt = (book.worldview || '').trim() ? '【世界观】\n' + book.worldview.trim().slice(0, 800) + (book.worldview.trim().length > 800 ? '\n…（世界观已截断）' : '') : '（未设定世界观）';
         // v8.6-③：检测稳定段前置——开场+评分维度+JSON输出要求+规则（固定）在最前，变段（前文人设/关系图/人物/世界观/正文）垫底 → 同章重复检测命中缓存
@@ -3049,7 +3267,7 @@ document.addEventListener('DOMContentLoaded', function() {
 【评分维度】（各维独立评级 S/A/B/C/D）：
 1. 设定一致性：人物性格/情绪/台词/外貌/关系/世界观是否与前文和设定一致（最高优先级）
 2. 逻辑连贯：时间线、因果、前后衔接是否自洽
-3. AI味：是否出现 AI 高频套话（如"炸开""嘴角勾起""顿时""不禁""仿佛""攥得泛白"等）
+3. AI味：以规则层扫描为准（下方【AI 味规则层扫描】含评分与命中清单）——核查命中句，引用最典型的 1~3 句列入 hits（quote 逐字一致）；另自查扫描未覆盖的语义性 AI 腔
 4. 结构节奏：段落划分、详略分配、节奏起伏是否合理
 
 请只输出一个 JSON 对象（不要输出任何其他文字），格式：
@@ -3074,6 +3292,9 @@ ${buildRelationText(book)}
 ${charsTxt}${checkGrowthTxt ? '\n\n' + checkGrowthTxt : ''}
 
 ${worldviewTxt}
+
+【AI 味规则层扫描】
+${aiHitsTxt || '（词表无命中，评分 0/100）'}
 
 【当前章节内容】
 ${chapter.content}`;
@@ -3116,7 +3337,7 @@ ${chapter.content}`;
             let cleaned = content.replace(/```json\s*|\s*```/g, '').trim();
             if(cleaned.startsWith('{')) { try { const obj = JSON.parse(cleaned); return { ok:true, conflicts: (obj.hits || []), checkReport: obj, cost: calcCost(api.model, usage) }; } catch(e) {} }
             if(cleaned.startsWith('[')) return { ok:true, conflicts: JSON.parse(cleaned), cost: calcCost(api.model, usage) };
-            return { ok:true, conflicts: [], cost: calcCost(api.model, usage) };
+            return { ok:false, error:"冲突检测返回内容无法解析" }; // v8.7-M1：解析全失败的兜底改失败路径——原 ok:true+空列表会误报"无冲突"并清空上一轮有效结果（recheck 成功分支 checkResult=[]），与 v8.6-r13"失败保留旧结果"冲突
         } catch(e) {
             if(e && e.name === 'AbortError') { return { ok:false, error:"冲突检测超时（30秒）" }; } // v6.8：超时专属提示（此前一律显示"解析失败"误导）
             if(showToastOnError) toast("冲突检测解析失败，请稍后重试");
@@ -3185,6 +3406,7 @@ ${chapter.content}`;
     }
 
     async function recheckCurrentChapter() {
+        if(importPending) { toast('备份导入进行中，请等待完成后再检测'); return; } // v8.10-F011
         // v6.0：检测进行中禁止重复发起（自动/手动检测共用 conflictCheckingCount，
         // 防网络慢/思考模式时重复点击产生多个 API 请求浪费费用；计数在 finally 中可靠释放）
         if(conflictCheckingCount > 0) { toast('冲突检测进行中，请稍候'); return; }
@@ -3229,11 +3451,17 @@ ${chapter.content}`;
                 startTabBlink(current.checkResult.length ? `✅ 检测发现 ${current.checkResult.length} 处冲突${cCostTxt}` : '✅ 未检测到明显冲突' + cCostTxt);
                 // v8.4.1-⑥-b：检查完成通知到左侧聊天面板
                 const gradeTxt = current.checkReport && current.checkReport.overall_grade ? `，评级 ${current.checkReport.overall_grade}` : '';
-                addChat('assistant', current.checkResult.length ? `✅ 检测完成${gradeTxt}，发现 ${current.checkResult.length} 处冲突${cCostTxt}` : `✅ 检测完成${gradeTxt}，未检测到明显冲突${cCostTxt}`);
+                // v8.7-C-友2：规则层 AI 味评分随检测结果展示（词表扫描零成本；与模型评级双通道并存）
+                const ruleScan = scanAiTaste(current.content || '');
+                const aiScoreTxt = '【AI 味规则层 ' + ruleScan.score + '/100' + (ruleScan.hits ? '，命中 ' + ruleScan.hits + ' 处】' : '，无命中】');
+                addChat('assistant', aiScoreTxt + (current.checkResult.length ? `✅ 检测完成${gradeTxt}，发现 ${current.checkResult.length} 处冲突${cCostTxt}` : `✅ 检测完成${gradeTxt}，未检测到明显冲突${cCostTxt}`));
                 if(conflictVisible) renderConflictPanel(current); // v8.4-③-b：面板开着时刷新渲染 + 重新标色
             } else {
                 // v8.6-r13：失败不再清空既有检测结果（原无条件清空+落盘，一次瞬时失败就抹掉上一轮有效结果并持久化为"检测失败"，用户需重新付费检测）——保留旧结果仅提示
                 if(checkBtn) checkBtn.style.background = "#3A3A6A";
+                // v8.7-C-友3：模型失败优雅降级——规则层有命中时展示词表检测结果，不空手而归
+                const ruleScanF = scanAiTaste(current.content || '');
+                if(ruleScanF.hits) { const rt = aiTasteHitsText(ruleScanF); const failMsg = (result.error || '') || '未知错误'; addChat('assistant', '⚠️ 模型检测失败：' + failMsg + '\n\n以下为词表规则层检测结果（零成本降级报告）：\n' + rt); }
                 toast((result.error || "冲突检测失败") + (current.checkResult && current.checkResult.length ? '，已保留上一轮检测结果' : ''));
                 startTabBlink('❌ 冲突检测失败');
                 if(conflictVisible) renderConflictPanel(current); // v8.5.1-P2：失败也刷新面板，清除「自动重测中」占位
@@ -3609,7 +3837,9 @@ ${chapter.content}`;
             let defaultTitle = isCont ? `续写` : ((instr && instr.trim().length <= 20) ? instr.trim() : "新章节");
             let title = extractTitle(content, defaultTitle);
             // v7.1 兜底：标题自动补章号（不依赖 AI 自觉）——新建按 idx 计算正章号，重写保持目标章号
-            if(title && !/^第\s*\d+章/.test(title)) {
+            // v8.6-fix34（Bug2）：识别中文数字章号（AI 常输出"第五十二章"）——原正则只识别阿拉伯数字，
+            // 中文数字章号被误判为"无章号"→ 按位置重复补"第N章 "前缀 → 产生"第48章 第五十二章"双章号
+            if(title && !/^第\s*(?:\d+|[零〇一二三四五六七八九十百千两]+)\s*章/.test(title)) {
                 const tRegular = (book.chapters || []).slice(0, idx).filter(c => !c.isInterlude).length + 1;
                 title = '第' + tRegular + '章 ' + title;
             }
@@ -3664,7 +3894,7 @@ ${chapter.content}`;
             if (onSuccess) onSuccess(newChap, totalCost, false, !saved);
             return { chap: newChap, cost: totalCost, saved: !!saved };
         } catch(e) {
-            if(e.name === 'AbortError') { if(timedOut) toast("生成超时（10分钟）已取消，建议调低 maxTokens 或关闭思考模式"); else if(!isDual) toast("生成已取消"); if (onSuccess) onSuccess(null, 0, true); return null; }
+            if(e.name === 'AbortError') { if(timedOut) toast("生成超时（10分钟）已取消，建议调低 maxTokens 或关闭思考模式"); else if(!isDual) toast("生成已取消"); if (onSuccess) onSuccess(null, 0, true, false, timedOut ? 'timeout' : 'stop'); return null; } // v8.7-M3：透传 abortReason——超时与主动停止共用一个 aborted 标志，聊天侧据此区分文案（原统一"⏹ 已停止"掩盖超时真相）
             toast("生成失败: "+e.message);
             if (onSuccess) onSuccess(null, 0); return null;
         } finally {
@@ -3711,6 +3941,7 @@ ${chapter.content}`;
             const stopBtnA = $('stopGenBtn'); if(stopBtnA) stopBtnA.disabled = true;
             const splitEl = $('editorSplit'); if(splitEl) splitEl.remove();
             const nc = $('novelContent'); if(nc) nc.style.display = ''; const sw = $( 'summaryAreaWrap'); if(sw) sw.style.display = '';
+            stopSbStages(); resetSbProgress(); // v8.7-M2：双版生成中停止也要清进度浮层与定时器（原 finally 会话早退跳过清理，浮层常驻+interval 空转）
             loadCurChapter();
         } else if(dualPendingChapA || dualPendingChapB) {
             // 双版已生成完毕、等待选择时点击停止：放弃选择，更新聊天记录为"已放弃"，
@@ -3731,6 +3962,7 @@ ${chapter.content}`;
             currentAbortController = null;
             dualActiveSessionId = 0; // 与分支1 一致：停止即作废双版活跃会话
             const stopBtn2 = $('stopGenBtn'); if(stopBtn2) stopBtn2.disabled = true;
+            stopSbStages(); resetSbProgress(); // v8.7-M2：等待选版时停止同样清理进度浮层（双版进度已结束但浮层可能残留）
             loadCurChapter();
             toast("已放弃 A/B 两版结果，未保存章节");
             return;
@@ -3739,6 +3971,7 @@ ${chapter.content}`;
         if(currentSummaryController) { currentSummaryController.abort(); currentSummaryController = null; } // v8.5.3-P2-2：摘要阶段停止（摘要用独立 controller，原无法中止）
         isGenerating = false;
         const stopBtn = $('stopGenBtn'); if(stopBtn) stopBtn.disabled = true;
+        stopSbStages(); resetSbProgress(); // v8.7-M2：普通生成/摘要/连发停止也要清理——旧任务 finally 因会话号早退跳过清理（HTML 3702 只在会话匹配时执行），此处兜底补上
         setWritingLock(false); // v5.8：停止即解锁编辑器（旧任务 finally 会因会话过期跳过解锁）
         toast("已请求停止生成");
     }
@@ -3765,7 +3998,7 @@ ${chapter.content}`;
         book.chatHistory.forEach(m => {
             let d = document.createElement('div');
             d.className = m.role==='user' ? 'user-msg' : '';
-            d.innerHTML = `<div class="msg-bubble">${escapeHtml(m.content)}</div><div style="font-size:9px;color:#6A627A;">${m.timestamp}</div>`;
+            d.innerHTML = `<div class="msg-bubble">${escapeHtml(m.content)}</div><div style="font-size:9px;color:#6A627A;">${escapeHtml(m.timestamp)}</div>`; // v8.7-F01：timestamp 未转义——备份导入的 chatHistory 可携带任意字符串，含事件属性时会经 innerHTML 触发 XSS（审计 F-01）
             chatMsgs.appendChild(d);
         });
         chatMsgs.scrollTop = chatMsgs.scrollHeight;
@@ -3785,6 +4018,7 @@ ${chapter.content}`;
         if(!currentBookId) { toast("请先选择或创建小说"); return; }
         if(!instr) { toast("请输入创作指令"); return; }
         let book = getCurrentBook();
+        if(importPending) { toast("备份导入进行中，请等待完成后再发送"); return; } // v8.10-F011：恢复读取窗口内禁止启动任务（原短任务可在窗口内完成、忙标志复位后仍被迟到备份覆盖，HTML v5 复审 F-011 残余）
         if(isGenerating) { toast("已有生成任务进行中"); return; }
         if(pendingPolish || polishMode) { toast(pendingPolish ? "润色进行中，请先等待完成" : "润色预览中，请先应用或取消"); return; }
         if(pendingBranch) { toast("走向生成中，请稍候"); return; } // v7.3 C3 修复：走向请求期间禁止并发生成
@@ -3841,7 +4075,7 @@ ${chapter.content}`;
             let lid = addChat('assistant', '✍️ 生成中...', true);
             const startTime = Date.now();
             const wasPrecision = book?.precisionMode || false;
-            await executeGeneration(instr, false, null, false, lid, (chap, cost, aborted, saveFailed) => {
+            await executeGeneration(instr, false, null, false, lid, (chap, cost, aborted, saveFailed, abortReason) => {
                 if(chap) {
                     const elapsed = formatTime(Date.now() - startTime);
                     let tail = cost > 0 ? ` (正文 ¥${cost.toFixed(2)}元) (耗时：${elapsed})` : ` (耗时：${elapsed})`; // v8.4-④：预估→正文，明确该笔为正文部分
@@ -3856,7 +4090,7 @@ ${chapter.content}`;
                         startTabBlink(`✅ 已生成第${book.chapters.length}章《${chap.title}》`);
                     }
                     if(book && book.precisionMode) { book.precisionMode = false; saveAll(); updatePrecisionButton(); }
-                } else { replaceChatMessage(lid, aborted ? '⏹ 已停止' : '❌ 生成失败', book); if(!aborted) startTabBlink('❌ 生成失败'); }
+                } else { replaceChatMessage(lid, aborted ? (abortReason === 'timeout' ? '⏹ 生成超时（10分钟）已取消' : '⏹ 已停止') : '❌ 生成失败', book); if(!aborted) startTabBlink('❌ 生成失败'); } // v8.7-M3：超时与主动停止聊天文案分开
             });
             return;
         }
@@ -3876,6 +4110,8 @@ ${chapter.content}`;
     // v8.0.34：连发多章——第1章按指令生成，之后每章自动续写，直到 N 章
     async function runMultiChap(instr, book) {
         const count = Math.max(2, Math.min(10, api.multiChapCount || 3));
+        // v8.7-F001：连发启动前统一校验 API 配置——原每章 executeGeneration 各自返回 need-api 且循环不检查，缺 Key 时全轮零生成却显示"共生成 N 章"假成功（项目零审查 F-001）
+        if(!api.key) { toast('请先配置 API Key 再开始连发'); openApiModal(); return; }
         // v8.3：连发目标记忆——用户指令转「连发目标」贯穿每章（第2章起不再丢失方向）
         const goal = (instr && instr.trim()) ? '【连发目标】' + instr + '\n请沿此方向持续推进，每章要有独立进展，避免一章内仓促完成全部目标。' : '';
         addChat('user', instr);
@@ -3894,7 +4130,7 @@ ${chapter.content}`;
         ];
         startSbStages(multiStages, 20000, '⚠️ 请勿关闭网页，等待AI续写中...');
         setSbMultiStatus(0, count);
-        let stopped = false, failedAt = 0;
+        let stopped = false, failedAt = 0, timedOutAt = 0, needApiAt = 0; // v8.7-M3：timedOutAt——连发中某章 10 分钟超时与主动停止分开标识；v8.7-F001：needApiAt——缺 Key 暂停整轮（入口已拦，此为运行中防御）
         // v8.5.2-P1-2：连发会话基准——stopGeneration 会推进 generationSessionId（含摘要阶段点停止，
         // 摘要用独立 controller 无法被 abort），每章启动前对比预期进度，被停止打断即不再启动下一章
         const multiBaseSession = generationSessionId;
@@ -3912,17 +4148,20 @@ ${chapter.content}`;
                 isFirst ? '⚠️ 请勿关闭网页，等待AI生文中...' : '⚠️ 请勿关闭网页，等待AI续写中...'
             );
             setSbMultiStatus(i - 1, count);
-            await executeGeneration(
+            const rExec = await executeGeneration(
                 isFirst ? instr : goal,     // v8.3：第1章用指令，之后注入连发目标
                 false, null, !isFirst, lid, // isCont=true 走续写链路（getPrev 注入前文）
-                (chap, cost, aborted, saveFailed) => {
-                    if(aborted) { stopped = true; return; }
+                (chap, cost, aborted, saveFailed, abortReason) => {
+                    if(aborted) { stopped = true; if(abortReason === 'timeout' && !timedOutAt) timedOutAt = i; return; } // v8.7-M3：记录超时章号（不覆盖已记录值）
                     if(!chap) { stopped = true; failedAt = i; }
                     else if(cost > 0) lastGenCostRef = { bookId: book.id, chapId: chap.id, cost: cost }; // v8.5.2-P3-7：连发每章补成本快照——摘要 toast 合并「正文 x，摘要经历 y，共 z」
                 },
                 false, null, book ? book.id : null,
                 true // v8.5.2-P1：来自连发多章——启动检查放行、finally 保持全局锁（锁由本函数统一管理）
             );
+            // v8.7-F001：检查每章返回——need-api（Key 缺失/被清）时暂停整轮，绝不再报"共生成 N 章"假成功（executeGeneration 已挂起该章为待配置任务）
+            if(rExec && rExec.status === 'need-api') { stopped = true; if(!needApiAt) needApiAt = i; break; }
+            if(rExec === null && !stopped) { stopped = true; if(!failedAt) failedAt = i; } // 其他前置失败（地址无效等）：按失败中断处理（executeGeneration 已 toast）
         }
         sbMultiRunning = false;
         summaryGrowthPending = false; // v8.6-fix25：连发收尾清挂起标志（防手动摘要 finally 不清导致的残留卡死）
@@ -3935,7 +4174,13 @@ ${chapter.content}`;
         // v8.6-②+P2-1：完成消息延迟一个宏任务——末章摘要的 setTimeout(0) 记录先执行，跳过提示不漏（同步拼接会漏末章）
         setTimeout(() => {
             const skipTxt = summarySkippedChaps.length ? '；⚠️ 摘要被跳过：' + summarySkippedChaps.join('、') + '（可手动重新生成）' : '';
-            if(failedAt) {
+            if(needApiAt) { // v8.7-F001：缺 Key 暂停整轮——不报假成功
+                replaceChatMessage(lid, '⏸ 连发多章暂停：第 ' + needApiAt + '/' + count + ' 章需配置 API Key（已生成 ' + (needApiAt - 1) + ' 章；配置 Key 后将自动重试该单章）' + skipTxt, book);
+                startTabBlink('⏸ 连发暂停：请配置 API Key');
+            } else if(timedOutAt) { // v8.7-M3：超时优先于"已停止"（超时是模型慢/请求大，不是用户操作）
+                replaceChatMessage(lid, '⏱ 连发多章中断：第 ' + timedOutAt + '/' + count + ' 章生成超时（10分钟）已取消（已生成 ' + (timedOutAt - 1) + ' 章，耗时 ' + elapsed + '）' + skipTxt, book);
+                startTabBlink('⏱ 连发多章超时中断');
+            } else if(failedAt) {
                 replaceChatMessage(lid, '❌ 连发多章中断：第 ' + failedAt + '/' + count + ' 章生成失败（已生成 ' + (failedAt - 1) + ' 章，耗时 ' + elapsed + '）' + skipTxt, book);
                 startTabBlink('❌ 连发多章中断');
             } else if(stopped) {
@@ -4229,12 +4474,14 @@ ${chapter.content}`;
                 body: JSON.stringify({ model: api.model, messages:[{role:'system',content:sys},{role:'user',content:user}], temperature: api.temp, max_tokens: 10000 }),
                 signal: controller.signal
             });
-            clearTimeout(timer);
+            // v8.7-F006：clearTimeout 移到 res.json() 之后——原 fetch 返回即清定时器，响应头已到但正文悬挂时超时失效，pendingBranch 永久不释放（项目零审查 F-006）
             if(!res.ok) {
                 let msg = res.status === 401 ? 'API Key 无效' : res.status === 429 ? '请求频率过高' : 'HTTP ' + res.status;
+                clearTimeout(timer);
                 return { ok:false, err:'走向请求失败：' + msg };
             }
             const data = await res.json();
+            clearTimeout(timer);
             const outlineCost = calcCost(api.model, data.usage); // v7.8.1：续写走向计费（正文 API）
             setCtxBudgetFromUsage(data.usage && data.usage.prompt_tokens, data.usage && data.usage.completion_tokens); // v8.5.2-A：走向真实 usage 覆盖预算条
             if(outlineCost > 0) recordCost(outlineCost); // v7.8.1：累计消耗金额
@@ -4291,6 +4538,13 @@ ${chapter.content}`;
     async function doContinueWithInstr(instr) {
         let book = getCurrentBook();
         if(!book || !book.chapters.length) { toast("请先生成第一章后再续写"); return; }
+        // v8.7-F04b：走向归属校验兜底（复审 F-04：卡片生成后切书，自动续写路径直接调本函数无归属校验——branchBookId 非空且不属于当前书则作废卡片状态并拒绝）
+        if(branchBookId && String(branchBookId) !== String(book.id)) {
+            branchContinuePending = false; branchBookId = null;
+            const bm = $('branchModal'); if(bm) bm.style.display = 'none';
+            toast('走向来自其他小说，已取消续写，请重新发起');
+            return;
+        }
         if(isGenerating) { toast("已有生成任务进行中，请等待或点击停止"); return; }
         if(!ensureCurrentChapterSaved()) return;
         if(pendingGeneration) cancelPendingGeneration('⚠️ 已被新的生成任务覆盖');
@@ -4298,7 +4552,7 @@ ${chapter.content}`;
         if($('chatInp')) $('chatInp').value = '';
         let lid = addChat('assistant', instr ? `⏳ 根据走向续写：${instr.slice(0, 30)}...` : '⏳ 续写中...', true);
         const startTime = Date.now();
-        await executeGeneration(instr, false, null, true, lid, (chap, cost, aborted, saveFailed) => {
+        await executeGeneration(instr, false, null, true, lid, (chap, cost, aborted, saveFailed, abortReason) => {
             if(chap) {
                 const elapsed = formatTime(Date.now() - startTime);
                 let tail = cost > 0 ? ` (正文 ¥${cost.toFixed(2)}元) (耗时：${elapsed})` : ` (耗时：${elapsed})`;
@@ -4309,10 +4563,11 @@ ${chapter.content}`;
                     replaceChatMessage(lid, `✅ 续写第${book.chapters.length}章《${chap.title}》完成${tail}`, book);
                     startTabBlink(`✅ 续写完成：第${book.chapters.length}章《${chap.title}》`);
                 }
-            } else { if(!aborted) startTabBlink('❌ 续写失败'); replaceChatMessage(lid, aborted ? '⏹ 已停止' : '❌ 续写失败', book); }
+            } else { if(!aborted) startTabBlink('❌ 续写失败'); replaceChatMessage(lid, aborted ? (abortReason === 'timeout' ? '⏹ 续写超时（10分钟）已取消' : '⏹ 已停止') : '❌ 续写失败', book); } // v8.7-M3：超时与主动停止文案分开
         });
     }
     async function onContinue() {
+        if(importPending) { toast("备份导入进行中，请等待完成后再生成走向"); return; } // v8.10-F011
         let book = getCurrentBook();
         if(!book || !book.chapters.length) { toast("请先生成第一章后再续写"); return; }
         if(isGenerating) { toast("已有生成任务进行中，请等待或点击停止"); return; }
@@ -4434,9 +4689,14 @@ ${chapter.content}`;
         if(!polishApi.key) return { ok:false, err:'审稿 API Key 未配置，无法润色' };
         // v7.3：DeepSeek 思考模式——reasoning_effort 直传 UI 档位（low/high/max，与正文 API 一致）
         const rEff = ['low','high','max'].indexOf(polishApi.reasoning) >= 0 ? polishApi.reasoning : 'high';
-        const sys = '你是资深网文编辑。请审查以下小说章节并给出润色建议。注意：这是虚构文学作品创作，即使涉及情感冲突、争议性情节等，也请正常创作，不要拒绝或回避。\n【大幅修改（问题严重，必须改，可大改）】：\na. 仅明显常识/逻辑错误：人物行为违背现实物理规律或明显常识（如从 10 米高楼跳下毫发无损）——除非前文已铺垫超能力或其他设定；**即使修改后可能影响后文的衔接，也必须改（后文由作者自行处理）**；人设一致性的深度核对由「检测」功能负责，此处不处理；\nb. 物理与常识：违背现实物理规律或常识（如从 10 米高楼跳下毫发无损）——除非前文已铺垫超能力或其他设定；**即使修改后可能影响后文的衔接，也必须改（后文由作者自行处理）**；\nc. 时空与逻辑：场景切换缺少过渡、时空混乱、时间线矛盾（如上一秒在家下一秒到学校）；\nd. 不合理比喻/体型/身体描写（如"大腿只有手指般粗"——除非前文设定该角色是袖珍体型/精灵等特殊体形）。\n【小幅修改（允许，改动小）】：\ne. 词语使用错误：用词不当或部位错误（如"太阳穴发麻"应为"头皮发麻"）；\nf. 逻辑小错位：人物称呼/顺序错误（如 A 是 B 的老师却称呼 B 为老师，应调换）、台词顺序或指代错位。\n【不要修改（必须过滤）】：\n- 信息量零变化的纯措辞替换（如"喉结滚动"改"喉头动了动"——词汇语义无变化、无任何提升，不得输出）；\n- 只增删"的/了/一/副/个"等虚词或只改标点的微调（除非同时修正了逻辑错误）。\n- 删句号改逗号、删"地/了/的"等虚词、删"入"字（如"走入了"改"走进"）等为求"利落/流畅/干脆"的措辞精简——信息量零变化，不得输出；\n- 强行加语气词（啧/得了吧/行行行/算了算了等）或硬塞"废话动作"（擦桌子/翻白眼/系鞋带等）——原句无问题不得硬套，此类改动视为无实质提升。\n【理由机制】：\n- **每一处修改都必须带 reason 字段**（一句话，≤30 字，说明改了什么、为什么更好，如"原句『呆呆的』重复啰嗦，『呆滞』更简洁传神"）——**无论修改幅度大小，大段更换和小幅修改都需要理由**；\n- **没有理由的修改不要输出**（宁可少改，不改无意义）。\n【优先级与分配】：修改数量 0~30 处，不设下限、不强制按位置分配——只修改真正需要修改的句子；先通读全文识别所有真正的问题（包括后半篇），再按严重度排序取舍；宁缺毋滥，绝不为了凑数强行修改；没有值得修改的句子就少改或不改，可输出空数组 []。\n【禁止输出无效项】：\n- 严禁输出 old 与 new 相同的条目（不得以"原句无问题，保留"等理由占位）；无值得修改的句子直接跳过，宁缺毋滥；\n- old 与 new 仅差"的/了/一/副/个"等虚词或仅标点不同的条目同样禁止输出（视为无实质提升）；\n- 输出前自查每一条：old 与 new 必须存在实质内容差异。\n【输出格式】：必须只输出一个 JSON 对象：{"edits":[{"old":"原文完整句子 或 连续小段（≤200字，可跨行）","new":"润色后内容","reason":"一句话≤30字（每处必填）"}]}，old 必须与原文逐字一致（含标点、换行），供前端精确替换；支持整段/跨行替换；一次最多输出 30 处；没有值得修改的则输出空数组 []。不要输出任何其他文字。\n\n【去AI味要求】（仅针对含 AI 高频词/明显书面腔的句子，正常句子一律不动）：\n1. 出现以下 AI 高频词/短语时，替换为具体动作或白描：\n炸开、就像是、嘴角勾起、顿时、霎时、立刻、连忙、显然、似乎、虽然、大概、确实、几乎、可能、注定、接下来、渐渐、更是、一定、或许、十分、沉重、看不出、淡淡、郑重、此刻、恐怕、清凉、不知道、心中一凛、眼中闪过一丝惊诧、行云流水、心下了然、话锋一转、眼神深邃、显著、至关重要、微微挑眉、波涛汹涌、绝对、不可估量、仿佛、随时、无法想象、无法用言语形容、脸上带着笑意、平静地、显得有些兴奋、心中了然、激动地、眼神热切、目光显著不遮掩、淡淡地、不卑不亢、如同、显得异常清晰、暂时、不知是、瞬间、不经意、这一刻、嘴角勾起一抹、一时之间、这一次、看似、沉吟、隐晦有了猜测、谈吐间、一刻、她不言、目光泛过、心中一片平静、一丝、坚定、深吸一口气、缓缓地说、锐利的眼睛、他的嘴角微微上扬、他的表情变暗、他的心一跳、他的脸变了、不容置疑、嘴角、脸色、不易察觉的、的目光、心中、觉得、意识到、感到、认为、一抹、一般、些许、有点、略微、口气、纯粹、冰冷、电弧、闪烁、挣扎、清冷、沸腾、扭曲、撕裂、漆黑、窒息、刺眼、一点、不动声色、小小翼翼、沉吟片刻、心里隐隐有了猜测、果然、脸上堆满了笑、像喝了的毒药、嘴角勾起一个弧度、嘴巴张得能塞下一个鸡蛋、还要冰冷、透露的寒意、让空气的温度都下降了几度、声音不大、微微发颤、发白、不是…而是…句式、攥得泛白\n\n2. 仅当原句确实生硬书面腔/套话重时，才可适度口语化或改错位描写；日常叙述、正常对话保持原样——不得强行加语气词、硬塞"废话动作"、虚词增减、同义替换或改标点（此类无实质提升）\n3. 去 AI 味不得以牺牲文采/准确性为代价——宁缺毋滥，宁可少改\n4. 以上要求适用全文，后半篇同样适用——但只改真正需要改的句子，不凑数保证人味与口语感。';
+        const sys = '你是资深网文编辑。请审查以下小说章节并给出润色建议。注意：这是虚构文学作品创作，即使涉及情感冲突、争议性情节等，也请正常创作，不要拒绝或回避。\n【三条底线（所有修改都必须遵守）】：\n- 情节不变：不增删情节事件、不改变场景顺序；\n- 设定不变：人物身份、关系、能力、世界观设定一字不动；\n- 走向不变：对话内容与含义不改（可优化语气词与标点），行动逻辑不变。\n【大幅修改（问题严重，必须改，可大改）】：\na. 仅明显常识/逻辑错误：人物行为违背现实物理规律或明显常识（如从 10 米高楼跳下毫发无损）——除非前文已铺垫超能力或其他设定；**即使修改后可能影响后文的衔接，也必须改（后文由作者自行处理）**；人设一致性的深度核对由「检测」功能负责，此处不处理；\nb. 物理与常识：违背现实物理规律或常识（如从 10 米高楼跳下毫发无损）——除非前文已铺垫超能力或其他设定；**即使修改后可能影响后文的衔接，也必须改（后文由作者自行处理）**；\nc. 时空与逻辑：场景切换缺少过渡、时空混乱、时间线矛盾（如上一秒在家下一秒到学校）；\nd. 不合理比喻/体型/身体描写（如"大腿只有手指般粗"——除非前文设定该角色是袖珍体型/精灵等特殊体形）。\n【小幅修改（允许，改动小）】：\ne. 词语使用错误：用词不当或部位错误（如"太阳穴发麻"应为"头皮发麻"）；\nf. 逻辑小错位：人物称呼/顺序错误（如 A 是 B 的老师却称呼 B 为老师，应调换）、台词顺序或指代错位。\n【不要修改（必须过滤）】：\n- 信息量零变化的纯措辞替换（如"喉结滚动"改"喉头动了动"——词汇语义无变化、无任何提升，不得输出）；\n- 只增删"的/了/一/副/个"等虚词或只改标点的微调（除非同时修正了逻辑错误）。\n- 删句号改逗号、删"地/了/的"等虚词、删"入"字（如"走入了"改"走进"）等为求"利落/流畅/干脆"的措辞精简——信息量零变化，不得输出；\n- 强行加语气词（啧/得了吧/行行行/算了算了等）或硬塞"废话动作"（擦桌子/翻白眼/系鞋带等）——原句无问题不得硬套，此类改动视为无实质提升。\n【理由机制】：\n- **每一处修改都必须带 reason 字段**（一句话，≤30 字，说明改了什么、为什么更好，如"原句『呆呆的』重复啰嗦，『呆滞』更简洁传神"）——**无论修改幅度大小，大段更换和小幅修改都需要理由**；\n- **没有理由的修改不要输出**（宁可少改，不改无意义）。\n- 禁止"更流畅/更简洁/更自然/更通顺/更好"等空泛理由——reason 必须指出具体问题（重复啰嗦/用词不当/书面腔/动作与情绪不匹配/句式生硬等）。\n【优先级与分配】：修改数量 0~30 处，不设下限、不强制按位置分配——只修改真正需要修改的句子；先通读全文识别所有真正的问题（包括后半篇），再按严重度排序取舍；宁缺毋滥，绝不为了凑数强行修改；没有值得修改的句子就少改或不改，可输出空数组 []。\n【禁止输出无效项】：\n- 严禁输出 old 与 new 相同的条目（不得以"原句无问题，保留"等理由占位）；无值得修改的句子直接跳过，宁缺毋滥；\n- old 与 new 仅差"的/了/一/副/个"等虚词或仅标点不同的条目同样禁止输出（视为无实质提升）；\n- 输出前自查每一条：old 与 new 必须存在实质内容差异。\n【输出格式】：必须只输出一个 JSON 对象：{"edits":[{"old":"原文完整句子 或 连续小段（≤200字，可跨行）","new":"润色后内容","reason":"一句话≤30字（每处必填）"}]}，old 必须与原文逐字一致（含标点、换行），供前端精确替换；支持整段/跨行替换；一次最多输出 30 处；没有值得修改的则输出空数组 []。不要输出任何其他文字。\n\n【去AI味要求】（仅处理规则层命中的句子；正常句子一律不动）：\n1. 用户消息开头会附上【本章 AI 腔规则层扫描】（词表命中清单：类别、词、次数、示例句）。针对清单命中句：按命中词策略处理——可替换词→改具体动作或白描；建议删除词→删除；需改写词→整句改写为画面化表达。\n2. 心理活动改为动作/对话呈现（show 不 tell：把情绪写出来给读者看，而非直接告诉）（"他心中愤怒"→"他攥紧了拳，指节发白"）；长句拆短；避免排比堆砌；句末感叹号收敛。\n3. 清单未命中的句子一律不动（宁缺毋滥）。\n4. 修改后不得再出现清单内的高频词（用替换/改写彻底消除，勿敷衍）。';
         const context = buildPolishContext(book, chap);
-        const user = '待润色内容：\n' + context + '\n\n请输出润色 diff 的 JSON。';
+        // v8.7-P-友1：润色前规则层扫描本章——命中清单注入 user（模型明确改什么；零成本零延迟）
+        const aiScan = scanAiTaste(chap.content || '');
+        const aiHitsTxt = aiTasteHitsText(aiScan);
+        const user = (aiHitsTxt ? '【本章 AI 腔规则层扫描】' + aiHitsTxt + '\n\n' : '') + '待润色内容：\n' + context + '\n\n请输出润色 diff 的 JSON。';
+        // v8.7-P-友5：按本章长度动态配额（≤2500字→10处 / 5000字→20处 / ≥7500字→30封顶），防超长章刷屏
+        const dynCap = Math.min(30, Math.max(10, Math.round((chap.content || '').length / 250)));
         const t0 = Date.now();
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 180000);
@@ -4464,13 +4724,15 @@ ${chapter.content}`;
                 }),
                 signal: controller.signal
             });
-            clearTimeout(timer);
+            // v8.7-F006：clearTimeout 移到 res.json() 之后（原 fetch 返回即清，正文悬挂时 180s 超时失效，pendingPolish 永久不释放）
             if(!res.ok) {
                 let msg = res.status === 401 ? 'API Key 无效' : res.status === 429 ? '请求频率过高' : 'HTTP ' + res.status;
+                clearTimeout(timer);
                 stopSbStages(); resetSbProgress();
                 return { ok:false, err:'润色请求失败：' + msg };
             }
             const data = await res.json();
+            clearTimeout(timer);
             const text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
             const usage = data && data.usage; // v7.8：计费用
             setCtxBudgetFromUsage(usage && usage.prompt_tokens, usage && usage.completion_tokens); // v8.5.2-A：润色真实 usage 覆盖预算条
@@ -4498,7 +4760,8 @@ ${chapter.content}`;
                 return {
                     old, new: nw,
                     ratio: editRatio(old, nw) * 100, // 字符变动比例 %
-                    reason: e.reason ? String(e.reason).trim().slice(0, 30) : '' // AI 主动给的理由（≤30 字）
+                    reason: e.reason ? String(e.reason).trim().slice(0, 30) : '', // AI 主动给的理由（≤30 字）
+                    aiHits: scanAiTaste(nw).hits, // v8.7-P-友1：润色后文本仍含词库命中数（二次扫描比对，防模型敷衍）
                 };
             });
             // v7.3 诊断：返回注入量/耗时/AI 原始响应/格式异常标记（帮助定位"无需修改"是模型行为还是解析问题）
@@ -4506,7 +4769,7 @@ ${chapter.content}`;
             stopSbStages(); resetSbProgress();
             return {
                 ok:true,
-                edits: mapped.slice(0, 30),
+                edits: mapped.slice(0, dynCap),
                 ctxLen: context.length,
                 ms: Date.now() - t0,
                 raw: text.slice(0, 200),
@@ -4521,9 +4784,11 @@ ${chapter.content}`;
     }
     // 润色主流程：聊天消息 + pendingPolish 锁定（编辑入口通通拦截）+ 请求 + diff 预览
     async function onPolish() {
+        if(importPending) { toast("备份导入进行中，请等待完成后再润色"); return; } // v8.10-F011
         let book = getCurrentBook();
         if(!book || !book.currentChapterId) { toast("请先选择章节"); return; }
         if(polishMode) { toast("已有润色预览中，请先应用或取消"); return; }
+        if(pendingPolish) { toast("润色进行中，请先等待完成"); return; } // v8.7-F008：防并发润色——原漏检 pendingPolish，二次点击产生并发请求、共享 polishLid/pendingPolish，先结束者提前解锁（项目零审查 F-008）
         if(isGenerating) { toast("已有生成任务进行中，请等待或点击停止"); return; }
         if(pendingBranch) { toast("走向生成中，请稍候再润色"); return; }
         if(pendingRewrite) { toast("已有待发送的重写，先发送或切换章节取消"); return; }
@@ -4593,13 +4858,13 @@ ${chapter.content}`;
         const markers = [];
         for(const e of applied) {
             const i = posMap.get(e);
-            markers.push({ i, old: e.old, nw: e.new, ratio: e.ratio, reason: e.reason });
+            markers.push({ i, old: e.old, nw: e.new, ratio: e.ratio, reason: e.reason, aiHits: e.aiHits }); // v8.8-F-019：透传二次扫描结果
         }
         markers.sort((a,b) => b.i - a.i);
         // v8.4.1-⑥-d：所有修改必须显示理由（AI 给了用 AI 的，没给显示警示占位）
         for(const m of markers) {
             let seg = '@@D@@' + m.old + '@@I@@' + m.nw;
-            seg += '@@R@@' + (m.reason || 'AI 未说明理由，请谨慎');
+            seg += '@@R@@' + (m.reason || 'AI 未说明理由，请谨慎') + (m.aiHits ? ' ⚠️润色后仍含AI腔词' : ''); // v8.8-F-019：残留命中显式标记（防敷衍闭环——原 aiHits 计算后无任何消费端）
             seg += '@@E@@';
             htmlText = htmlText.slice(0, m.i) + seg + htmlText.slice(m.i + m.old.length);
         }
@@ -4614,7 +4879,7 @@ ${chapter.content}`;
         const el = $('novelContent'); if(el) { el.innerHTML = html; el.contentEditable = 'true'; }
         // 预览态：保存/重写/续写/润色/回滚禁用（应用/放弃是唯一出口）；正文可自由编辑（v7.3：可手动删除不想要的红/绿标记）
         ['saveChapBtn','regenerateBtn','continueBtn','polishBtn','rollbackBtn'].forEach(id => { const b = $(id); if(b) b.disabled = true; });
-        const bar = $('polishActionBar'); if(bar) { bar.style.display = 'flex'; const cnt = $('polishActionCount'); if(cnt) cnt.innerText = `共 ${applied.length} 处修改（${failed} 处无法匹配已跳过）——可自由编辑正文，删除不想要的红/绿标记后再应用/放弃`; }
+        const bar = $('polishActionBar'); if(bar) { bar.style.display = 'flex'; const cnt = $('polishActionCount'); if(cnt) cnt.innerText = `共 ${applied.length} 处修改（${failed} 处无法匹配已跳过${applied.some(x => x.aiHits > 0) ? '，' + applied.filter(x => x.aiHits > 0).length + ' 条润色后仍含 AI 腔词 ⚠️ 建议重跑或手动修' : ''}）——可自由编辑正文，删除不想要的红/绿标记后再应用/放弃`; } // v8.8-F-019：操作条残留统计
         polishMode = true;
         return failed;
     }
@@ -4641,7 +4906,22 @@ ${chapter.content}`;
         const chap = book.chapters.find(c => c.id === book.currentChapterId); if(!chap) return;
         chap.content = finalText;
         const ok = saveAll();
-        if(!ok) { toast('❌ 保存失败，请检查存储空间'); return; }
+        // v8.7-M4：保存失败也要完整收尾——原提前 return 导致 polishMode 残留、按钮禁用、红绿标记已剥却无出口；
+        // 内存 chap.content 已是 finalText，30s 自动保存会重试落盘，此处仅退出润色态防界面半瘫痪
+        if(!ok) {
+            toast('❌ 保存失败，请检查存储空间');
+            el.innerHTML = escapeHtml(finalText).split('\n').join('<br>');
+            el.contentEditable = 'true';
+            hidePolishBar();
+            polishMode = false;
+            polishDiffs = [];
+            polishTargetId = null;
+            polishBeforeText = null;
+            restoreEditorButtons();
+            updateWord();
+            if(polishLid) replaceChatMessage(polishLid, '⚠️ 修改幅度已应用但本地保存失败！正文在内存中，请立即导出或复制，30秒自动保存将重试', book);
+            return;
+        }
         el.innerHTML = escapeHtml(finalText).split('\n').join('<br>'); // 纯净正文重渲染
         el.contentEditable = 'true';
         hidePolishBar();
@@ -4750,7 +5030,7 @@ ${chapter.content}`;
         if($('chatInp')) $('chatInp').value = '';
         let lid = addChat('assistant', '🔄 重写中...', true);
         const startTime = Date.now();
-        await executeGeneration(instr, true, chapterId, false, lid, (chap, cost, aborted, saveFailed) => {
+        await executeGeneration(instr, true, chapterId, false, lid, (chap, cost, aborted, saveFailed, abortReason) => {
             if(chap) {
                 // v7.2：重写真正生成文字后才启用回滚按钮（发起时只静默存快照）
                 enableRollbackButton(true);
@@ -4765,7 +5045,7 @@ ${chapter.content}`;
                     startTabBlink(`✅ 重写完成：《${chap.title}》`);
                 }
                 renderChapters(); loadCurChapter();
-            } else { if(!aborted) startTabBlink('❌ 重写失败'); replaceChatMessage(lid, aborted ? '⏹ 已停止' : '重写失败', book); }
+            } else { if(!aborted) startTabBlink('❌ 重写失败'); replaceChatMessage(lid, aborted ? (abortReason === 'timeout' ? '⏹ 重写超时（10分钟）已取消' : '⏹ 已停止') : '重写失败', book); } // v8.7-M3：超时与主动停止文案分开
         });
     }
 
@@ -4778,7 +5058,7 @@ ${chapter.content}`;
         books.forEach(b => {
             let d = document.createElement('div');
             d.className = `book-card ${currentBookId===b.id?'active':''}`;
-            d.innerHTML = `<div class="book-title"><span>${escapeHtml(b.name)}</span><span style="display:flex;gap:2px;"><i class="fas fa-pen" data-action="rename" data-id="${b.id}" title="重命名"></i><i class="fas fa-copy" data-action="duplicate" data-id="${b.id}" title="复制书籍"></i><i class="fas fa-trash" data-action="delete" data-id="${b.id}"></i></span></div><div class="book-meta">${b.chapters?.length||0}章 | 角色:${b.characters?.length||0} | ${getBookWordCount(b)}字</div>`;
+            d.innerHTML = `<div class="book-title"><span>${escapeHtml(b.name)}</span><span style="display:flex;gap:2px;"><i class="fas fa-pen" data-action="rename" data-id="${escapeHtml(b.id)}" title="重命名"></i><i class="fas fa-copy" data-action="duplicate" data-id="${escapeHtml(b.id)}" title="复制书籍"></i><i class="fas fa-trash" data-action="delete" data-id="${escapeHtml(b.id)}"></i></span></div><div class="book-meta">${b.chapters?.length||0}章 | 角色:${b.characters?.length||0} | ${getBookWordCount(b)}字</div>`;
             d.addEventListener('click', (e) => { if(e.target.tagName!=='I') switchBook(b.id); });
             d.querySelector('[data-action="rename"]')?.addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再重命名"); return; } const nb = prompt('重命名小说', b.name); if(nb && nb.trim() && nb.trim() !== b.name) { const oldName = b.name; b.name = nb.trim(); renderBookshelf(); if(!persistOrWarn()) { b.name = oldName; renderBookshelf(); toast('保存失败，已还原'); return; } if(currentBookId === b.id) { const curBookName = $('curBookName'); if(curBookName) curBookName.innerText = b.name; } toast(`已重命名《${b.name}》`); } });
             d.querySelector('[data-action="delete"]')?.addEventListener('click', (e) => { e.stopPropagation(); if(confirm(`确认删除《${b.name}》？此操作不可撤销。`)) deleteBook(b.id); });
@@ -4793,7 +5073,7 @@ ${chapter.content}`;
     function switchBook(id, skipSave) {
         // 返回布尔值（v5.8）：saveApi 自动重试切回原书时需检查切换是否成功，
         // 失败则取消任务，杜绝"数据写入原书、界面停留新书"的错位
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再切换"); return false; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode || pendingBranch || banterBusy || summaryGenerating || conflictCheckingCount > 0) { toast("生成/走向/吐槽/审稿/摘要/冲突检测进行中，请等待完成或点击停止后再切换"); return false; } // v8.9-F017：补 summaryGenerating/conflictCheckingCount——手动摘要/检测不置 isGenerating，原可切书：摘要费用 3441 recordCost 无书 ID 记到响应时当前书、检测结果与费用在切书后静默丢弃（项目零 v4 复审 F-017）；v8.7-F04/F06 补拦 pendingBranch（走向）与 banterBusy（吐槽）同理
         // skipSave=true 用于删除当前书后的切换：该书已删除，其未保存修改随删除丢弃，
         // 必须先切 currentBookId 再加载，否则 saveCurChapter 会把旧编辑器内容写入新书（数据污染）
         if(initialized && !isImporting && !skipSave) { if(!ensureCurrentChapterSaved()) return false; }
@@ -4810,6 +5090,7 @@ ${chapter.content}`;
             // v7.2：切换章节即取消重写态/走向待发态（用户拍板：不设取消按钮，切章节即取消）
             setRewriteMode(false, null);
             branchContinuePending = false; branchBookId = null;
+            const bmCls = $('branchModal'); if(bmCls) bmCls.style.display = 'none'; // v8.7-F04b：切书即关闭走向卡片弹窗（卡片属于原书，防切书后点旧卡片把 A 书走向续写进 B 书——复审 F-04"结果待选期"跨书路径）
             renderChapters(); renderChat(); loadCurChapter(); saveAll(); renderBookshelf();
             const conflictPanel = $('conflictPanel'); if(conflictPanel) conflictPanel.style.display = 'none';
             const banterPanel0 = $('banterPanel'); if(banterPanel0) banterPanel0.style.display = 'none'; banterVisible = false;
@@ -4875,7 +5156,8 @@ ${chapter.content}`;
     }
 
     function deleteBook(id) {
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再删除"); return; }
+        if(importPending) { toast("备份导入进行中，请等待完成后再删除"); return; } // v8.9-F011：导入读取/提交期间禁止删除（原删除后迟到导入回调可复活已删数据）
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode || pendingBranch || banterBusy || summaryGenerating || conflictCheckingCount > 0) { toast("生成/走向/吐槽/审稿/摘要/冲突检测进行中，请等待完成或点击停止后再删除"); return; } // v8.8-F011：补 summaryGenerating/conflictCheckingCount（同族：摘要在途删书，返回后 recordCost 按新当前书记错书）；v8.7-F002 补拦 pendingBranch/banterBusy——原删当前书会绕行 switchBook 锁（先改 currentBookId 再切书失败也继续），走向响应返回后被归属到新当前书造成跨书污染（项目零审查 F-002）
         let idx = books.findIndex(b=>b.id===id);
         if(idx!==-1) {
             const removed = books[idx]; // v5.8：保存失败时回滚用
@@ -4898,7 +5180,7 @@ ${chapter.content}`;
         }
     }
     function newBook() {
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再新建"); return; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode || pendingBranch || banterBusy || summaryGenerating || conflictCheckingCount > 0) { toast("生成/走向/吐槽/审稿/摘要/冲突检测进行中，请等待完成或点击停止后再新建"); return; } // v8.10-F017：补齐四标志——原摘要在途 newBook：书已加入但内部 switchBook 被拒，提示"已创建"与界面矛盾（HTML v5 复审 F-017 残余）
         let name = prompt('小说名称', `新作${books.length+1}`);
         if(!name || !name.trim()) { toast("书名不能为空"); return; }
         let b = { id:uuid(), name:name.trim(), chapters:[], currentChapterId:null, chatHistory:[], worldview:'', plotSet:'', globalPrompt:'你是一位擅长细腻情感的言情小说家。', writingStyle:'文风细腻，多用心理描写。', characters:[], forbiddenWords:[], precisionMode:false, precisionChars:[], precisionActions:[], precisionCostumes:[] };
@@ -4923,9 +5205,12 @@ ${chapter.content}`;
         'qm': "七猫小说：下沉市场免费平台。逆袭打脸、情绪直给不绕弯，节奏明快、金手指简单粗暴；行文通俗、少铺垫，冲突升级频繁，服务碎片化阅读。",
     };let sbCurTpl = 'xh', sbPlat = '', sbBusy = false; let sbProgressTimer = null; let sbStageIdx = 0; let sbMultiRunning = false; let sbRetryCount = 0;
     function openStartBookModal() {
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再起书"); return; }
-        const k = $('sbApiKeyInp'); if(k) k.value = api.key || '';
-        const mo = $('sbModelInp'); if(mo) mo.value = api.model || 'deepseek-v4-flash';
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode || pendingBranch || banterBusy || summaryGenerating || conflictCheckingCount > 0) { toast("生成/走向/吐槽/审稿/摘要/冲突检测进行中，请等待完成或点击停止后再起书"); return; } // v8.10-F017：补齐四标志——起书完成会切书并记费，任务在途时启动会与导航锁/计费竞争（HTML v5 复审 F-017 残余）
+        // v8.7-F012：一键起书固定使用 DeepSeek 官方端点——仅当正文 API 也是 DeepSeek 官方地址时才自动带入其 Key/模型；
+        // 正文为自定义服务商时不得带入（会把自定义服务商凭据错投给 DeepSeek，且其模型对 DeepSeek 无效），面板留空由用户显式填写（项目零复审 F-012）
+        const isDeepSeekMain = !api.url || /^https:\/\/api\.deepseek\.com\//i.test(api.url.trim());
+        const k = $('sbApiKeyInp'); if(k) k.value = isDeepSeekMain ? (api.key || '') : '';
+        const mo = $('sbModelInp'); if(mo) mo.value = isDeepSeekMain ? (api.model || 'deepseek-v4-flash') : 'deepseek-v4-flash';
         // 恢复上次草稿（已填写内容保存）；无草稿则默认第一个模板
         const hasDraft = !!localStorage.getItem('sb_draft_v1');
         if(hasDraft) loadSbDraft(); else { sbCurTpl = 'xh'; document.querySelectorAll('#sbTabs .sb-tab').forEach(b => b.classList.toggle('active', b.getAttribute('data-tpl')==='xh')); fillTplUI('xh'); selectSbPlat(''); }
@@ -4949,13 +5234,15 @@ ${chapter.content}`;
         fillTplUI(t);
     }
     function saveSbDraft() {
-        try { const d = { key:($('sbApiKeyInp')||{}).value||'', model:($('sbModelInp')||{}).value||'', tpl:sbCurTpl, char:($('sbCharInp')||{}).value||'', sell:($('sbSellInp')||{}).value||'', idea:($('sbIdeaInp')||{}).value||'', plat:sbPlat }; localStorage.setItem('sb_draft_v1', JSON.stringify(d)); } catch(e) {}
+        // v8.8-F012：草稿不再保存 Key——起书固定 DeepSeek 官方端点，草稿 Key 若来自自定义正文配置（v6 时代自动带入）会在打开面板时回填并被发往 DeepSeek（凭据错投）；Key 由 openStartBookModal 按 isDeepSeekMain 每次显式带入，不落草稿（项目零终极版复审 F-012）
+        try { const d = { model:($('sbModelInp')||{}).value||'', tpl:sbCurTpl, char:($('sbCharInp')||{}).value||'', sell:($('sbSellInp')||{}).value||'', idea:($('sbIdeaInp')||{}).value||'', plat:sbPlat }; localStorage.setItem('sb_draft_v1', JSON.stringify(d)); } catch(e) {}
     }
     function loadSbDraft() {
         try {
             const raw = localStorage.getItem('sb_draft_v1'); if(!raw) return;
             const d = JSON.parse(raw);
-            if(d.key !== undefined && $('sbApiKeyInp')) $('sbApiKeyInp').value = d.key;
+            // v8.8-F012：历史草稿（v6 时代）可能含 key 字段——不回填且一次性迁移删除（防止旧自定义服务商 Key 覆盖 isDeepSeekMain 的显式带入）
+            if(d.key !== undefined) { delete d.key; try { localStorage.setItem('sb_draft_v1', JSON.stringify(d)); } catch(e) {} }
             if(d.model && $('sbModelInp')) $('sbModelInp').value = d.model;
             if(d.tpl && BOOK_TPL[d.tpl]) { sbCurTpl = d.tpl; document.querySelectorAll('#sbTabs .sb-tab').forEach(b => b.classList.toggle('active', b.getAttribute('data-tpl')===d.tpl)); fillTplUI(d.tpl); }
             if(d.char !== undefined && $('sbCharInp')) $('sbCharInp').value = d.char;
@@ -5006,9 +5293,10 @@ ${chapter.content}`;
         document.querySelectorAll('#startBookModal input, #startBookModal textarea, #startBookModal select, #startBookModal button, #startBookModal .sb-tab, #startBookModal .sb-plat').forEach(el => { el.disabled = lock; });
     }
     function sbTestConnection() {
-        const key = (($('sbApiKeyInp')||{}).value || '').trim() || api.key;
-        const model = (($('sbModelInp')||{}).value || '').trim() || api.model || 'deepseek-v4-flash';
-        if(!key) { toast('请先填写 API Key'); return; }
+        // v8.8-F012：只读面板显式值，禁止 `|| api.key` 回退——起书固定发送 DeepSeek 官方端点，正文为自定义服务商时其 Key 不得被隐式带入测试请求（凭据错投，项目零终极版复审 F-012）
+        const key = (($('sbApiKeyInp')||{}).value || '').trim();
+        const model = (($('sbModelInp')||{}).value || '').trim() || 'deepseek-v4-flash';
+        if(!key) { toast('请先填写 API Key（起书使用 DeepSeek 官方接口）'); return; }
         toast('正在测试连接...');
         const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 15000);
         fetch('https://api.deepseek.com/chat/completions', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer ' + key}, body: JSON.stringify({ model, messages:[{role:'user',content:'ping'}], max_tokens: 8 }), signal: controller.signal })
@@ -5016,6 +5304,9 @@ ${chapter.content}`;
             .catch(e => { clearTimeout(timeout); toast('连接失败：' + (e.name==='AbortError' ? '超时(15s)，请检查网络' : e.message)); });
     }
     function sbSaveConfig() {
+        // v8.8-F012：仅当正文 API 也是 DeepSeek 官方地址才同步 Key/模型——原无条件写回会把起书面板的 DeepSeek Key 写入自定义服务商的正文配置（反向错投）；面板无 url 字段（起书固定 DeepSeek），凭据不跨服务商
+        const mainIsDeepSeek = !api.url || /^https:\/\/api\.deepseek\.com\//i.test(api.url.trim());
+        if(!mainIsDeepSeek) { toast('正文 API 为自定义服务商，未同步起书配置（起书固定使用 DeepSeek 官方接口）'); return; }
         const k = (($('sbApiKeyInp')||{}).value || '').trim(); const mo = (($('sbModelInp')||{}).value || '').trim();
         if(k) api.key = k; if(mo) api.model = mo;
         const ok = saveAll();
@@ -5059,6 +5350,7 @@ ${chapter.content}`;
     }
     function startBook() {
         if(sbBusy) return;
+        if(importPending) { toast("备份导入进行中，请等待完成后再起书"); return; } // v8.10-F011：导入读取期间不起书（起书完成会切书/记费，迟到提交与恢复竞争）
         const key = (($('sbApiKeyInp')||{}).value || '').trim();
         const model = (($('sbModelInp')||{}).value || '').trim() || 'deepseek-v4-flash';
         if(!key) { toast('请先填写 API Key（起书使用 DeepSeek 官方接口）'); return; }
@@ -5111,9 +5403,10 @@ ${chapter.content}`;
                     body: JSON.stringify({ model, messages: [{ role: 'system', content: sys }, { role: 'user', content: (attempt > 1 ? user + '\n\n【重要提醒】上次生成的正文字数不足3500字，这次请务必写足3500字以上（不少于3500字），覆盖完整剧情，不要提前收尾。' : user) }], max_tokens: 50000, temperature: 0.8 }),
                     signal: controller.signal
                 });
-                clearTimeout(timeout);
+                // v8.7-F006：clearTimeout 移到 res.json() 之后（原 fetch 返回即清，正文悬挂时 300s 超时失效，sbBusy 永久锁死）
                 if(!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
+                clearTimeout(timeout);
                 stopSbStages();
                 const content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
                 setSbProgress(95, '正在解析起书结果…');
@@ -5131,9 +5424,11 @@ ${chapter.content}`;
                 if(!created) { lockSbUI(false); resetSbProgress(); return; } // v8.0.30：保存失败已 toast，不再弹成功提示
                 if(cost > 0) recordCost(cost); // v8.0.13：移到建书后，金额正确记到新书头上
                 // v8.5.3-P2-1：起书成功把 Key/模型同步到正文 API 主配置并持久化——防首次起书用户刚填过 Key、正文生成又要求再填
-                if(key) api.key = key;
-                if(model) api.model = model;
+                // v8.8-F012：仅当正文 API 也是 DeepSeek 官方地址才同步——起书面板的 Key 一定用于 DeepSeek，原无条件回写会把 DeepSeek Key 写入自定义服务商的正文配置（反向错投，项目零终极版复审 F-012）
+                const mainIsDeepSeek = !api.url || /^https:\/\/api\.deepseek\.com\//i.test(api.url.trim());
+                if(mainIsDeepSeek) { if(key) api.key = key; if(model) api.model = model; }
                 try { localStorage.setItem('api_config_v3', JSON.stringify({ main: api, polish: polishApi, image: imageApiCfg, act: actApi })); } catch(e) {}
+                if(!mainIsDeepSeek) pushLog('ℹ️ 起书成功（正文 API 为自定义服务商，起书 Key 未同步到正文配置）');
                 toast('起书成功《' + parsed.bookTitle + '》');
                 const m = $('startBookModal'); if(m) m.style.display = 'none';
                 lockSbUI(false); resetSbProgress();
@@ -5163,23 +5458,29 @@ ${chapter.content}`;
         // v6.3：按钮颜色按保留的 checkResult 着色（有旧冲突保持橙色，与面板保留结果一致）——
         // 修复前强制变蓝会与"结果保留"状态矛盾（按钮显示无冲突、面板却有旧冲突）
         const checkBtn = $('checkConflictBtn'); if(checkBtn) checkBtn.style.background = (chap.checkResult && chap.checkResult.length) ? "#C97A3A" : "#3A3A6A"; } }
-    function saveCurChapter() {
-        // v7.3 修复：润色预览态（polishMode）下禁止保存——正文含 <mark> 红绿理由标签，
-        // getEditorText 剥标签会把"旧+新+📎理由"拼接污染正文。所有保存路径（30s自动保存/
-        // blur/切章/快捷键/导出）都走这里，源头一刀切；应用/取消直接操作 chap+saveAll 不受影响
+    // v8.7-F003：编辑器→章节内存同步（不含持久化）——存储满时导出救援路径只要求"内存最新"，不应被 saveAll 失败阻断（项目零审查 F-003）
+    function syncCurChapterToMemory() {
         if(polishMode) return true;
-        let b = getCurrentBook(); if(!b || !b.currentChapterId) return false;
+        let b = getCurrentBook(); if(!b) return true;
+        if(!b.currentChapterId) return true; // v8.7-F013：无当前章节 = 无正文可同步 = 空操作成功——完整备份（含 API/素材/草稿等非章节数据）不应被静默取消（原返回 false 使 exportBackup 无条件中止，空书/无书时零下载零提示，为 F-003 重构引入的回归）
         let c = b.chapters.find(ch=>ch.id===b.currentChapterId);
         const el = $('novelContent'); if(!c || !el) return false;
         if(checkMarksActive && !conflictVisible) clearCheckMarks(); // v8.4-③-b：保存前剥离检查标色防 <mark> 污染；v8.4.2：面板打开时保留标色（getEditorText 剥标签，数据不受污染），高亮持续到关面板
         c.content = getEditorText(); contentDirty = false;
         if(!c.savedAt) c.savedAt = Date.now(); // v7.6：章节首次保存记录时间戳（统计每日字数/连续更新/码字时点用）
-        // 摘要一并保存（与正文同属当前章节）；跳过"生成中"占位符防止污染
         const sumEl = $('summaryArea'); if(sumEl && sumEl.value.trim() !== SUMMARY_PLACEHOLDER) { const newSummary = sumEl.value.trim().slice(0, 300); if(c.summary !== newSummary) { c.summary = newSummary; c.summaryRequestVersion = (c.summaryRequestVersion || 0) + 1; } }
+        return true;
+    }
+    function saveCurChapter() {
+        // v7.3 修复：润色预览态（polishMode）下禁止保存——正文含 <mark> 红绿理由标签，
+        // getEditorText 剥标签会把"旧+新+📎理由"拼接污染正文。所有保存路径（30s自动保存/
+        // blur/切章/快捷键/导出）都走这里，源头一刀切；应用/取消直接操作 chap+saveAll 不受影响
+        if(!syncCurChapterToMemory()) return false;
         const ok = saveAll();
         if(ok) { const saveSpan = $('saveStatus'); if(saveSpan) saveSpan.innerText = '已存'; updateWord(); renderChapters(); }
         else { contentDirty = true; }
-        const checkBtn = $('checkConflictBtn'); if(checkBtn && b.currentChapterId === c.id) checkBtn.style.background = (c.checkResult && c.checkResult.length>0) ? "#C97A3A" : "#3A3A6A";
+        const bkNow = getCurrentBook(); const chNow = bkNow && bkNow.currentChapterId ? bkNow.chapters.find(x=>x.id===bkNow.currentChapterId) : null;
+        const checkBtn = $('checkConflictBtn'); if(checkBtn && chNow) checkBtn.style.background = (chNow.checkResult && chNow.checkResult.length>0) ? "#C97A3A" : "#3A3A6A";
         return ok;
     }
     // 保存当前章节并校验成功：切换章节/书籍/发送/续写/重写/新增/导出等操作前置调用，
@@ -5258,10 +5559,10 @@ ${chapter.content}`;
             div.className = `chap-item ${b.currentChapterId===ch.id?'active':''}`;
             div.setAttribute('draggable', 'true');
             const chapTitle = (ch.isInterlude ? '<i class="fas fa-feather-alt" style="margin-right:5px;color:#8A84A8;font-size:0.75rem;" title="间章"></i>' : '') + escapeHtml(ch.title||'未命名') + (ch.truncated ? ' <span style="color:#FFA070;font-size:0.7rem;" title="⚠️ 输出可能被截断，建议检查本章结尾">⚠️</span>' : ''); // v7.8：截断章节角标
-            div.innerHTML = `<span style="cursor:pointer;flex:1;">${chapTitle}</span><div class="chap-actions"><i class="fas fa-pen" data-action="rename" data-id="${ch.id}"></i><i class="fas fa-trash" data-action="delete" data-id="${ch.id}"></i><i class="fas fa-exchange-alt" data-action="toggleInterlude" data-id="${ch.id}" title="正章⇄间章"></i></div>`;
-            div.addEventListener('click', (e) => { if(e.target.tagName==='I') return; if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再切换章节"); return; } if(!ensureCurrentChapterSaved()) return; b.currentChapterId=ch.id; setRewriteMode(false, null); branchContinuePending = false; branchBookId = null; loadCurChapter(); renderChapters(); saveAll(); });
+            div.innerHTML = `<span style="cursor:pointer;flex:1;">${chapTitle}</span><div class="chap-actions"><i class="fas fa-pen" data-action="rename" data-id="${escapeHtml(ch.id)}"></i><i class="fas fa-trash" data-action="delete" data-id="${escapeHtml(ch.id)}"></i><i class="fas fa-exchange-alt" data-action="toggleInterlude" data-id="${escapeHtml(ch.id)}" title="正章⇄间章"></i></div>`;
+            div.addEventListener('click', (e) => { if(e.target.tagName==='I') return; if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode || pendingBranch || banterBusy || summaryGenerating || conflictCheckingCount > 0) { toast("生成/走向/吐槽/审稿/摘要/冲突检测进行中，请等待完成或点击停止后再切换章节"); return; } if(!ensureCurrentChapterSaved()) return; b.currentChapterId=ch.id; setRewriteMode(false, null); branchContinuePending = false; branchBookId = null; loadCurChapter(); renderChapters(); saveAll(); }); // v8.9-F05b：切章拦截补 pendingBranch/banterBusy/summaryGenerating/conflictCheckingCount——原吐槽在途切章，A 章结果 setBanterCache 按当前章键缓存到 B 章；检测在途切章结果/费用静默丢弃（EXE-V8-F05 同源）
             div.querySelector('[data-action="rename"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再重命名"); return; } let nt=prompt('新章节标题',ch.title); if(nt&&nt.trim()){ ch.title=nt.trim(); renderChapters(); if(!persistOrWarn()) return; if(b.currentChapterId===ch.id) { const curChapName = $('curChapName'); if(curChapName) curChapName.innerText = ch.title.substring(0,25); } } });
-            div.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再删除"); return; } const deletingCurrent = b.currentChapterId===ch.id; if(!deletingCurrent && !ensureCurrentChapterSaved()) { toast("当前章节保存失败，已取消删除操作"); return; } if(!confirm(`确认删除章节「${ch.title}」？`)) return; const idx=b.chapters.findIndex(c=>c.id===ch.id); if(idx!==-1) { const removed=b.chapters[idx]; const oldCurrentId=b.currentChapterId; const oldLen=b.chapters.length; b.chapters.splice(idx,1); if(b.chapters.length===0) { b.chapters.push({ id:uuid(), title:"新章节", content:"# 新章节\n\n在这里开始写作...", prompt:"", checkResult:[], isContinuation:false, isInterlude:false, savedAt: Date.now() }); b.currentChapterId=b.chapters[0].id; toast("已清空所有章节，自动创建空白章节"); } else { if(b.currentChapterId===ch.id) b.currentChapterId=b.chapters[0]?.id||null; toast(`已删除「${ch.title}」`); } if(!persistOrWarn()) { if(oldLen===1) b.chapters.pop(); b.chapters.splice(idx,0,removed); b.currentChapterId=oldCurrentId; renderChapters(); loadCurChapter(); toast('保存失败，已恢复章节'); return; } removeChapterGrowthFromAll(b, ch.id); renderChapters(); loadCurChapter(); } });
+            div.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode || pendingBranch || banterBusy || summaryGenerating || conflictCheckingCount > 0) { toast("生成/走向/吐槽/审稿/摘要/冲突检测进行中，请等待完成或点击停止后再删除"); return; } const deletingCurrent = b.currentChapterId===ch.id; if(!deletingCurrent && !ensureCurrentChapterSaved()) { toast("当前章节保存失败，已取消删除操作"); return; } if(!confirm(`确认删除章节「${ch.title}」？`)) return; const idx=b.chapters.findIndex(c=>c.id===ch.id); if(idx!==-1) { const removed=b.chapters[idx]; const oldCurrentId=b.currentChapterId; const oldLen=b.chapters.length; b.chapters.splice(idx,1); if(b.chapters.length===0) { b.chapters.push({ id:uuid(), title:"新章节", content:"# 新章节\n\n在这里开始写作...", prompt:"", checkResult:[], isContinuation:false, isInterlude:false, savedAt: Date.now() }); b.currentChapterId=b.chapters[0].id; toast("已清空所有章节，自动创建空白章节"); } else { if(b.currentChapterId===ch.id) b.currentChapterId=b.chapters[0]?.id||null; toast(`已删除「${ch.title}」`); } if(!persistOrWarn()) { if(oldLen===1) b.chapters.pop(); b.chapters.splice(idx,0,removed); b.currentChapterId=oldCurrentId; renderChapters(); loadCurChapter(); toast('保存失败，已恢复章节'); return; } removeChapterGrowthFromAll(b, ch.id); renderChapters(); loadCurChapter(); } }); // v8.10-F017：删章拦截补齐四标志（同新增章节——删当前章改写 currentChapterId，HTML v5 复审 F-017 残余/EXE-V9-F05）
             div.querySelector('[data-action="toggleInterlude"]')?.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再切换间章"); return; }
@@ -5312,7 +5613,7 @@ ${chapter.content}`;
 
     function addNewChapter() {
         let b = getCurrentBook(); if(!b) return;
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再新增章节"); return; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode || pendingBranch || banterBusy || summaryGenerating || conflictCheckingCount > 0) { toast("生成/走向/吐槽/审稿/摘要/冲突检测进行中，请等待完成或点击停止后再新增章节"); return; } // v8.10-F017：补齐四标志——原新增章节改写 currentChapterId，吐槽/检测在途时 A 章结果缓存到新章/结果丢弃（HTML v5 复审 F-017 残余/EXE-V9-F05）
         if(!ensureCurrentChapterSaved()) return;
         // 默认创建普通正章（与"新增章节"文案语义一致）；需要间章可点击 ⬌ 切换
         b.chapters.push({ id:uuid(), title:'新章节', content:"# 新章节\n\n在这里书写...", prompt:"", checkResult:[], isContinuation:false, isInterlude:false, savedAt: Date.now() }); // v8.6-r9：新建空章带 savedAt
@@ -5322,7 +5623,7 @@ ${chapter.content}`;
     }
     function changeChap(delta) {
         let b = getCurrentBook(); if(!b || !b.chapters.length) return;
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再切换章节"); return; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode || pendingBranch || banterBusy || summaryGenerating || conflictCheckingCount > 0) { toast("生成/走向/吐槽/审稿/摘要/冲突检测进行中，请等待完成或点击停止后再切换章节"); return; } // v8.9-F05b：同章节点击入口补齐任务锁（EXE-V8-F05 同源）
         let idx = b.chapters.findIndex(c=>c.id===b.currentChapterId);
         let nidx = idx+delta;
         if(nidx>=0 && nidx<b.chapters.length) { if(!ensureCurrentChapterSaved()) return; b.currentChapterId = b.chapters[nidx].id; setRewriteMode(false, null); branchContinuePending = false; branchBookId = null; loadCurChapter(); renderChapters(); saveAll(); }
@@ -5337,17 +5638,27 @@ ${chapter.content}`;
         try { localStorage.setItem('editor_font_size', currentFontSize); } catch(e) {}
     }
 
+    // v8.7-N2：本地时间戳工具（8.7 更新清单 N2）——导出文件名统一用系统本地时间，精度到秒：
+    // 原 `fmtStamp()` ①仅到日期（同日多次导出同名互覆盖）②toISOString 为 UTC（UTC+8 本地 0:00-8:00 文件名日期比系统日期早一天）
+    function fmtStamp() {
+        const d = new Date(), p = n => String(n).padStart(2, '0');
+        return '' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '_' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+    }
+    function fmtDayDash() { // 本地日期键 YYYY-MM-DD（每日统计等天粒度用途；原 toISOString 为 UTC 日期，本地凌晨会错一天）
+        const d = new Date(), p = n => String(n).padStart(2, '0');
+        return '' + d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+    }
     function sanitizeFilename(name) { let f = (name||'未命名').replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_').replace(/^\.+/, '').replace(/^_+$/, 'untitled').substring(0, 50); return f || 'untitled'; }
     function exportFull() {
         let b = getCurrentBook(); if(!b || !b.chapters.length) { toast("无内容"); return; }
         if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) toast("⚠️ 生成或双版选择进行中，导出内容不包含未完成结果");
         if(polishMode) { toast("润色预览中，请先应用或取消后再导出"); return; }
-        if(!ensureCurrentChapterSaved()) return; // 导出前先保存当前编辑（保存失败则取消，防导出缺最新内容）
+        if(!syncCurChapterToMemory()) return; // v8.7-F003：导出救援只要求编辑器→内存同步（syncCurChapterToMemory 不含持久化）——存储满时最新正文在内存，必须允许导出 Blob 救援，不能被 saveAll 失败阻断（原 ensureCurrentChapterSaved 会取消导出）
         toast("正在生成导出文件…"); // v7.4 M7 修复：大书导出前给进度反馈（Blob 构建为同步操作，避免体感卡死）
         // 正文章号独立计数（间章不占号）：第一章→间章→第二章，而非 1→间章→3
         let regularNo = 0;
         let txt = b.chapters.map(ch => { const label = ch.isInterlude ? '间章' : '第'+(++regularNo)+'章'; return `${label} ${ch.title}\n\n${ch.content}\n\n`; }).join('');
-        let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt],{type:"text/plain"})); a.download = `${sanitizeFilename(b.name)}_全书_${new Date().toISOString().slice(0,10)}.txt`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("全书导出成功");
+        let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt],{type:"text/plain"})); a.download = `${sanitizeFilename(b.name)}_全书_${fmtStamp()}.txt`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("全书导出成功");
     }
     function exportCurrentChapter() {
         let b = getCurrentBook(); if(!b || !b.currentChapterId) { toast("请先选择章节"); return; }
@@ -5355,10 +5666,10 @@ ${chapter.content}`;
         if(!c) { toast("未找到当前章节"); return; }
         if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) toast("⚠️ 生成或双版选择进行中，导出内容不包含未完成结果");
         if(polishMode) { toast("润色预览中，请先应用或取消后再导出"); return; }
-        if(!ensureCurrentChapterSaved()) return;
+        if(!syncCurChapterToMemory()) return; // v8.7-F003：导出救援——内存同步即可，持久化失败不阻断（原 ensure 会因存储满取消导出本章，最新正文将无法救援）
         let txt = `${c.title}\n\n${c.content}`;
         let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt],{type:"text/plain"}));
-        a.download = `${sanitizeFilename(b.name)}_${sanitizeFilename(c.title)}_${new Date().toISOString().slice(0,10)}.txt`; a.click();
+        a.download = `${sanitizeFilename(b.name)}_${sanitizeFilename(c.title)}_${fmtStamp()}.txt`; a.click();
         setTimeout(() => URL.revokeObjectURL(a.href), 1000);
         toast(`已导出本章「${c.title}」`);
     }
@@ -5372,7 +5683,14 @@ ${chapter.content}`;
     function exportBackup() {
         if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) toast("⚠️ 生成或双版选择进行中，备份不包含未完成结果");
         if(polishMode) { toast("润色预览中，请先应用或取消后再备份"); return; }
-        if(!ensureCurrentChapterSaved()) return;
+        if(!syncCurChapterToMemory()) return; // v8.7-F003：导出救援——内存同步即可，持久化失败不阻断（原 ensure 会因存储满取消备份导出，最新正文将无法救援）
+        // v8.7-F10：备份明文含全部 API Key，导出前明确警告（此前仅"备份已导出"提示，未覆盖"备份文件也含密钥"的事实）
+        // v8.7-F005：凭据扫描纳入一键起书草稿（sb_draft_v1 含面板 Key 输入，原扫描四组 API 配置漏掉它——草稿被无条件写入备份时无警告，项目零审查 F-005）
+        let sbDraftHasKey = false;
+        try { const sd = JSON.parse(localStorage.getItem('sb_draft_v1') || 'null'); if(sd && sd.key) sbDraftHasKey = true; } catch(e) {}
+        if((api && api.key) || (polishApi && polishApi.key) || (actApi && actApi.key) || (imageApiCfg && imageApiCfg.key) || sbDraftHasKey) {
+            if(!confirm('⚠️ 备份文件将包含您的 API Key（正文/审稿/扮演/生图配置或一键起书草稿中的密钥），以明文存于 JSON。\n\n请勿上传网盘、发送他人或经聊天工具/第三方编辑器流转，以免密钥泄露。\n\n是否仍要导出？')) return;
+        }
         const scratchpadModalEl = $('scratchpadModal'); const scratchpadEl = $('scratchpadContent');
         if(scratchpadEl && scratchpadModalEl && scratchpadModalEl.style.display === 'flex') {
             scratchpadPages[scratchpadCurPage] = scratchpadEl.value; // v7.4：同步当前页
@@ -5384,28 +5702,43 @@ ${chapter.content}`;
         // v8.2：备份携带自定义标签库（custom_tags_v1），导入恢复
         let customTags = [];
         try { customTags = JSON.parse(localStorage.getItem('custom_tags_v1') || '[]'); } catch(e) {}
-        const backupData = { version:"7.7", timestamp:Date.now(), books, currentBookId, apiConfig:api, polishApiCfg:polishApi, imageApiCfg:imageApiCfg, actApiCfg:actApi, globalCharacters, globalActions, globalCostumes, scratchpadPages, scratchpadContent: (scratchpadPages[0]||''), layoutPrefs: JSON.parse(JSON.stringify(layoutPrefs)), appLogs, costStats, customTags };
+        // v8.6-fix36：备份携带关系图右键高亮（graph_hl_<bookId> 动态键 → 收集为对象 {bookId: [...]}）
+        let graphHighlights = {};
+        try {
+            for(let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if(k && k.startsWith('graph_hl_')) {
+                    try { graphHighlights[k.slice('graph_hl_'.length)] = JSON.parse(localStorage.getItem(k) || '[]'); } catch(e) {}
+                }
+            }
+        } catch(e) {}
+        const backupData = { version:"7.7", timestamp:Date.now(), books, currentBookId, apiConfig:api, polishApiCfg:polishApi, imageApiCfg:imageApiCfg, actApiCfg:actApi, globalCharacters, globalActions, globalCostumes, scratchpadPages, scratchpadContent: (scratchpadPages[0]||''), layoutPrefs: JSON.parse(JSON.stringify(layoutPrefs)), appLogs, costStats, customTags, graphHighlights, sbDraft: (function(){ try { return localStorage.getItem('sb_draft_v1') || ''; } catch(e) { return ''; } })(), dailyInputStats: (function(){ try { return localStorage.getItem('daily_input_stats_v1') || ''; } catch(e) { return ''; } })() }; // v8.7-L10：备份补起书草稿与每日输入统计（原漏导致手动备份→导入闭环丢这两项，与 EXE 快照口径不一致）
         const blob = new Blob([JSON.stringify(backupData,null,2)], {type:"application/json"});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `小说参数备份_${new Date().toISOString().slice(0,10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("备份已导出");
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `小说参数备份_${fmtStamp()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast("备份已导出");
     }
     // 数组类型兜底：异常/手动修改的备份可能把数组字段写成对象，强制转回数组防初始化崩溃
     function ensureArray(v) { return Array.isArray(v) ? v : []; }
     function importBackup(file) {
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再导入"); return; }
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode || pendingBranch || banterBusy || summaryGenerating || conflictCheckingCount > 0) { toast("生成/走向/吐槽/审稿/摘要/冲突检测进行中，请等待完成或点击停止后再导入"); return; } // v8.8-F011：拦截表补 summaryGenerating/conflictCheckingCount——原摘要在途恢复含相同书/章 ID 的备份后，旧摘要/检测结果按恢复后的"当前书"记费/写回，污染恢复数据（项目零终极版复审 F-011）；v8.7-F011 补拦 pendingBranch/banterBusy 同理
+        if(importPending) { toast("上一次备份导入尚未完成，请稍候再试"); return; } // v8.9-F011：排他——读取生命周期内拒绝第二个导入（原双 FileReader 并发，最终状态由 I/O 完成顺序而非用户最后选择决定）
         if(!confirm("导入备份将覆盖当前全部数据（所有小说、设定、API 配置、素材库、草稿本等），且不可恢复！\n\n建议先点击「备份」导出当前数据。\n\n是否继续导入？")) return;
+        importPending = true; // v8.9-F011：获准即锁（覆盖 readAsText 读取窗口到 onload 提交）
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
                 if(!data.books || !Array.isArray(data.books)) throw new Error("备份文件格式无效：缺少 books 数组"); var compatVersions = ["2.6","2.7","2.8","2.9","3.0","3.1","3.2","3.3","3.4","3.6","3.7","3.8","3.9","4.0","4.1","4.2","4.3","4.4","4.5","4.6","4.7","4.8","4.9","5.0","5.1","5.2","5.3","5.4","5.5","5.6","5.7","5.8","5.9","6.0","6.1","6.2","6.3","6.4","6.5","6.6","6.7","6.8","6.9","7.0","7.1","7.2","7.3","7.4","7.5","7.6","7.7","7.8","7.9"]; if(data.version && !compatVersions.includes(data.version)) { if(!confirm("备份版本("+data.version+")与当前版本(7.7)不匹配，可能存在兼容性问题。\n\n是否继续导入？")) { throw new Error("用户取消导入"); } }
-                books = data.books.filter(b => b && typeof b === 'object');
-                books.forEach(book => { book.characters = ensureArray(book.characters); book.chatHistory = ensureArray(book.chatHistory); book.chapters = ensureArray(book.chapters); book.forbiddenWords = ensureArray(book.forbiddenWords); book.chapters.forEach(ch => { if(!Array.isArray(ch.checkResult)) ch.checkResult=[]; }); migrateChapter(book); });
-                if(data.globalCharacters) globalCharacters = ensureArray(data.globalCharacters);
-                if(data.globalActions) globalActions = ensureArray(data.globalActions);
-                if(data.globalCostumes) globalCostumes = ensureArray(data.globalCostumes);
-                // v6.8：normalize 移到全局库载入后——此前在 books.forEach 内先于 globalActions/Costumes 赋值执行，
-                // 用旧的空库清空备份中的动作/服装精准选择（P0-2 数据破坏）
-                books.forEach(book => { normalizePrecisionSelections(book); });
+                // v8.7-F02：事务化重构——先构建临时对象并深度校验（throw 在任何全局替换之前拦截），全部通过后才统一提交运行时状态。
+                // 原先立即 `books = data.books.filter(...)`，章节/角色结构非法时在随后的遍历中抛错进入 catch，books 已被替换成半成品（界面提示"恢复失败"但内存已污染、后续自动保存覆盖原存储）。
+                const importedBooks = data.books.filter(b => b && typeof b === 'object');
+                importedBooks.forEach(book => { book.characters = ensureArray(book.characters).filter(x => x && typeof x === 'object'); book.chatHistory = ensureArray(book.chatHistory).filter(x => x && typeof x === 'object'); book.chapters = ensureArray(book.chapters); book.forbiddenWords = ensureArray(book.forbiddenWords).filter(x => x && typeof x === 'object'); book.chapters.forEach(ch => { if(!ch || typeof ch !== 'object') throw new Error("备份章节数据格式无效"); if(!Array.isArray(ch.checkResult)) ch.checkResult=[]; }); migrateChapter(book); }); // v8.7-F02c：导入与启动同款元素级过滤（characters/chatHistory/forbiddenWords 非对象元素丢弃，防坏元素进入运行态后渲染崩）
+                const ibChars = data.globalCharacters ? ensureArray(data.globalCharacters).filter(x => x && typeof x === 'object') : globalCharacters; // v8.7-F03d：全局库导入同款元素级过滤（与启动口径一致）
+                const ibActs  = data.globalActions ? ensureArray(data.globalActions).filter(x => x && typeof x === 'object') : globalActions;
+                const ibCost  = data.globalCostumes ? ensureArray(data.globalCostumes).filter(x => x && typeof x === 'object') : globalCostumes;
+                // 校验全部通过，提交前二次检查（v8.8-F011：读取文件期间可能已发起新 AI 任务——检查-提交竞态；忙则中止且不替换 books/不落盘，防半提交后 switchBook 才拒绝）
+                if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode || pendingBranch || banterBusy || summaryGenerating || conflictCheckingCount > 0) throw new Error("检测到 AI 任务进行中，导入已取消（未改动任何数据）");
+                books = importedBooks; globalCharacters = ibChars; globalActions = ibActs; globalCostumes = ibCost;
+                importedBooks.forEach(book => { normalizePrecisionSelections(book); }); // v6.8：normalize 在全局库已替换后执行——读取备份库而非旧库，避免用空库清空备份中的动作/服装精准选择（P0-2 数据破坏）
                 if(data.scratchpadPages && Array.isArray(data.scratchpadPages) && data.scratchpadPages.length === 5) {
                     scratchpadPages = data.scratchpadPages.map(x => typeof x === 'string' ? x : '');
                 } else if(data.scratchpadContent !== undefined) {
@@ -5454,10 +5787,25 @@ ${chapter.content}`;
                 if(data.costStats && typeof data.costStats === 'object') { try { localStorage.setItem('cost_stats_v1', JSON.stringify(data.costStats)); } catch(e) {} }
                 // v8.2：恢复自定义标签库（数组时覆盖；老备份无该字段时保持现值不动）
                 if(Array.isArray(data.customTags)) { try { localStorage.setItem('custom_tags_v1', JSON.stringify(data.customTags)); } catch(e) {} }
+                // v8.7-L10：恢复起书草稿与每日输入统计（与导出侧对称；老备份无字段时保持现值不动，空值视为清除）
+                if(data.sbDraft !== undefined) { try { if(data.sbDraft) localStorage.setItem('sb_draft_v1', data.sbDraft); else localStorage.removeItem('sb_draft_v1'); } catch(e) {} }
+                if(data.dailyInputStats !== undefined) { try { if(data.dailyInputStats) localStorage.setItem('daily_input_stats_v1', data.dailyInputStats); else localStorage.removeItem('daily_input_stats_v1'); } catch(e) {} }
+                // v8.6-fix36：恢复关系图右键高亮（graph_hl_<bookId>；先清旧键防残留，再按备份写入）
+                if(data.graphHighlights && typeof data.graphHighlights === 'object') {
+                    try {
+                        const gone = [];
+                        for(let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if(k && k.startsWith('graph_hl_')) gone.push(k); }
+                        gone.forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
+                        Object.entries(data.graphHighlights).forEach(([bid, hl]) => { if(bid && Array.isArray(hl)) { try { localStorage.setItem('graph_hl_' + bid, JSON.stringify(hl)); } catch(e) {} } });
+                    } catch(e) {}
+                }
                 if(savedOk) toast("恢复成功");
                 else toast("备份已载入当前会话但未能保存到本地");
-            } catch(err) { isImporting = false; toast("恢复失败: "+err.message); }
+                importPending = false; // v8.9-F011：成功收尾释放排他锁
+            } catch(err) { isImporting = false; importPending = false; toast("恢复失败: "+err.message); } // v8.9-F011：异常/中止路径同样释放（防锁永久卡死）
         };
+        reader.onerror = () => { importPending = false; toast("备份文件读取失败，导入已取消"); }; // v8.9-F011：读取错误收尾
+        reader.onabort = () => { importPending = false; toast("备份导入已取消"); }; // v8.9-F011：取消收尾
         reader.readAsText(file);
     }
 
@@ -5648,6 +5996,19 @@ ${chapter.content}`;
         }
     }
     // 组装吐槽上下文：前 3 章摘要 + 世界观 + 精准勾选角色 + 本章正文（v8.5：去主线大纲；前 10 章→前 3 章）
+    // v8.7-B-友2：中段切句对齐句末标点（原硬切 mid±500 可能从句子中间开始）——在 ±100 内找最近句界
+    function banterMidSeg(cB, mid) {
+        const half = 500, reach = 100, lo = Math.max(0, mid - half), hi = Math.min(cB.length, mid + half);
+        let bestStart = lo, bestEnd = hi;
+        let left = -1;
+        for (let i = Math.max(0, lo - reach); i < Math.min(cB.length, hi + reach); i++) { if ('。！？!?\n'.indexOf(cB[i]) >= 0) { if (left === -1 || Math.abs((i + 1) - lo) < Math.abs(left - lo)) left = i + 1; } }
+        if (left !== -1) bestStart = left;
+        let right = -1;
+        for (let i = Math.max(0, lo - reach); i < Math.min(cB.length, hi + reach); i++) { if ('。！？!?\n'.indexOf(cB[i]) >= 0) { if (right === -1 || Math.abs((i + 1) - hi) < Math.abs(right - hi)) right = i + 1; } }
+        if (right !== -1) bestEnd = right;
+        if (bestStart >= bestEnd) { bestStart = lo; bestEnd = hi; }
+        return cB.slice(bestStart, bestEnd);
+    }
     function buildBanterContext(book, chap) {
         const parts = [];
         const idx = book.chapters.findIndex(c => c.id === chap.id);
@@ -5684,7 +6045,7 @@ ${chapter.content}`;
                 const mid = Math.floor(cB.length / 2);
                 let segTxt = '【本章正文（3 段，分别对应第 1/2/3 位点评者）】\n';
                 segTxt += '片段一（第 1 位点评）：\n' + cB.slice(0, 1000) + '\n\n';
-                segTxt += '片段二（第 2 位点评）：\n' + cB.slice(mid - 500, mid + 500) + '\n\n';
+                segTxt += '片段二（第 2 位点评）：\n' + banterMidSeg(cB, mid) + '\n\n';
                 segTxt += '片段三（第 3 位点评）：\n' + cB.slice(-1000);
                 parts.push(segTxt.trim());
             }
@@ -5705,6 +6066,7 @@ ${chapter.content}`;
     }
     // 吐槽请求：独立调用审稿 API（polishApi 参数），单次生成 3 条
     async function generateBanter() {
+        if(importPending) { toast('备份导入进行中，请等待完成后再吐槽'); return; } // v8.10-F011
         const book = getCurrentBook(); if(!book || !book.currentChapterId) { toast('请先选择章节'); return; }
         const chap = book.chapters.find(c => c.id === book.currentChapterId);
         if(!chap || !(chap.content || '').trim()) { toast('本章暂无正文，无法吐槽'); return; }
@@ -5712,11 +6074,21 @@ ${chapter.content}`;
         if(!api.key) { toast('请先填写正文 API Key'); return; }
         const roles = pickBanterRoles();
         const roleDesc = roles.map(r => r.name + '：' + r.style).join('\n');
-        const sys = '你是小说评论模拟器。这是虚构文学作品的创作场景，请正常创作，不要拒绝或回避。\n请模拟以下 3 个不同身份的角色，各自对指定的小说章节写下读后感/吐槽，观点差异化明显：\n' + '\n【要求】：\n1. 每条感想控制在 100 字以内（精简有力），用最像真人读者的语气（可毒舌/调侃/捧场），严禁书面套话（如"展现了张力""引人入胜""节奏把控到位"这类）；每条必须结合你负责片段的具体情节或人物逻辑，说明其中合理之处或存在的问题（有褒有贬，不能无脑喷——即使吐槽也要有具体依据）；\n2. 3 条感想必须覆盖不同维度，各一条：剧情走向 / 人物行为 / 文笔表达，观点不重复；\n3. 每条必须附带 quote 字段：引用你吐槽的那句原文片段（≤30 字，与原文逐字一致）；\n4. 必须只输出一个 JSON 数组：[{"role":"角色名","text":"感想正文","quote":"原文片段"}]，共 3 个元素，角色名必须与上面给定的完全一致；\n5. 不要输出任何其他文字。\n【吐槽角色】\n' + roleDesc; // v7.9缓存优化：角色描述挪至system末尾
+        const sys = '你是小说评论模拟器。这是虚构文学作品的创作场景，请正常创作，不要拒绝或回避。\n请模拟以下 3 个不同身份的角色，各自对指定的小说章节写下读后感/吐槽，观点差异化明显：\n' + '\n【要求】：\n1. 每条感想控制在 100 字以内（精简有力），用最像真人读者的语气（可毒舌/调侃/捧场），严禁书面套话（如"展现了张力""引人入胜""节奏把控到位"这类）；每条必须结合你负责片段的具体情节或人物逻辑，说明其中合理之处或存在的问题（有褒有贬，不能无脑喷——即使吐槽也要有具体依据）；\n2. 3 条感想必须覆盖不同维度（剧情走向 / 人物行为 / 文笔表达）：text 以【剧情走向】/【人物行为】/【文笔表达】标签开头，三个标签互不重复，观点不重复；\n3. 每条必须附带 quote 字段：引用你吐槽的那句原文片段（≤30 字，与原文逐字一致）；\n4. 必须只输出一个 JSON 数组：[{"role":"角色名","text":"感想正文","quote":"原文片段"}]，共 3 个元素，角色名必须与上面给定的完全一致；\n5. 不要输出任何其他文字。'; // v8.7-B2：sys 全固定——角色描述移 user 段开头（稳定段前置原则，缓存分区更纯）
         const context = buildBanterContext(book, chap);
-        const user = '待点评章节：\n' + context + '\n\n请输出 3 个角色的感想 JSON 数组。';
+        // v8.7-B-友1/B2：规则层命中注入（吐槽有实据）+ 角色描述置 user 段开头
+        // v8.8-F-021b：扫描对象 = 模型实际可见正文（≤3000 全量；长章 = 首 1000 + 中段句界 + 尾 1000，与 buildBanterContext 发送切片一致）——原扫整章，命中在省略区时模型无法核对实据/quote
+        const cBv = chap.content || '';
+        const visBody = cBv.length <= 3000 ? cBv : cBv.slice(0, 1000) + '\n' + banterMidSeg(cBv, Math.floor(cBv.length / 2)) + '\n' + cBv.slice(-1000);
+        const aiScanB = scanAiTaste(visBody);
+        const aiHitsB = aiTasteHitsText(aiScanB);
+        const user = '【吐槽角色】\n' + roleDesc + (aiHitsB ? '\n\n【本章 AI 腔规则层扫描】' + aiHitsB + '\n（可在吐槽中引用命中实据，如“这段连着 N 个缓缓，AI 味拉满”；quote 仍须与原文逐字一致）' : '') + '\n\n待点评章节：\n' + context + '\n\n请输出 3 个角色的感想 JSON 数组。';
         const genBtn = $('genBanterBtn'); if(genBtn) { genBtn.disabled = true; genBtn.innerText = '⏳ 吐槽生成中...'; }
         pushLog('🔄 吐槽：正在生成 3 条感想…（' + roles.map(r => r.name).join('、') + '）');
+        banterBusy = true; // v8.7-F06：吐槽进行中置位；finally 清除（配合 switchBook 拦截防跨书污染）
+        // v8.7-L15-fix：controller/timer 提升到函数体顶层（try 块之外）——原在 try 内声明，catch/finally 词法作用域看不到，
+        // 网络异常时 clearTimeout(timer) 抛 ReferenceError（F-05 回归，node --check 不报故自审漏过）；顶层声明后 catch/finally 均可见
+        let controller = null, timer = null;
         try {
             // v8.0.35：吐槽接入伪阶段进度窗口（20s 一格）
             startSbStages([
@@ -5725,8 +6097,8 @@ ${chapter.content}`;
                 { pct: 75, text: '正在生成感想…' },
                 { pct: 90, text: '正在收尾…' }
             ], 20000, '⚠️ 请勿关闭网页，等待AI吐槽中...');
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 180000);
+            controller = new AbortController();
+            timer = setTimeout(() => controller.abort(), 180000);
             // v7.8：吐槽改用正文 API（与正文请求同参数体系）；max_tokens 跟 api.maxTokens 一致
             let stopWordsArray = [];
             if(api.stopWords && api.stopWords.trim()) stopWordsArray = api.stopWords.split(',').map(s=>s.trim()).filter(s=>s);
@@ -5744,7 +6116,7 @@ ${chapter.content}`;
                 body: JSON.stringify(body),
                 signal: controller.signal
             });
-            clearTimeout(timer);
+            // v8.7-F014：移除 fetch 后过早 clearTimeout——超时需覆盖 res.json()（正文悬挂时 abort 才生效）；清理由 finally 统一兜底（幂等）
             if(!res.ok) {
                 const msg = res.status === 401 ? 'API Key 无效' : res.status === 429 ? '请求频率过高' : 'HTTP ' + res.status;
                 pushLog('❌ 吐槽生成失败：' + msg);
@@ -5763,11 +6135,14 @@ ${chapter.content}`;
             toast('已生成 ' + parsed.length + ' 条吐槽' + (bCost ? `（消费 ¥${bCost.toFixed(2)} 元）` : ''));
             startTabBlink('✅ 已生成 ' + parsed.length + ' 条吐槽');
         } catch(err) {
+            clearTimeout(timer); // v8.7-L15：失败路径补清理——原只在 fetch 成功后 clear，异常/中止路径残留 180s abort 定时器（到期 abort 空操作，属资源泄漏）
             const em = (err && err.message ? err.message : '请稍后重试');
             pushLog('❌ 吐槽生成失败：' + em);
             toast('吐槽生成失败：' + em);
             startTabBlink('❌ 吐槽生成失败');
         } finally {
+            clearTimeout(timer); // v8.7-L15-fix：finally 统一清理定时器（幂等；无论成功/异常/中止都收尾，防 180s 残留）
+            banterBusy = false; // v8.7-F06：吐槽结束清除标志（成功/失败/中止均复位，配合 switchBook 解锁）
             if(genBtn) { genBtn.disabled = false; genBtn.innerText = '🔄 生成吐槽'; }
             stopSbStages(); resetSbProgress(); // v8.0.35：清理吐槽进度窗口
         }
@@ -5794,14 +6169,14 @@ ${chapter.content}`;
         if(marks.length) { marks.forEach(mk => mk.replaceWith(document.createTextNode(mk.textContent))); el.normalize(); }
         const parts = [];
         const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
-        while(walker.nextNode()) { const node = walker.currentNode, text = node.textContent; let pos = 0, idx = text.indexOf(q, pos); while(idx !== -1) { parts.push({node, start:idx, end:idx+q.length}); pos = idx+1; idx = text.indexOf(q, pos); } }
+        while(walker.nextNode()) { const node = walker.currentNode, text = node.textContent; let pos = 0, idx = text.indexOf(q, pos); while(idx !== -1) { parts.push({node, start:idx, end:idx+q.length}); pos = idx + q.length; idx = text.indexOf(q, pos); } } // v8.7-F13：非重叠匹配（原 pos=idx+1 产生重叠匹配，如 'aaa' 查 'aa' 得 2 处），后续基于旧节点偏移包裹 Range 时偏移失效抛 IndexSizeError
         findTotal = parts.length;
         if(findTotal===0) { const c=$('findCount'); if(c)c.textContent='无结果'; const cur0 = getCurrentBook(); const ch0 = cur0 && cur0.currentChapterId ? cur0.chapters.find(x=>x.id===cur0.currentChapterId) : null; if(conflictVisible && ch0 && ch0.checkResult && ch0.checkResult.length) applyCheckMarks(ch0); return; } // v8.6-r15：无结果也恢复冲突标色
         if(findIndex>=findTotal) findIndex=0;
         // 从尾部循环包裹（避免前置节点位置失效）；surroundContents 可能失败（跨节点/结构），
         // 成功后重新编号（弃用原始 i），保证 data-idx 连续、findTotal 与实际高亮一致
         const highlights = [];
-        for(let i=parts.length-1;i>=0;i--) { const p=parts[i], r=document.createRange(); r.setStart(p.node,p.start); r.setEnd(p.node,p.end); const s=document.createElement('span'); s.className='find-highlight'; try { r.surroundContents(s); highlights.push(s); } catch(_) {} }
+        for(let i=parts.length-1;i>=0;i--) { const p=parts[i]; try { const r=document.createRange(); r.setStart(p.node,p.start); r.setEnd(p.node,p.end); const s=document.createElement('span'); s.className='find-highlight'; r.surroundContents(s); highlights.push(s); } catch(_) {} } // v8.7-F13：Range 创建/设置/环绕全部包 try——偏移失效时跳过该匹配而非抛未捕获 IndexSizeError（原 setStart/setEnd 在 try 外）
         highlights.reverse().forEach((node, idx) => { node.dataset.idx = idx; });
         findTotal = highlights.length;
         if(findIndex>=findTotal && findTotal>0) findIndex=findTotal-1;
@@ -6011,6 +6386,7 @@ ${chapter.content}`;
         // 摘要与经历手动生成按钮（v7.8：合并请求生成摘要+成长）
         const genSummaryBtn = $('genSummaryBtn'); if(genSummaryBtn) genSummaryBtn.onclick = () => {
             // v6.0：摘要生成进行中禁止重复发起（防重复点击浪费 API 费用）
+            if(importPending) { toast('备份导入进行中，请等待完成后再生成摘要'); return; } // v8.10-F011
             if(summaryGenerating) { toast('摘要与经历生成中，请稍候'); return; }
             const book = getCurrentBook(); if(!book || !book.currentChapterId) { toast('请先选择章节'); return; }
             const chap = book.chapters.find(c=>c.id===book.currentChapterId); if(!chap) { toast('未找到章节'); return; }
@@ -6397,7 +6773,7 @@ ${chapter.content}`;
             div.className = `precision-card ${selected ? 'selected' : ''}`;
             div.dataset.name = c.name;
             div.dataset.tags = (c.tags || []).join(','); // v7.7 标签检索
-            div.innerHTML = `<input type="checkbox" data-id="${c.id}" ${selected ? 'checked' : ''}><div class="pc-info"><div class="pc-name">${escapeHtml(c.name)}</div><div class="pc-desc">${escapeHtml((c.appearance||'') + (c.personality ? ' · ' + c.personality : '')).slice(0,35)}</div></div><div class="pc-badge char">角色</div>`;
+            div.innerHTML = `<input type="checkbox" data-id="${escapeHtml(c.id)}" ${selected ? 'checked' : ''}><div class="pc-info"><div class="pc-name">${escapeHtml(c.name)}</div><div class="pc-desc">${escapeHtml((c.appearance||'') + (c.personality ? ' · ' + c.personality : '')).slice(0,35)}</div></div><div class="pc-badge char">角色</div>`;
             div.addEventListener('click', (e) => { if(e.target.tagName !== 'INPUT') { const cb = div.querySelector('input'); cb.checked = !cb.checked; togglePrecisionItem(c.id, 'char', cb.checked); } });
             div.querySelector('input').addEventListener('change', (e) => { togglePrecisionItem(c.id, 'char', e.target.checked); });
             charList.appendChild(div);
@@ -6408,7 +6784,7 @@ ${chapter.content}`;
             div.className = `precision-card ${selected ? 'selected' : ''}`;
             div.dataset.name = a.name;
             div.dataset.tags = (a.tags || []).join(','); // v7.7 标签检索
-            div.innerHTML = `<input type="checkbox" data-id="${a.id}" ${selected ? 'checked' : ''}><div class="pc-info"><div class="pc-name">${escapeHtml(a.name)}</div><div class="pc-desc">${escapeHtml((a.keyPoints||'').slice(0,35))}</div></div><div class="pc-badge action">动作</div>`;
+            div.innerHTML = `<input type="checkbox" data-id="${escapeHtml(a.id)}" ${selected ? 'checked' : ''}><div class="pc-info"><div class="pc-name">${escapeHtml(a.name)}</div><div class="pc-desc">${escapeHtml((a.keyPoints||'').slice(0,35))}</div></div><div class="pc-badge action">动作</div>`;
             div.addEventListener('click', (e) => { if(e.target.tagName !== 'INPUT') { const cb = div.querySelector('input'); cb.checked = !cb.checked; togglePrecisionItem(a.id, 'action', cb.checked); } });
             div.querySelector('input').addEventListener('change', (e) => { togglePrecisionItem(a.id, 'action', e.target.checked); });
             actionList.appendChild(div);
@@ -6419,7 +6795,7 @@ ${chapter.content}`;
             div.className = `precision-card ${selected ? 'selected' : ''}`;
             div.dataset.name = a.name;
             div.dataset.tags = (a.tags || []).join(','); // v7.7 标签检索
-            div.innerHTML = `<input type="checkbox" data-id="${a.id}" ${selected ? 'checked' : ''}><div class="pc-info"><div class="pc-name">${escapeHtml(a.name)}</div><div class="pc-desc">${escapeHtml((a.styleDetail||'').slice(0,35))}</div></div><div class="pc-badge costume">服装</div>`;
+            div.innerHTML = `<input type="checkbox" data-id="${escapeHtml(a.id)}" ${selected ? 'checked' : ''}><div class="pc-info"><div class="pc-name">${escapeHtml(a.name)}</div><div class="pc-desc">${escapeHtml((a.styleDetail||'').slice(0,35))}</div></div><div class="pc-badge costume">服装</div>`;
             div.addEventListener('click', (e) => { if(e.target.tagName !== 'INPUT') { const cb = div.querySelector('input'); cb.checked = !cb.checked; togglePrecisionItem(a.id, 'costume', cb.checked); } });
             div.querySelector('input').addEventListener('change', (e) => { togglePrecisionItem(a.id, 'costume', e.target.checked); });
             costumeList.appendChild(div);
@@ -6950,7 +7326,8 @@ ${chapter.content}`;
     }
 
     function resetAll() {
-        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode) { toast("生成进行中，请等待完成或点击停止后再初始化"); return; }
+        if(importPending) { toast("备份导入进行中，请等待完成后再初始化"); return; } // v8.9-F011：导入读取/提交期间禁止重置（原重置后迟到导入回调可复活已清数据）
+        if(isGenerating || dualPendingChapA || dualPendingChapB || pendingPolish || polishMode || pendingBranch || banterBusy || summaryGenerating || conflictCheckingCount > 0) { toast("生成/走向/吐槽/审稿/摘要/冲突检测进行中，请等待完成或点击停止后再初始化"); return; } // v8.8-F011：补 summaryGenerating/conflictCheckingCount（同族：摘要在途清空数据，返回后费用/结果写回新空状态）；v8.7-F002：补拦 pendingBranch/banterBusy（同族：走向在途清空数据同样会造成响应归属错乱）
         if(!confirm('⚠️ 此操作将清空所有数据（包括所有小说、角色、动作库、API配置、草稿本等），且不可恢复！\n\n建议先点击「备份」导出数据。\n\n确定要继续吗？')) return;
         
         // 清空所有 localStorage 数据
@@ -6966,6 +7343,9 @@ ${chapter.content}`;
         ['role','globalRole','action','costume'].forEach(k => { try { localStorage.removeItem('lib_editor_w_' + k); } catch(e) {} });
         ['charAppearance','charPersonality','charSpecial','charRelation','globalCharAppearance','globalCharPersonality','globalCharSpecial','globalCharRelation','globalActionKeyPoints','globalActionLines','globalActionDescriptionTips','globalCostumeStyle','globalCostumeDescTips'].forEach(tid => { try { localStorage.removeItem('lib_ta_w_' + tid); localStorage.removeItem('lib_ta_h_' + tid); } catch(e) {} });
         ['worldview','plotSet','globalPrompt','writingStyle'].forEach(id => { try { localStorage.removeItem('textarea_'+id); } catch(e) {} });
+        // v8.7-L8：清动态键——关系图右键高亮（graph_hl_<bookId>）与吐槽缓存（banter_cache_v1_*）按前缀枚举删除
+        //（原 coreKeys 为静态清单，漏掉动态键：初始化后同名 bookId 重建书时旧高亮残留复活、缓存残留）
+        { const dynKeys = []; for(let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if(k && (k.startsWith('graph_hl_') || k.startsWith('banter_cache_v1_'))) dynKeys.push(k); } dynKeys.forEach(k => { try { localStorage.removeItem(k); } catch(e) {} }); }
         
         // 重置内存变量
         books = []; currentBookId = null;
@@ -7041,20 +7421,38 @@ ${chapter.content}`;
     function init() {
         try {
             let savedBooks = localStorage.getItem('books_v2');
-            if(savedBooks) books = JSON.parse(savedBooks);
+            if(savedBooks) { const parsed = JSON.parse(savedBooks); books = Array.isArray(parsed) ? parsed : []; } // v8.7-F03：合法 JSON 但非数组（如 {}）不再当有效——原 books.forEach 会因 {} 无 forEach 抛 TypeError 阻断启动（F-03 动态复现）
         } catch(e) {
             console.error("数据解析失败，已重置", e);
             toast("⚠️ 存储数据损坏，已自动重置。如有备份请恢复。");
-            const coreKeys = ['books_v2','currentBookId_v2','api_config_v2','api_config_v3','global_characters_v2','global_actions_v2','global_costumes_v2','custom_tags_v1','sb_draft_v1']; coreKeys.forEach(k => { try { localStorage.removeItem(k); } catch(_) {} }); // v8.6-r4：补清自定义标签库/起书草稿
+            // v8.7-F03/M6：只隔离损坏源 books_v2 与 currentBookId_v2，不连坐删除 API 配置/全局库/草稿等可独立恢复的键（原 coreKeys 全删 → HTML 版 API Key 永久丢失）
+            ['books_v2','currentBookId_v2'].forEach(k => { try { localStorage.removeItem(k); } catch(_) {} });
             books = [];
         }
-        if(!books) books = [];
-        books.forEach(book => { if(!book.characters) book.characters=[]; if(!book.forbiddenWords) book.forbiddenWords=[]; if(book.charSet && !book.worldview) { book.worldview=book.charSet; delete book.charSet; } migrateChapter(book); if(book.chapters) book.chapters.forEach(ch => { if(!ch.checkResult) ch.checkResult=[]; }); });
+        if(!Array.isArray(books)) books = []; // v8.7-F03：双重兜底——parse 合法但非数组时也归零（防后续 forEach 崩溃）
+        // v8.7-F03b：嵌套数据防御——过滤非对象书条目（books:[null] 不再让迁移/初始化崩）；chapters/characters/chatHistory/forbiddenWords 字段级强制数组（chapters:{} 不再抛 forEach）；章元素过滤非对象（复审 F-03 实测复现）
+        books = books.filter(b => b && typeof b === 'object');
+        books.forEach(b => {
+            ['chapters','characters','chatHistory','forbiddenWords'].forEach(f => { if(!Array.isArray(b[f])) b[f] = []; });
+            // v8.7-F03c：嵌套数组元素级过滤——characters:[null] 崩迁移读 c.id、forbiddenWords:[null] 崩渲染读 item.id、chatHistory:[null] 崩渲染读 m.role（复审 F-03c 实测），非对象元素一律丢弃
+            b.characters = b.characters.filter(x => x && typeof x === 'object');
+            b.chatHistory = b.chatHistory.filter(x => x && typeof x === 'object');
+            b.forbiddenWords = b.forbiddenWords.filter(x => x && typeof x === 'object');
+            b.chapters = b.chapters.filter(ch => ch && typeof ch === 'object');
+            b.chapters.forEach(ch => { if(ch.id != null) ch.id = String(ch.id); }); // F12：章 id 字符串化
+            b.characters.forEach(c => { if(c.id != null) c.id = String(c.id); }); // F12：本书角色 id 字符串化
+        });
+        // v8.7-F12：书 ID 统一为字符串——存量数字 ID（如书 id=2）与 currentBookId_v2 字符串 "2" 严格 === 比较失效（重启不恢复该书、试演选角不稳回显）
+        books.forEach(b => { if(b.id != null) b.id = String(b.id); else b.id = uuid(); });
+        if(currentBookId != null) currentBookId = String(currentBookId);
+        books.forEach(book => { if(book.charSet && !book.worldview) { book.worldview=book.charSet; delete book.charSet; } migrateChapter(book); if(book.chapters) book.chapters.forEach(ch => { if(!ch.checkResult) ch.checkResult=[]; }); });
         currentBookId = localStorage.getItem('currentBookId_v2') || (books[0]?.id||null);
-        let savedChars = localStorage.getItem('global_characters_v2'); globalCharacters = savedChars ? (() => { try { return JSON.parse(savedChars); } catch(e) { console.warn("全局角色解析失败", e); return []; } })() : [];
-        let savedActions = localStorage.getItem('global_actions_v2'); globalActions = savedActions ? (() => { try { return JSON.parse(savedActions); } catch(e) { console.warn("全局动作解析失败", e); return []; } })() : [];
-        globalActions.forEach(a => { if(a) delete a.tags; }); // v7.7：动作移除标签（启动彻底清空）
-        let savedCostumes = localStorage.getItem('global_costumes_v2'); globalCostumes = savedCostumes ? (() => { try { return JSON.parse(savedCostumes); } catch(e) { console.warn("全局服装解析失败", e); return []; } })() : [];
+        let savedChars = localStorage.getItem('global_characters_v2'); globalCharacters = savedChars ? (() => { try { const v = JSON.parse(savedChars); return Array.isArray(v) ? v.filter(x => x && typeof x === 'object') : []; } catch(e) { console.warn("全局角色解析失败", e); return []; } })() : []; // v8.7-F03d：全局库元素级过滤（global_characters_v2=[null] 不再让素材库渲染链崩 null.id，v4 复审实测）
+        let savedActions = localStorage.getItem('global_actions_v2'); globalActions = savedActions ? (() => { try { const v = JSON.parse(savedActions); return Array.isArray(v) ? v.filter(x => x && typeof x === 'object') : []; } catch(e) { console.warn("全局动作解析失败", e); return []; } })() : [];
+        globalActions.forEach(a => { if(a) { if(a.id != null) a.id = String(a.id); delete a.tags; } }); // v8.7-F12：动作 id 字符串化；v7.7 移除标签（启动彻底清空）
+        globalCharacters.forEach(c => { if(c && c.id != null) c.id = String(c.id); }); // v8.7-F12：全局角色 id 字符串化（试演/precision 严格比较统一）
+        let savedCostumes = localStorage.getItem('global_costumes_v2'); globalCostumes = savedCostumes ? (() => { try { const v = JSON.parse(savedCostumes); return Array.isArray(v) ? v.filter(x => x && typeof x === 'object') : []; } catch(e) { console.warn("全局服装解析失败", e); return []; } })() : [];
+        globalCostumes.forEach(c => { if(c && c.id != null) c.id = String(c.id); }); // v8.7-F12b：全局服装 id 字符串化必须在本库 parse 赋值之后——原顺序错误（先于 parse 处理旧空数组，新加载服装数字 id 未迁移，复审 F-12 实测复现）
         // v7.9j：老书已有角色/服装标签统一取消高亮（一次性迁移，方便后续批量打标签）
         try {
             if(!localStorage.getItem('tag_clear_v1')) {
