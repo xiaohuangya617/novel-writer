@@ -2025,6 +2025,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if(polishApi.maxTokens===undefined || !Number.isInteger(polishApi.maxTokens) || polishApi.maxTokens<3000 || polishApi.maxTokens>90000) polishApi.maxTokens=50000;
         if(polishApi.reasoning===undefined || ['low','high','max'].indexOf(polishApi.reasoning)<0) polishApi.reasoning='max';
         if(polishApi.ratio===undefined || !Number.isFinite(polishApi.ratio) || polishApi.ratio<20 || polishApi.ratio>90) polishApi.ratio=50;
+        // v8.7 EXE-87-F02 同步修复：审稿/扮演模型名空值兜底——对齐正文模型口径（原空模型可保存成功，同会话请求携带 model:'' 不可用）
+        if(!polishApi.model || !String(polishApi.model).trim()) { toast("审稿模型名称不能为空，已恢复默认"); polishApi.model = 'deepseek-v4-flash'; const pmEl2 = $('polishModelInp'); if(pmEl2) pmEl2.value = polishApi.model; }
+        if(!actApi.model || !String(actApi.model).trim()) { toast("扮演模型名称不能为空，已恢复默认"); actApi.model = 'deepseek-v4-flash'; const amEl2 = $('actModelInp'); if(amEl2) amEl2.value = actApi.model; }
         const reasoningRange2 = $('reasoningRange'); if(reasoningRange2) {
             const levels = ['low','high','max'];
             api.reasoningEffort = levels[parseInt(reasoningRange2.value)] || 'high';
@@ -4022,6 +4025,7 @@ ${chapter.content}`;
         if(isGenerating) { toast("已有生成任务进行中"); return; }
         if(pendingPolish || polishMode) { toast(pendingPolish ? "润色进行中，请先等待完成" : "润色预览中，请先应用或取消"); return; }
         if(pendingBranch) { toast("走向生成中，请稍候"); return; } // v7.3 C3 修复：走向请求期间禁止并发生成
+        if(banterBusy) { toast("吐槽生成中，请等待完成后再发送"); return; } // v8.7 EXE-87-F01 同步修复：吐槽在途禁止启动正文生成（正文/续写会新建或切换当前章，与吐槽"发起时当前章+指纹"的缓存基准冲突）
         if(!ensureCurrentChapterSaved()) return;
         sessionInputChars += instr.length; // v7.9m：本次输入字数累计（正文指令/续写/重写指令均计）
         addDailyInputStats(instr.length); // v8.1：独立存储每日输入字数（清空聊天不影响）
@@ -4573,6 +4577,7 @@ ${chapter.content}`;
         if(isGenerating) { toast("已有生成任务进行中，请等待或点击停止"); return; }
         if(pendingPolish || polishMode) { toast(pendingPolish ? "润色进行中，请先等待完成" : "润色预览中，请先应用或取消"); return; }
         if(pendingBranch) { toast("走向生成中，请稍候"); return; }
+        if(banterBusy) { toast("吐槽生成中，请等待完成后再生成走向"); return; } // v8.7 EXE-87-F01 同步修复：吐槽在途禁止生成走向（走向会跳转/新建章节，与吐槽缓存基准冲突）
         if(!ensureCurrentChapterSaved()) return;
         // v7.8：续写常态锁定——先弹窗确认，确认后才跳转最新章节（v8.6-r14：原逻辑先跳章再确认，取消后不跳回，用户输入落入错误章节）
         if(book.chapters.length) {
@@ -6067,6 +6072,7 @@ ${chapter.content}`;
     // 吐槽请求：独立调用审稿 API（polishApi 参数），单次生成 3 条
     async function generateBanter() {
         if(importPending) { toast('备份导入进行中，请等待完成后再吐槽'); return; } // v8.10-F011
+        if(isGenerating) { toast('正文生成中，请等待完成后再吐槽'); return; } // v8.7 EXE-87-F01 同步修复（反向对称）：正文/续写在途会新建或切换当前章——吐槽与"发起时当前章+指纹"基准双向互斥收口
         const book = getCurrentBook(); if(!book || !book.currentChapterId) { toast('请先选择章节'); return; }
         const chap = book.chapters.find(c => c.id === book.currentChapterId);
         if(!chap || !(chap.content || '').trim()) { toast('本章暂无正文，无法吐槽'); return; }
