@@ -3,7 +3,7 @@
 基于 DeepSeek API 的智能小说创作工具 —— 浏览器单文件 + Electron EXE 双版本，零依赖、免安装、数据全在本地。
 
 [![在线使用](https://img.shields.io/badge/在线使用-点击打开-blue?style=for-the-badge&logo=github)](https://xiaohuangya617.github.io/novel-writer/)
-![版本](https://img.shields.io/badge/版本-v8.6-green?style=for-the-badge)
+![版本](https://img.shields.io/badge/版本-v8.7-green?style=for-the-badge)
 ![许可证](https://img.shields.io/badge/许可证-MIT-orange?style=for-the-badge)
 
 ---
